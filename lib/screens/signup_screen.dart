@@ -196,7 +196,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                   width: 20,
                                   height: 20,
                                   fit: BoxFit.contain,
-                                  placeholderBuilder: (context) =>
+                                  errorBuilder: (context, error, stackTrace) =>
                                       const Icon(Icons.image, size: 20),
                                 ),
                                 onPressed: () {}),
@@ -208,7 +208,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                   width: 20,
                                   height: 20,
                                   fit: BoxFit.contain,
-                                  placeholderBuilder: (context) =>
+                                  errorBuilder: (context, error, stackTrace) =>
                                       const Icon(Icons.code, size: 20),
                                 ),
                                 onPressed: () {}),
@@ -221,7 +221,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                   width: 20,
                                   height: 20,
                                   fit: BoxFit.contain,
-                                  placeholderBuilder: (context) =>
+                                  errorBuilder: (context, error, stackTrace) =>
                                       const Icon(Icons.image, size: 20),
                                 ),
                                 onPressed: () {}),
@@ -233,7 +233,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                   width: 20,
                                   height: 20,
                                   fit: BoxFit.contain,
-                                  placeholderBuilder: (context) =>
+                                  errorBuilder: (context, error, stackTrace) =>
                                       const Icon(Icons.code, size: 20),
                                 ),
                                 onPressed: () {}),
@@ -298,8 +298,6 @@ class _SignupScreenState extends State<SignupScreen> {
       ),
     );
   }
-
-  
 
   Widget _checkbox(String label, bool value, ValueChanged<bool?> onChanged) {
     return Row(children: [

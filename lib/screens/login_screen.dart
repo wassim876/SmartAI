@@ -44,12 +44,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Image.asset(
-                  'images/icon-ai.png',
+                  'assets/images/icon-ai.png',
                   width: 120,
                   height: 100,
                   fit: BoxFit.contain,
                   errorBuilder: (context, error, stackTrace) => Image.asset(
-                    'images/smartai.png',
+                    'assets/images/smartai.png',
                     width: 120,
                     height: 100,
                     fit: BoxFit.contain,
@@ -167,11 +167,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           SocialButton(
                             label: 'Google',
                             iconWidget: SvgPicture.asset(
-                                'images/google-icon-logo-svgrepo-com.svg',
+                                'assets/images/google-icon-logo-svgrepo-com.svg',
                                 width: 20,
                                 height: 20,
                                 fit: BoxFit.contain,
-                                placeholderBuilder: (context) =>
+                                errorBuilder: (context, error, stackTrace) =>
                                     const Icon(Icons.image, size: 20)),
                             onPressed: () {},
                           ),
@@ -179,11 +179,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           SocialButton(
                             label: 'GitHub',
                             iconWidget: SvgPicture.asset(
-                                'images/github-svgrepo-com.svg',
+                                'assets/images/github-svgrepo-com.svg',
                                 width: 20,
                                 height: 20,
                                 fit: BoxFit.contain,
-                                placeholderBuilder: (context) =>
+                                errorBuilder: (context, error, stackTrace) =>
                                     const Icon(Icons.code, size: 20)),
                             onPressed: () {},
                           ),
@@ -192,11 +192,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           SocialButton(
                             label: 'Google',
                             iconWidget: SvgPicture.asset(
-                                'images/google-icon-logo-svgrepo-com.svg',
+                                'assets/images/google-icon-logo-svgrepo-com.svg',
                                 width: 20,
                                 height: 20,
                                 fit: BoxFit.contain,
-                                placeholderBuilder: (context) =>
+                                errorBuilder: (context, error, stackTrace) =>
                                     const Icon(Icons.image, size: 20)),
                             onPressed: () {},
                           ),
@@ -204,11 +204,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           SocialButton(
                             label: 'GitHub',
                             iconWidget: SvgPicture.asset(
-                                'images/github-svgrepo-com.svg',
+                                'assets/images/github-svgrepo-com.svg',
                                 width: 20,
                                 height: 20,
                                 fit: BoxFit.contain,
-                                placeholderBuilder: (context) =>
+                                errorBuilder: (context, error, stackTrace) =>
                                     const Icon(Icons.code, size: 20)),
                             onPressed: () {},
                           ),
