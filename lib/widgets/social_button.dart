@@ -16,24 +16,21 @@ class SocialButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: OutlinedButton.icon(
-        onPressed: onPressed,
-        icon: SizedBox(width: 20, height: 20, child: iconWidget),
-        label: Text(
-          label,
-          style: GoogleFonts.poppins(
-              fontSize: 13,
-              color: AppColors.textDark,
-              fontWeight: FontWeight.w500),
-        ),
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 13),
-          side: const BorderSide(color: AppColors.inputBorder),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          backgroundColor: AppColors.white,
-        ),
+    return OutlinedButton.icon(
+      onPressed: onPressed,
+      icon: SizedBox(width: 20, height: 20, child: iconWidget),
+      label: Text(
+        label,
+        style: GoogleFonts.poppins(
+            fontSize: 13,
+            color: AppColors.textDark,
+            fontWeight: FontWeight.w500),
+      ),
+      style: OutlinedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 13),
+        side: const BorderSide(color: AppColors.inputBorder),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        backgroundColor: AppColors.white,
       ),
     );
   }
