@@ -26,7 +26,8 @@ class _SignupScreenState extends State<SignupScreen> {
     Widget headerSection() {
       return Container(
         width: isWide ? size.width * 0.35 : double.infinity,
-        height: isWide ? size.height : 260,
+        height: isWide ? size.height : null,
+        constraints: const BoxConstraints(minHeight: 200),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFF1A1464), Color(0xFF3B2FD8)],
@@ -35,47 +36,51 @@ class _SignupScreenState extends State<SignupScreen> {
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Image.asset(
-                  'assets/images/icon-ai.png',
-                  width: 120,
-                  height: 100,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => Image.asset(
-                    'assets/images/smartai.png',
-                    width: 120,
-                    height: 100,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: SingleChildScrollView(
+            physics: const NeverScrollableScrollPhysics(),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Image.asset(
+                    'assets/images/icon-ai.png',
+                    width: 90,
+                    height: 80,
                     fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => Image.asset(
+                      'assets/images/smartai.png',
+                      width: 90,
+                      height: 80,
+                      fit: BoxFit.contain,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 14),
-              Text('SmartAI',
-                  style: GoogleFonts.poppins(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white)),
-              const SizedBox(height: 14),
-              Text('Join SmartAI',
-                  style: GoogleFonts.poppins(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white)),
-              const SizedBox(height: 8),
-              Text('Your AI journey starts here',
-                  textAlign: TextAlign.center,
-                  style:
-                      GoogleFonts.poppins(fontSize: 14, color: Colors.white70)),
-            ],
+                const SizedBox(height: 10),
+                Text('SmartAI',
+                    style: GoogleFonts.poppins(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white)),
+                const SizedBox(height: 8),
+                Text('Join SmartAI',
+                    style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white)),
+                const SizedBox(height: 6),
+                Text('Your AI journey starts here',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                        fontSize: 13, color: Colors.white70)),
+              ],
+            ),
           ),
         ),
       );
@@ -87,9 +92,8 @@ class _SignupScreenState extends State<SignupScreen> {
         width: double.infinity,
         child: Center(
           child: ScrollConfiguration(
-            // 👈 ADDED
             behavior: ScrollConfiguration.of(context).copyWith(
-              scrollbars: false, // 👈 HIDES SCROLLBAR
+              scrollbars: false,
             ),
             child: SingleChildScrollView(
               padding:
