@@ -12,7 +12,7 @@ class UserGrowthChart extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
+            const Text(
               'User Growth',
               style: TextStyle(
                 fontSize: 16,
@@ -37,9 +37,8 @@ class UserGrowthChart extends StatelessWidget {
             ),
           ],
         ),
-        SizedBox(height: 20),
-        Container(
-          height: 250,
+        const SizedBox(height: 20),
+        Expanded(
           child: LineChart(
             LineChartData(
               gridData: FlGridData(

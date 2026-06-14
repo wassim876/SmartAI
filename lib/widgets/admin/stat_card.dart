@@ -50,6 +50,8 @@ class StatCard extends StatelessWidget {
               children: [
                 Text(
                   title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: Colors.grey[600],
                     fontSize: 12,
@@ -58,6 +60,8 @@ class StatCard extends StatelessWidget {
                 SizedBox(height: 4),
                 Text(
                   value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -72,21 +76,27 @@ class StatCard extends StatelessWidget {
                       size: 12,
                       color: Colors.green,
                     ),
-                    SizedBox(width: 2),
-                    Text(
-                      growth,
-                      style: TextStyle(
-                        color: Colors.green,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                    const SizedBox(width: 2),
+                    Flexible(
+                      child: Text(
+                        growth,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.green,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                    SizedBox(width: 4),
-                    Text(
-                      growthType,
-                      style: TextStyle(
-                        color: Colors.grey[500],
-                        fontSize: 10,
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        growthType,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.grey[500],
+                          fontSize: 10,
+                        ),
                       ),
                     ),
                   ],

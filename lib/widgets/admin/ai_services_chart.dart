@@ -9,16 +9,15 @@ class AIServicesChart extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'AI Services Usage',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(height: 20),
-        Container(
-          height: 200,
+        const SizedBox(height: 10),
+        Expanded(
           child: PieChart(
             PieChartData(
               sectionsSpace: 2,
@@ -27,7 +26,7 @@ class AIServicesChart extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 10),
         _buildLegend(),
       ],
     );
