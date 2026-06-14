@@ -40,25 +40,29 @@ class AdminDashboard extends StatelessWidget {
                   ),
                 ],
               ),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.calendar_today,
-                        size: 16, color: Colors.grey[600]),
-                    SizedBox(width: 8),
-                    Text(
-                      'May 15, 2024 - Jun 15, 2024',
-                      style: TextStyle(color: Colors.grey[700]),
-                    ),
-                    Icon(Icons.keyboard_arrow_down,
-                        size: 16, color: Colors.grey[600]),
-                  ],
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.calendar_today,
+                          size: 16, color: Colors.grey[600]),
+                      SizedBox(width: 8),
+                      Text(
+                        'May 15, 2024 - Jun 15, 2024',
+                        style: TextStyle(color: Colors.grey[700]),
+                      ),
+                      SizedBox(width: 4),
+                      Icon(Icons.keyboard_arrow_down,
+                          size: 16, color: Colors.grey[600]),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -67,47 +71,64 @@ class AdminDashboard extends StatelessWidget {
           const SizedBox(height: 32),
 
           // Stats Cards
-          GridView.count(
-            crossAxisCount: 4,
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 16,
-            childAspectRatio: 2.2,
-            children: [
-              StatCard(
-                icon: Icons.people,
-                iconColor: Colors.blue,
-                title: 'Total Users',
-                value: '12,450',
-                growth: '+12.5%',
-                growthType: 'vs last month',
-              ),
-              StatCard(
-                icon: Icons.chat_bubble,
-                iconColor: Colors.green,
-                title: 'Total Conversations',
-                value: '45,780',
-                growth: '+18.2%',
-                growthType: 'vs last month',
-              ),
-              StatCard(
-                icon: Icons.attach_money,
-                iconColor: Colors.amber,
-                title: 'Total Revenue',
-                value: '\$24,780',
-                growth: '+15.3%',
-                growthType: 'vs last month',
-              ),
-              StatCard(
-                icon: Icons.trending_up,
-                iconColor: Colors.indigo,
-                title: 'AI Requests',
-                value: '98,320',
-                growth: '+20.1%',
-                growthType: 'vs last month',
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final crossAxisCount = constraints.maxWidth > 1100
+                  ? 5
+                  : constraints.maxWidth > 700
+                      ? 3
+                      : 1;
+              return GridView.count(
+                crossAxisCount: crossAxisCount,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                childAspectRatio: 1.9,
+                children: const [
+                  StatCard(
+                    icon: Icons.people,
+                    iconColor: Colors.blue,
+                    title: 'Total Users',
+                    value: '12,450',
+                    growth: '+12.5%',
+                    growthType: 'vs last month',
+                  ),
+                  StatCard(
+                    icon: Icons.chat_bubble,
+                    iconColor: Colors.green,
+                    title: 'Total Conversations',
+                    value: '45,780',
+                    growth: '+18.2%',
+                    growthType: 'vs last month',
+                  ),
+                  StatCard(
+                    icon: Icons.attach_money,
+                    iconColor: Colors.amber,
+                    title: 'Total Revenue',
+                    value: '\$24,780',
+                    growth: '+15.3%',
+                    growthType: 'vs last month',
+                  ),
+                  StatCard(
+                    icon: Icons.trending_up,
+                    iconColor: Colors.indigo,
+                    title: 'AI Requests',
+                    value: '98,320',
+                    growth: '+20.1%',
+                    growthType: 'vs last month',
+                  ),
+                  StatCard(
+                    icon: Icons.pie_chart,
+                    iconColor: Colors.purple,
+                    title: 'Success Rate',
+                    value: '99.2%',
+                    growth: '+2.1%',
+                    growthType: 'vs last month',
+                  ),
+                ],
+              );
+            },
           ),
 
           const SizedBox(height: 32),

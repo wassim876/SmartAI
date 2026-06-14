@@ -32,15 +32,19 @@ class UserManagementScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              ElevatedButton.icon(
-                onPressed: () {
-                  // Add user logic here
-                },
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('Add New User'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF5A4FCF),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    // Add user logic here
+                  },
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Add New User'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF5A4FCF),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
                 ),
               ),
             ],
@@ -141,8 +145,14 @@ class UserManagementScreen extends StatelessWidget {
             flex: 1,
             child: Row(
               children: [
-                IconButton(icon: const Icon(Icons.visibility, size: 18, color: Colors.grey), onPressed: () {}),
-                IconButton(icon: const Icon(Icons.more_vert, size: 18, color: Colors.grey), onPressed: () {}),
+                MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: IconButton(icon: const Icon(Icons.visibility, size: 18, color: Colors.grey), onPressed: () {}),
+                ),
+                MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: IconButton(icon: const Icon(Icons.more_vert, size: 18, color: Colors.grey), onPressed: () {}),
+                ),
               ],
             ),
           ),
