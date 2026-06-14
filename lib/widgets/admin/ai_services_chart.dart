@@ -21,11 +21,13 @@ class AIServicesChart extends StatelessWidget {
           child: Center(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final double chartSize = constraints.maxWidth;
+                // Safety clamp to prevent 0 or infinite size crashes
+                final double chartSize =
+                    constraints.maxWidth.isFinite ? constraints.maxWidth : 200;
                 return PieChart(
                   PieChartData(
                     sectionsSpace: 2,
-                    centerSpaceRadius: chartSize * 0.12, // Adjusted for mobile
+                    centerSpaceRadius: (chartSize * 0.12).clamp(10, 40),
                     sections: showingSections(chartSize),
                   ),
                 );

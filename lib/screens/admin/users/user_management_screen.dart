@@ -11,8 +11,11 @@ class UserManagementScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 16,
+            runSpacing: 12,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,14 +46,15 @@ class UserManagementScreen extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF5A4FCF),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                   ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 24),
-          
+
           // Users Table
           Container(
             decoration: BoxDecoration(
@@ -83,32 +87,68 @@ class UserManagementScreen extends StatelessWidget {
                   ),
                 ),
                 const Divider(height: 1),
-                
-                // Table Header
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
-                    children: [
-                      Expanded(flex: 3, child: Text('USER', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey[600]))),
-                      Expanded(flex: 3, child: Text('EMAIL', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey[600]))),
-                      Expanded(flex: 2, child: Text('JOINED DATE', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey[600]))),
-                      Expanded(flex: 1, child: Text('STATUS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey[600]))),
-                      Expanded(flex: 1, child: Text('ACTIONS', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey[600]))),
-                    ],
+
+                // Scrollable Table Content
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: SizedBox(
+                    width: 1000, // Explicit width fixes the 'Expanded' crash
+                    child: Column(
+                      children: [
+                        // Table Header
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          child: Row(
+                            children: [
+                              Expanded(flex: 3, child: _tableHeader('USER')),
+                              Expanded(flex: 3, child: _tableHeader('EMAIL')),
+                              Expanded(
+                                  flex: 2, child: _tableHeader('JOINED DATE')),
+                              Expanded(flex: 1, child: _tableHeader('STATUS')),
+                              Expanded(flex: 1, child: _tableHeader('ACTIONS')),
+                            ],
+                          ),
+                        ),
+                        const Divider(height: 1),
+                        _buildUserRow(
+                            'Sarah Johnson',
+                            'sarah.johnson@email.com',
+                            'Jun 15, 2024',
+                            'Active'),
+                        _buildUserRow(
+                            'Michael Brown',
+                            'michael.brown@email.com',
+                            'Jun 15, 2024',
+                            'Active'),
+                        _buildUserRow('Emily Davis', 'emily.davis@email.com',
+                            'Jun 14, 2024', 'Inactive'),
+                        _buildUserRow('David Wilson', 'david.wilson@email.com',
+                            'Jun 14, 2024', 'Active'),
+                        _buildUserRow(
+                            'Jessica Miller',
+                            'jessica.miller@email.com',
+                            'Jun 13, 2024',
+                            'Active'),
+                      ],
+                    ),
                   ),
                 ),
-                const Divider(height: 1),
-
-                // Table Rows (Dummy Data for now)
-                _buildUserRow('Sarah Johnson', 'sarah.johnson@email.com', 'Jun 15, 2024', 'Active'),
-                _buildUserRow('Michael Brown', 'michael.brown@email.com', 'Jun 15, 2024', 'Active'),
-                _buildUserRow('Emily Davis', 'emily.davis@email.com', 'Jun 14, 2024', 'Inactive'),
-                _buildUserRow('David Wilson', 'david.wilson@email.com', 'Jun 14, 2024', 'Active'),
-                _buildUserRow('Jessica Miller', 'jessica.miller@email.com', 'Jun 13, 2024', 'Active'),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _tableHeader(String text) {
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.bold,
+        color: Colors.grey[600],
       ),
     );
   }
@@ -119,15 +159,28 @@ class UserManagementScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          Expanded(flex: 3, child: Text(name, style: const TextStyle(fontWeight: FontWeight.w500))),
-          Expanded(flex: 3, child: Text(email, style: TextStyle(color: Colors.grey[600]))),
-          Expanded(flex: 2, child: Text(date, style: TextStyle(color: Colors.grey[600]))),
+          Expanded(
+              flex: 3,
+              child: Text(name,
+                  style: const TextStyle(fontWeight: FontWeight.w500))),
+          Expanded(
+              flex: 3,
+              child: Text(
+                email,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: Colors.grey[600]),
+              )),
+          Expanded(
+              flex: 2,
+              child: Text(date, style: TextStyle(color: Colors.grey[600]))),
           Expanded(
             flex: 1,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: isActive ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                color: isActive
+                    ? Colors.green.withOpacity(0.1)
+                    : Colors.red.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -147,11 +200,17 @@ class UserManagementScreen extends StatelessWidget {
               children: [
                 MouseRegion(
                   cursor: SystemMouseCursors.click,
-                  child: IconButton(icon: const Icon(Icons.visibility, size: 18, color: Colors.grey), onPressed: () {}),
+                  child: IconButton(
+                      icon: const Icon(Icons.visibility,
+                          size: 18, color: Colors.grey),
+                      onPressed: () {}),
                 ),
                 MouseRegion(
                   cursor: SystemMouseCursors.click,
-                  child: IconButton(icon: const Icon(Icons.more_vert, size: 18, color: Colors.grey), onPressed: () {}),
+                  child: IconButton(
+                      icon: const Icon(Icons.more_vert,
+                          size: 18, color: Colors.grey),
+                      onPressed: () {}),
                 ),
               ],
             ),

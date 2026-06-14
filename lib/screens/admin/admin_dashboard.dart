@@ -65,12 +65,10 @@ class AdminDashboard extends StatelessWidget {
                                 Icon(Icons.calendar_today,
                                     size: 16, color: Colors.grey[600]),
                                 const SizedBox(width: 8),
-                                Flexible(
-                                  child: Text(
-                                    'May 15, 2024 - Jun 15, 2024',
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(color: Colors.grey[700]),
-                                  ),
+                                Text(
+                                  'May 15, 2024 - Jun 15, 2024',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(color: Colors.grey[700]),
                                 ),
                                 const SizedBox(width: 4),
                                 Icon(Icons.keyboard_arrow_down,

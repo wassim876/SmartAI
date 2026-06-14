@@ -151,8 +151,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   (v) => setState(() => _twoFactorAuth = v),
                 ),
                 const Divider(height: 32),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 16,
+                  runSpacing: 12,
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
