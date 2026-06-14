@@ -70,15 +70,19 @@ class UserGrowthChart extends StatelessWidget {
                     interval: 1,
                     getTitlesWidget: (value, meta) {
                       if (value.toInt() % 5 == 0) {
-                        return Text(
-                          '${value.toInt()}',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 10,
+                        return SideTitleWidget(
+                          axisSide: meta.axisSide,
+                          space: 4,
+                          child: Text(
+                            '${value.toInt()}',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 10,
+                            ),
                           ),
                         );
                       }
-                      return SizedBox();
+                      return const SizedBox();
                     },
                   ),
                 ),
@@ -87,11 +91,15 @@ class UserGrowthChart extends StatelessWidget {
                     showTitles: true,
                     interval: 1,
                     getTitlesWidget: (value, meta) {
-                      return Text(
-                        '${value.toInt()}',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 10,
+                      return SideTitleWidget(
+                        axisSide: meta.axisSide,
+                        space: 8,
+                        child: Text(
+                          '${value.toInt()}',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 10,
+                          ),
                         ),
                       );
                     },

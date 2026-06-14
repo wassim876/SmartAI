@@ -11,8 +11,11 @@ class NotificationsScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 16,
+            runSpacing: 12,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -32,12 +35,10 @@ class NotificationsScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              MouseRegion(
-                cursor: SystemMouseCursors.click,
-                child: TextButton(
-                  onPressed: () {},
-                  child: const Text('Mark all as read'),
-                ),
+              TextButton(
+                onPressed: () {},
+                style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                child: const Text('Mark all as read'),
               ),
             ],
           ),
@@ -131,7 +132,9 @@ class NotificationsScreen extends StatelessWidget {
       child: InkWell(
         onTap: () {},
         child: Container(
-          color: unread ? const Color(0xFF5A4FCF).withOpacity(0.04) : Colors.transparent,
+          color: unread
+              ? const Color(0xFF5A4FCF).withOpacity(0.04)
+              : Colors.transparent,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Row(
             children: [
@@ -148,14 +151,19 @@ class NotificationsScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                    Text(title,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w600, fontSize: 14)),
                     const SizedBox(height: 4),
-                    Text(subtitle, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                    Text(subtitle,
+                        style:
+                            TextStyle(color: Colors.grey[600], fontSize: 12)),
                   ],
                 ),
               ),
               const SizedBox(width: 12),
-              Text(time, style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+              Text(time,
+                  style: TextStyle(color: Colors.grey[500], fontSize: 12)),
               if (unread) ...[
                 const SizedBox(width: 12),
                 Container(

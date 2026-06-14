@@ -71,17 +71,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   if (isWide) {
                     return Column(
                       children: [
-                        Row(children: [Expanded(child: fields[0]), const SizedBox(width: 16), Expanded(child: fields[1])]),
+                        Row(children: [
+                          Expanded(child: fields[0]),
+                          const SizedBox(width: 16),
+                          Expanded(child: fields[1])
+                        ]),
                         const SizedBox(height: 16),
-                        Row(children: [Expanded(child: fields[2]), const SizedBox(width: 16), Expanded(child: fields[3])]),
+                        Row(children: [
+                          Expanded(child: fields[2]),
+                          const SizedBox(width: 16),
+                          Expanded(child: fields[3])
+                        ]),
                       ],
                     );
                   }
                   return Column(
                     children: [
-                      fields[0], const SizedBox(height: 16),
-                      fields[1], const SizedBox(height: 16),
-                      fields[2], const SizedBox(height: 16),
+                      fields[0],
+                      const SizedBox(height: 16),
+                      fields[1],
+                      const SizedBox(height: 16),
+                      fields[2],
+                      const SizedBox(height: 16),
                       fields[3],
                     ],
                   );
@@ -94,7 +105,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF5A4FCF),
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
                     ),
                     child: const Text('Save Changes'),
                   ),
@@ -145,9 +157,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Change Password', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+                        const Text('Change Password',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w500, fontSize: 14)),
                         const SizedBox(height: 4),
-                        Text('Update your account password', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                        Text('Update your account password',
+                            style: TextStyle(
+                                color: Colors.grey[600], fontSize: 12)),
                       ],
                     ),
                     MouseRegion(
@@ -180,37 +196,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _sectionCard(
             title: 'Danger Zone',
             titleColor: Colors.red,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Log out of all devices', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
-                    const SizedBox(height: 4),
-                    Text('Sign out from all active sessions', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-                  ],
-                ),
-                MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.red),
-                    ),
-                    child: const Text('Log out everywhere'),
+            child: LayoutBuilder(builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 450;
+              return Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 16,
+                runSpacing: 12,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Log out of all devices',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w500, fontSize: 14)),
+                      const SizedBox(height: 4),
+                      Text('Sign out from all active sessions',
+                          style:
+                              TextStyle(color: Colors.grey[600], fontSize: 12)),
+                    ],
                   ),
-                ),
-              ],
-            ),
+                  SizedBox(
+                    width: isNarrow ? double.infinity : null,
+                    child: OutlinedButton(
+                      onPressed: () {},
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        side: const BorderSide(color: Colors.red),
+                      ),
+                      child: const Text('Log out everywhere'),
+                    ),
+                  ),
+                ],
+              );
+            }),
           ),
         ],
       ),
     );
   }
 
-  Widget _sectionCard({required String title, required Widget child, Color? titleColor}) {
+  Widget _sectionCard(
+      {required String title, required Widget child, Color? titleColor}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -247,7 +274,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.grey[700])),
+        Text(label,
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[700])),
         const SizedBox(height: 6),
         TextField(
           enabled: enabled,
@@ -265,7 +296,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _switchRow(String title, String subtitle, bool value, ValueChanged<bool> onChanged) {
+  Widget _switchRow(
+      String title, String subtitle, bool value, ValueChanged<bool> onChanged) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -273,9 +305,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+              Text(title,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w500, fontSize: 14)),
               const SizedBox(height: 4),
-              Text(subtitle, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+              Text(subtitle,
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12)),
             ],
           ),
         ),

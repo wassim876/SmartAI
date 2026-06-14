@@ -12,7 +12,7 @@ class AdminDashboard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -46,35 +46,42 @@ class AdminDashboard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey[300]!),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.calendar_today,
-                                size: 16, color: Colors.grey[600]),
-                            const SizedBox(width: 8),
-                            Flexible(
-                              child: Text(
-                                'May 15, 2024 - Jun 15, 2024',
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(color: Colors.grey[700]),
-                              ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey[300]!),
                             ),
-                            const SizedBox(width: 4),
-                            Icon(Icons.keyboard_arrow_down,
-                                size: 16, color: Colors.grey[600]),
-                          ],
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.calendar_today,
+                                    size: 16, color: Colors.grey[600]),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    'May 15, 2024 - Jun 15, 2024',
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(color: Colors.grey[700]),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(Icons.keyboard_arrow_down,
+                                    size: 16, color: Colors.grey[600]),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        _buildNotificationBadge(context),
+                      ],
                     ),
                   ],
                 );
@@ -91,12 +98,11 @@ class AdminDashboard extends StatelessWidget {
                     : constraints.maxWidth > 700
                         ? 3
                         : 1;
-                // Fixed: Adjusted ratios to prevent vertical overflow (the 3.6px error)
                 final double childAspectRatio = constraints.maxWidth > 1100
                     ? 1.9
                     : constraints.maxWidth > 700
-                        ? 1.5 // Provides more height for 3-column layout
-                        : 2.2; // Provides more height for mobile 1-column layout
+                        ? 1.4
+                        : 2.2; // Slightly taller cards for mobile text scaling
                 return GridView.count(
                   crossAxisCount: crossAxisCount,
                   shrinkWrap: true,
@@ -175,9 +181,9 @@ class AdminDashboard extends StatelessWidget {
               } else {
                 return Column(
                   children: [
-                    _buildChartBox(UserGrowthChart(), height: 300),
+                    _buildChartBox(UserGrowthChart(), height: 350),
                     const SizedBox(height: 16),
-                    _buildChartBox(AIServicesChart(), height: 300),
+                    _buildChartBox(AIServicesChart(), height: 380),
                     const SizedBox(height: 16),
                     _buildChartBox(RecentActivityList(), height: 400),
                   ],
@@ -241,10 +247,37 @@ class AdminDashboard extends StatelessWidget {
     );
   }
 
+  Widget _buildNotificationBadge(BuildContext context) {
+    return Stack(
+      children: [
+        IconButton(
+          icon: Icon(Icons.notifications_none_rounded, color: Colors.grey[700]),
+          onPressed: () => Navigator.pushNamed(context, '/admin/notifications'),
+        ),
+        Positioned(
+          right: 12,
+          top: 12,
+          child: Container(
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              color: Colors.red,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 1.5),
+            ),
+            constraints: const BoxConstraints(
+              minWidth: 10,
+              minHeight: 10,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildChartBox(Widget child, {required double height}) {
     return Container(
       height: height,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -297,18 +330,21 @@ class AdminDashboard extends StatelessWidget {
             ],
           ),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          decoration: BoxDecoration(
-            color: statusColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            status,
-            style: TextStyle(
-              color: statusColor,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+        Flexible(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: statusColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              status,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: statusColor,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ),

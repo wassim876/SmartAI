@@ -18,11 +18,18 @@ class AIServicesChart extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         Expanded(
-          child: PieChart(
-            PieChartData(
-              sectionsSpace: 2,
-              centerSpaceRadius: 40,
-              sections: showingSections(),
+          child: Center(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final double chartSize = constraints.maxWidth;
+                return PieChart(
+                  PieChartData(
+                    sectionsSpace: 2,
+                    centerSpaceRadius: chartSize * 0.12, // Adjusted for mobile
+                    sections: showingSections(chartSize),
+                  ),
+                );
+              },
             ),
           ),
         ),
@@ -32,15 +39,16 @@ class AIServicesChart extends StatelessWidget {
     );
   }
 
-  List<PieChartSectionData> showingSections() {
+  List<PieChartSectionData> showingSections(double chartSize) {
+    final double radius = chartSize * 0.18;
     return [
       PieChartSectionData(
         color: Colors.blue,
         value: 40,
         title: '40%',
-        radius: 50,
+        radius: radius,
         titleStyle: TextStyle(
-          fontSize: 12,
+          fontSize: chartSize < 200 ? 10 : 12,
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),
@@ -49,9 +57,9 @@ class AIServicesChart extends StatelessWidget {
         color: Colors.green,
         value: 30,
         title: '30%',
-        radius: 50,
+        radius: radius,
         titleStyle: TextStyle(
-          fontSize: 12,
+          fontSize: chartSize < 200 ? 10 : 12,
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),
@@ -60,9 +68,9 @@ class AIServicesChart extends StatelessWidget {
         color: Colors.orange,
         value: 20,
         title: '20%',
-        radius: 50,
+        radius: radius,
         titleStyle: TextStyle(
-          fontSize: 12,
+          fontSize: chartSize < 200 ? 10 : 12,
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),
@@ -71,9 +79,9 @@ class AIServicesChart extends StatelessWidget {
         color: Colors.purple,
         value: 10,
         title: '10%',
-        radius: 50,
+        radius: radius,
         titleStyle: TextStyle(
-          fontSize: 12,
+          fontSize: chartSize < 200 ? 10 : 12,
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),
@@ -82,21 +90,21 @@ class AIServicesChart extends StatelessWidget {
   }
 
   Widget _buildLegend() {
-    return Column(
+    return Wrap(
+      spacing: 12,
+      runSpacing: 8,
       children: [
-        _buildLegendItem(Colors.blue, 'Chat Assistant', '40%'),
-        SizedBox(height: 8),
-        _buildLegendItem(Colors.green, 'Image Generation', '30%'),
-        SizedBox(height: 8),
-        _buildLegendItem(Colors.orange, 'Text Analysis', '20%'),
-        SizedBox(height: 8),
-        _buildLegendItem(Colors.purple, 'Other', '10%'),
+        _buildLegendItem(Colors.blue, 'Assistant'),
+        _buildLegendItem(Colors.green, 'Images'),
+        _buildLegendItem(Colors.orange, 'Text AI'),
+        _buildLegendItem(Colors.purple, 'Other'),
       ],
     );
   }
 
-  Widget _buildLegendItem(Color color, String label, String percentage) {
+  Widget _buildLegendItem(Color color, String label) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           width: 12,
@@ -106,19 +114,10 @@ class AIServicesChart extends StatelessWidget {
             shape: BoxShape.circle,
           ),
         ),
-        SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(fontSize: 12),
-          ),
-        ),
+        const SizedBox(width: 8),
         Text(
-          percentage,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-          ),
+          label,
+          style: const TextStyle(fontSize: 11, color: Colors.black87),
         ),
       ],
     );
