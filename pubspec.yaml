@@ -13,6 +13,8 @@ dependencies:
   flutter_svg: ^2.0.9
   http: ^1.2.0
   shared_preferences: ^2.2.2
+  cupertino_icons: ^1.0.2
+  fl_chart: ^0.69.0
 
 dev_dependencies:
   flutter_lints: ^6.0.0
@@ -22,7 +24,11 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/images/android-icon.png"
-
+# admin panel
+  fl_chart: ^0.69.0  # For charts and graphs
+  provider: ^6.1.1   # State management
+  intl: ^0.19.0      # For date formatting
+  flutter_slidable: ^3.1.0  # For swipe actions
 flutter:
   uses-material-design: true
   assets:
