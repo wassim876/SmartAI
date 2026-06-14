@@ -7,6 +7,8 @@ import '../widgets/primary_button.dart';
 import '../widgets/social_button.dart';
 import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
+import 'admin/admin_dashboard.dart';
+import 'admin/admin_layout.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,6 +18,53 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  void _handleLogin() {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    // Basic validation
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter email and password'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Check if admin (simple check by email)
+    if (email == 'admin@smartai.com' && password == 'admin123') {
+      // Navigate to admin dashboard
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const AdminLayout(child: AdminDashboard()),
+        ),
+      );
+    } else {
+      // Navigate to regular user home screen
+      // TODO: Replace with your actual home screen
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Welcome, User! (Navigate to your home screen here)'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      // Example: Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -115,10 +164,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       fontWeight: FontWeight.w500,
                       color: AppColors.textDark)),
               const SizedBox(height: 8),
-              const CustomTextField(
+              CustomTextField(
                 hint: 'Enter your email',
                 prefixIcon: Icons.mail_outline_rounded,
                 keyboardType: TextInputType.emailAddress,
+                controller: _emailController,
               ),
               const SizedBox(height: 16),
               Text('Password',
@@ -127,10 +177,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       fontWeight: FontWeight.w500,
                       color: AppColors.textDark)),
               const SizedBox(height: 8),
-              const CustomTextField(
+              CustomTextField(
                 hint: 'Enter your password',
                 prefixIcon: Icons.lock_outline_rounded,
                 isPassword: true,
+                controller: _passwordController,
               ),
               const SizedBox(height: 10),
               Align(
@@ -154,7 +205,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              PrimaryButton(label: 'Login', onPressed: () {}),
+              PrimaryButton(label: 'Login', onPressed: _handleLogin),
               const SizedBox(height: 24),
               Row(children: [
                 const Expanded(child: Divider()),
