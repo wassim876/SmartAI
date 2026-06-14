@@ -144,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     Widget formSection() {
       return SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: formPadding, vertical: 32),
+        padding: EdgeInsets.symmetric(horizontal: formPadding, vertical: 16),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 520),
           child: Column(

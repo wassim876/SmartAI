@@ -91,8 +91,12 @@ class AdminDashboard extends StatelessWidget {
                     : constraints.maxWidth > 700
                         ? 3
                         : 1;
-                final double childAspectRatio =
-                    constraints.maxWidth > 1100 ? 1.9 : 2.5;
+                // Fixed: Adjusted ratios to prevent vertical overflow (the 3.6px error)
+                final double childAspectRatio = constraints.maxWidth > 1100
+                    ? 1.9
+                    : constraints.maxWidth > 700
+                        ? 1.5 // Provides more height for 3-column layout
+                        : 2.2; // Provides more height for mobile 1-column layout
                 return GridView.count(
                   crossAxisCount: crossAxisCount,
                   shrinkWrap: true,

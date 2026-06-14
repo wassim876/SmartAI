@@ -32,7 +32,7 @@ class _AdminLayoutState extends State<AdminLayout> {
           Expanded(
             child: Container(
               color: Colors.grey[100],
-              child: widget.child,
+              child: SafeArea(child: widget.child),
             ),
           ),
         ],
