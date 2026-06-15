@@ -113,10 +113,16 @@ class _LoginScreenState extends State<LoginScreen> {
               width: 90,
               height: 80,
               fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => const Icon(
-                Icons.smart_toy_outlined,
-                size: 70,
-                color: Colors.white,
+              errorBuilder: (context, error, stackTrace) => Image.asset(
+                'assets/images/smartai.png',
+                width: 90,
+                height: 80,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                  Icons.smart_toy_outlined,
+                  size: 70,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
@@ -156,11 +162,11 @@ class _LoginScreenState extends State<LoginScreen> {
     Widget googleButton = SocialButton(
       label: 'Google',
       iconWidget: SvgPicture.asset(
-        'assets/images/google.svg',
+        'assets/images/google-icon-logo-svgrepo-com.svg',
         width: 20,
         height: 20,
         errorBuilder: (context, error, stackTrace) =>
-            const Icon(Icons.login, size: 20),
+            const Icon(Icons.account_circle, size: 20),
       ),
       onPressed: () {},
     );
@@ -168,7 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
     Widget githubButton = SocialButton(
       label: 'GitHub',
       iconWidget: SvgPicture.asset(
-        'assets/images/github.svg',
+        'assets/images/github-svgrepo-com.svg',
         width: 20,
         height: 20,
         errorBuilder: (context, error, stackTrace) =>

@@ -93,14 +93,7 @@ class _SignupScreenState extends State<SignupScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               GestureDetector(
-                onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const LoginScreen(),
-                    ),
-                  );
-                },
+                onTap: () => Navigator.pop(context),
                 child: const Icon(Icons.arrow_back_rounded,
                     color: AppColors.textDark),
               ),
@@ -247,14 +240,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       style: GoogleFonts.poppins(
                           fontSize: 14, color: AppColors.textGrey)),
                   GestureDetector(
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LoginScreen(),
-                        ),
-                      );
-                    },
+                    onTap: () => Navigator.pop(context),
                     child: Text(
                       'Login',
                       style: GoogleFonts.poppins(
