@@ -9,6 +9,7 @@ import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
 import 'admin/admin_dashboard.dart';
 import 'admin/admin_layout.dart';
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -20,8 +21,12 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  
+  // Add these
+  final AuthService _authService = AuthService();
+  bool _isLoading = false;
 
-  void _handleLogin() {
+  void _handleLogin() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
@@ -36,25 +41,36 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    // Check if admin (simple check by email)
-    if (email == 'admin@smartai.com' && password == 'admin123') {
-      // Navigate to admin dashboard
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const AdminLayout(child: AdminDashboard()),
-        ),
-      );
+    // Start loading
+    setState(() => _isLoading = true);
+
+    // IMPORTANT: Django expects 'username', not 'email'
+    // If users login with email, you need to send email as username
+    final success = await _authService.login(email, password);
+
+    // Stop loading
+    setState(() => _isLoading = false);
+
+    if (success) {
+      // It worked! Go to the dashboard
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const AdminLayout(child: AdminDashboard()),
+          ),
+        );
+      }
     } else {
-      // Navigate to regular user home screen
-      // TODO: Replace with your actual home screen
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Welcome, User! (Navigate to your home screen here)'),
-          backgroundColor: Colors.green,
-        ),
-      );
-      // Example: Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));
+      // It failed
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invalid credentials. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -70,6 +86,15 @@ class _LoginScreenState extends State<LoginScreen> {
     final size = MediaQuery.of(context).size;
     final bool isWide = size.width >= 840;
     final double formPadding = isWide ? 60 : 24;
+
+    // Show loading indicator while authenticating
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
     Widget headerSection() {
       return Container(
@@ -97,16 +122,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: 90,
                 height: 80,
                 fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) => Image.asset(
-                  'assets/images/smartai.png',
-                  width: 90,
-                  height: 80,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => const Icon(
-                    Icons.smart_toy_outlined,
-                    size: 70,
-                    color: Colors.white,
-                  ),
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                  Icons.smart_toy_outlined,
+                  size: 70,
+                  color: Colors.white,
                 ),
               ),
             ),
@@ -151,31 +170,40 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
-                child: Text('Login',
-                    style: GoogleFonts.poppins(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textDark)),
+                child: Text(
+                  'Login',
+                  style: GoogleFonts.poppins(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textDark,
+                  ),
+                ),
               ),
               const SizedBox(height: 24),
-              Text('Email Address',
-                  style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textDark)),
+              Text(
+                'Email or Username',
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textDark,
+                ),
+              ),
               const SizedBox(height: 8),
               CustomTextField(
-                hint: 'Enter your email',
+                hint: 'Enter your email or username',
                 prefixIcon: Icons.mail_outline_rounded,
                 keyboardType: TextInputType.emailAddress,
                 controller: _emailController,
               ),
               const SizedBox(height: 16),
-              Text('Password',
-                  style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textDark)),
+              Text(
+                'Password',
+                style: GoogleFonts.poppins(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textDark,
+                ),
+              ),
               const SizedBox(height: 8),
               CustomTextField(
                 hint: 'Enter your password',
@@ -198,87 +226,66 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Text(
                     'Forgot password?',
                     style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w500),
+                      fontSize: 13,
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: 12),
-              PrimaryButton(label: 'Login', onPressed: _handleLogin),
+              PrimaryButton(
+                label: _isLoading ? 'Logging in...' : 'Login',
+                onPressed: _handleLogin,
+              ),
               const SizedBox(height: 24),
-              Row(children: [
-                const Expanded(child: Divider()),
+              const Row(children: [
+                Expanded(child: Divider()),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text('or continue with',
-                      style: GoogleFonts.poppins(
-                          fontSize: 12, color: AppColors.textGrey)),
+                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  child: Text('or continue with'),
                 ),
-                const Expanded(child: Divider()),
+                Expanded(child: Divider()),
               ]),
               const SizedBox(height: 16),
-              isWide
-                  ? Row(children: [
-                      Expanded(
-                        child: SocialButton(
-                          label: 'Google',
-                          iconWidget: SvgPicture.asset(
-                              'assets/images/google-icon-logo-svgrepo-com.svg',
-                              width: 20,
-                              height: 20,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.image, size: 20)),
-                          onPressed: () {},
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: SocialButton(
-                          label: 'GitHub',
-                          iconWidget: SvgPicture.asset(
-                              'assets/images/github-svgrepo-com.svg',
-                              width: 20,
-                              height: 20,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.code, size: 20)),
-                          onPressed: () {},
-                        ),
-                      ),
-                    ])
-                  : Column(children: [
-                      SizedBox(
-                        width: double.infinity,
-                        child: SocialButton(
-                          label: 'Google',
-                          iconWidget: SvgPicture.asset(
-                              'assets/images/google-icon-logo-svgrepo-com.svg',
-                              width: 20,
-                              height: 20,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.image, size: 20)),
-                          onPressed: () {},
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        width: double.infinity,
-                        child: SocialButton(
-                          label: 'GitHub',
-                          iconWidget: SvgPicture.asset(
-                              'assets/images/github-svgrepo-com.svg',
-                              width: 20,
-                              height: 20,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.code, size: 20)),
-                          onPressed: () {},
-                        ),
-                      ),
-                    ]),
+              if (isWide)
+                Row(children: [
+                  Expanded(
+                    child: SocialButton(
+                      label: 'Google',
+                      iconWidget: const Icon(Icons.login, size: 20),
+                      onPressed: () {},
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SocialButton(
+                      label: 'GitHub',
+                      iconWidget: const Icon(Icons.code, size: 20),
+                      onPressed: () {},
+                    ),
+                  ),
+                ])
+              else
+                Column(children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: SocialButton(
+                      label: 'Google',
+                      iconWidget: const Icon(Icons.login, size: 20),
+                      onPressed: () {},
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: SocialButton(
+                      label: 'GitHub',
+                      iconWidget: const Icon(Icons.code, size: 20),
+                      onPressed: () {},
+                    ),
+                  ),
+                ]),
               const SizedBox(height: 24),
               Center(
                 child: Wrap(
@@ -286,9 +293,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   spacing: 4,
                   children: [
-                    Text("Don't have an account? ",
-                        style: GoogleFonts.poppins(
-                            fontSize: 14, color: AppColors.textGrey)),
+                    Text(
+                      "Don't have an account? ",
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: AppColors.textGrey,
+                      ),
+                    ),
                     GestureDetector(
                       onTap: () {
                         Navigator.pushReplacement(
@@ -301,9 +312,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Text(
                         'Sign up',
                         style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600),
+                          fontSize: 14,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
