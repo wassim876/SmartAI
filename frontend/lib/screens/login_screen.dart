@@ -314,21 +314,24 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: AppColors.textGrey,
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const SignupScreen(),
+                  MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SignupScreen(),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'Sign up',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
                         ),
-                      );
-                    },
-                    child: Text(
-                      'Sign up',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),

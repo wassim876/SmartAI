@@ -235,10 +235,13 @@ class _SignupScreenState extends State<SignupScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: const Icon(Icons.arrow_back_rounded,
-                  color: AppColors.textDark),
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: const Icon(Icons.arrow_back_rounded,
+                    color: AppColors.textDark),
+              ),
             ),
             const SizedBox(height: 16),
             Center(
@@ -328,14 +331,17 @@ class _SignupScreenState extends State<SignupScreen> {
                 Text('Already have an account? ',
                     style: GoogleFonts.poppins(
                         fontSize: 14, color: AppColors.textGrey)),
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Text(
-                    'Login',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
+                MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Text(
+                      'Login',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
