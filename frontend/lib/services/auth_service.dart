@@ -58,4 +58,29 @@ class AuthService {
       rethrow;
     }
   }
+
+  Future<void> logout() async {
+    try {
+      final accessToken = await _storage.read(key: 'access_token');
+      final refreshToken = await _storage.read(key: 'refresh_token');
+
+      if (accessToken != null && refreshToken != null) {
+        // Blacklist the refresh token on the server
+        await _dio.post(
+          '${ApiConfig.baseUrl}/api/logout/',
+          data: {'refresh': refreshToken},
+          options: Options(
+            headers: {'Authorization': 'Bearer $accessToken'},
+          ),
+        );
+      }
+    } on DioException catch (e) {
+      // Even if the server call fails (e.g. token already expired),
+      // proceed to clear local storage so the user is logged out locally.
+      print('Logout request failed: ${e.response?.data ?? e.message}');
+    } finally {
+      await _storage.delete(key: 'access_token');
+      await _storage.delete(key: 'refresh_token');
+    }
+  }
 }
