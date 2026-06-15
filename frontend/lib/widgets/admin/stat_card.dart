@@ -7,7 +7,6 @@ class StatCard extends StatelessWidget {
   final String value;
   final String growth;
   final String growthType;
-
   const StatCard({
     super.key,
     required this.icon,
@@ -17,7 +16,6 @@ class StatCard extends StatelessWidget {
     required this.growth,
     required this.growthType,
   });
-
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -60,7 +58,7 @@ class StatCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 18, // Adjusted for Android text scaling
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.grey[900],
                     ),
@@ -76,6 +74,8 @@ class StatCard extends StatelessWidget {
                       const SizedBox(width: 2),
                       Text(
                         growth,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Colors.green,
                           fontSize: 11,
@@ -83,11 +83,15 @@ class StatCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        growthType,
-                        style: TextStyle(
-                          color: Colors.grey[500],
-                          fontSize: 10,
+                      Flexible(
+                        child: Text(
+                          growthType,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 10,
+                          ),
                         ),
                       ),
                     ],

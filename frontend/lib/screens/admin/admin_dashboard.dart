@@ -19,69 +19,60 @@ class AdminDashboard extends StatelessWidget {
             // Header
             LayoutBuilder(
               builder: (context, constraints) {
-                return Wrap(
-                  alignment: WrapAlignment.spaceBetween,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: 16,
-                  runSpacing: 16,
+                final bool isWide = constraints.maxWidth > 700;
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Dashboard',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[900],
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Welcome back, Admin! Here\'s what\'s happening with your platform.',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey[300]!),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.calendar_today,
-                                    size: 16, color: Colors.grey[600]),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'May 15, 2024 - Jun 15, 2024',
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(color: Colors.grey[700]),
-                                ),
-                                const SizedBox(width: 4),
-                                Icon(Icons.keyboard_arrow_down,
-                                    size: 16, color: Colors.grey[600]),
-                              ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Dashboard',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[900],
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        _buildNotificationBadge(context),
-                      ],
+                          const SizedBox(height: 4),
+                          Text(
+                            'Welcome back, Admin! Here\'s what\'s happening with your platform.',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 16),
+                    if (isWide)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildDateRangePicker(),
+                          const SizedBox(width: 12),
+                          _buildNotificationBadge(context),
+                        ],
+                      )
+                    else
+                      _buildNotificationBadge(context),
                   ],
+                );
+              },
+            ),
+
+            // Date picker on its own row for narrow screens
+            LayoutBuilder(
+              builder: (context, constraints) {
+                if (constraints.maxWidth > 700) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: _buildDateRangePicker(),
+                  ),
                 );
               },
             ),
@@ -97,10 +88,10 @@ class AdminDashboard extends StatelessWidget {
                         ? 3
                         : 1;
                 final double childAspectRatio = constraints.maxWidth > 1100
-                    ? 1.9
+                    ? 1.6
                     : constraints.maxWidth > 700
                         ? 1.4
-                        : 2.2; // Slightly taller cards for mobile text scaling
+                        : 2.2;
                 return GridView.count(
                   crossAxisCount: crossAxisCount,
                   shrinkWrap: true,
@@ -239,6 +230,34 @@ class AdminDashboard extends StatelessWidget {
               ),
               height: 280,
             )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDateRangePicker() {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey[300]!),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
+            const SizedBox(width: 8),
+            Text(
+              'May 15, 2024 - Jun 15, 2024',
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: Colors.grey[700]),
+            ),
+            const SizedBox(width: 4),
+            Icon(Icons.keyboard_arrow_down, size: 16, color: Colors.grey[600]),
           ],
         ),
       ),
