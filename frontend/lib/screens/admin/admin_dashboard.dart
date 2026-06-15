@@ -47,15 +47,7 @@ class AdminDashboard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    if (isWide)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildDateRangePicker(),
-                          const SizedBox(width: 12),
-                          _buildNotificationBadge(context),
-                        ],
-                      ),
+                    if (isWide) _buildNotificationBadge(context),
                     // No bell on mobile — AppBar in AdminLayout already shows one
                   ],
                 );

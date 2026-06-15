@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/theme_provider.dart';
+import '../../../services/auth_service.dart';
+import '../../login_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -11,28 +15,71 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _emailNotifications = true;
   bool _pushNotifications = false;
   bool _twoFactorAuth = true;
-  bool _darkMode = false;
+  bool _isLoggingOut = false;
+  final AuthService _authService = AuthService();
+
+  Future<void> _handleLogoutEverywhere() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Log out everywhere?'),
+        content: const Text(
+          'This will sign you out from all active sessions on every device.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Log out'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _isLoggingOut = true);
+
+    await _authService.logout();
+
+    if (!mounted) return;
+
+    setState(() => _isLoggingOut = false);
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      (route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    final theme = Theme.of(context);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Text(
             'Settings',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.grey[900],
+              color: theme.colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             'Manage your account and platform preferences',
-            style: TextStyle(color: Colors.grey[600], fontSize: 14),
+            style: TextStyle(
+                color: theme.colorScheme.onSurfaceVariant, fontSize: 14),
           ),
           const SizedBox(height: 24),
 
@@ -44,10 +91,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 Row(
                   children: [
-                    const CircleAvatar(
+                    CircleAvatar(
                       radius: 36,
-                      backgroundColor: Color(0xFF5A4FCF),
-                      child: Icon(Icons.person, color: Colors.white, size: 36),
+                      backgroundColor: theme.colorScheme.primary,
+                      child: Icon(Icons.person,
+                          color: theme.colorScheme.onPrimary, size: 36),
                     ),
                     const SizedBox(width: 16),
                     MouseRegion(
@@ -103,8 +151,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: ElevatedButton(
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF5A4FCF),
-                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                           horizontal: 24, vertical: 12),
                     ),
@@ -166,7 +212,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         const SizedBox(height: 4),
                         Text('Update your account password',
                             style: TextStyle(
-                                color: Colors.grey[600], fontSize: 12)),
+                                color: theme.colorScheme.onSurfaceVariant,
+                                fontSize: 12)),
                       ],
                     ),
                     MouseRegion(
@@ -189,8 +236,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: _switchRow(
               'Dark Mode',
               'Switch the admin panel to a dark theme',
-              _darkMode,
-              (v) => setState(() => _darkMode = v),
+              themeProvider.isDarkMode,
+              (v) => context.read<ThemeProvider>().toggleTheme(v),
             ),
           ),
           const SizedBox(height: 20),
@@ -215,19 +262,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               fontWeight: FontWeight.w500, fontSize: 14)),
                       const SizedBox(height: 4),
                       Text('Sign out from all active sessions',
-                          style:
-                              TextStyle(color: Colors.grey[600], fontSize: 12)),
+                          style: TextStyle(
+                              color: theme.colorScheme.onSurfaceVariant,
+                              fontSize: 12)),
                     ],
                   ),
                   SizedBox(
                     width: isNarrow ? double.infinity : null,
                     child: OutlinedButton(
-                      onPressed: () {},
+                      onPressed: _isLoggingOut ? null : _handleLogoutEverywhere,
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.red,
                         side: const BorderSide(color: Colors.red),
                       ),
-                      child: const Text('Log out'),
+                      child: _isLoggingOut
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.red,
+                              ),
+                            )
+                          : const Text('Log out everywhere'),
                     ),
                   ),
                 ],
@@ -241,15 +298,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _sectionCard(
       {required String title, required Widget child, Color? titleColor}) {
+    final theme = Theme.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(
+                alpha: theme.brightness == Brightness.light ? 0.05 : 0.4),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -263,7 +322,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: titleColor ?? Colors.grey[900],
+              color: titleColor ?? theme.colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 16),
@@ -274,6 +333,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _textField(String label, String value, {bool enabled = true}) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -281,7 +341,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: Colors.grey[700])),
+                color: theme.colorScheme.onSurfaceVariant)),
         const SizedBox(height: 6),
         TextField(
           enabled: enabled,
@@ -289,10 +349,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           decoration: InputDecoration(
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey[300]!),
+              borderSide: BorderSide(color: theme.dividerColor),
             ),
             filled: true,
-            fillColor: enabled ? Colors.grey[50] : Colors.grey[100],
+            fillColor: enabled
+                ? theme.inputDecorationTheme.fillColor
+                : theme.disabledColor.withValues(alpha: 0.1),
           ),
         ),
       ],
@@ -301,6 +363,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _switchRow(
       String title, String subtitle, bool value, ValueChanged<bool> onChanged) {
+    final theme = Theme.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -313,7 +376,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       fontWeight: FontWeight.w500, fontSize: 14)),
               const SizedBox(height: 4),
               Text(subtitle,
-                  style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                  style: TextStyle(
+                      color: theme.colorScheme.onSurfaceVariant, fontSize: 12)),
             ],
           ),
         ),
@@ -321,7 +385,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           cursor: SystemMouseCursors.click,
           child: Switch(
             value: value,
-            activeThumbColor: const Color(0xFF5A4FCF),
+            activeColor: theme.colorScheme.primary,
             onChanged: onChanged,
           ),
         ),
