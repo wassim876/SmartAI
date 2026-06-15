@@ -227,7 +227,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         foregroundColor: Colors.red,
                         side: const BorderSide(color: Colors.red),
                       ),
-                      child: const Text('Log out everywhere'),
+                      child: const Text('Log out'),
                     ),
                   ),
                 ],
