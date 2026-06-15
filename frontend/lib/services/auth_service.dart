@@ -18,14 +18,44 @@ class AuthService {
 
       if (response.statusCode == 200) {
         // Save the JWT tokens securely
-        await _storage.write(key: 'access_token', value: response.data['access']);
-        await _storage.write(key: 'refresh_token', value: response.data['refresh']);
+        await _storage.write(
+            key: 'access_token', value: response.data['access']);
+        await _storage.write(
+            key: 'refresh_token', value: response.data['refresh']);
         return true;
       }
       return false;
     } on DioException catch (e) {
       print('Login Failed: ${e.response?.data ?? e.message}');
-      return false;
+      rethrow; // Rethrow the exception to be caught by the UI layer
+    }
+  }
+
+  Future<bool> register(String name, String email, String password) async {
+    try {
+      final response = await _dio.post(
+        '${ApiConfig.baseUrl}/api/register/', // Ensure this matches your Django URL
+        data: {
+          'username': email, // Using email as username is common
+          'email': email,
+          'password': password,
+          'first_name': name,
+        },
+      );
+      return response.statusCode == 201 || response.statusCode == 200;
+    } on DioException catch (e) {
+      print('Registration Failed: ${e.response?.data ?? e.message}');
+      rethrow;
+    }
+  }
+
+  Future<void> resetPassword(String email) async {
+    try {
+      // Placeholder for password reset API
+      await Future.delayed(const Duration(seconds: 2));
+    } on DioException catch (e) {
+      print('Reset Password Failed: ${e.response?.data ?? e.message}');
+      rethrow;
     }
   }
 }

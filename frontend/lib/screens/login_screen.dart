@@ -30,6 +30,9 @@ class _LoginScreenState extends State<LoginScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
+    // Close keyboard
+    FocusScope.of(context).unfocus();
+
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -45,38 +48,43 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final success = await _authService.login(email, password);
 
-      if (!mounted) return;
-
-      setState(() => _isLoading = false);
-
       if (success) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const AdminLayout(
-              child: AdminDashboard(),
+        if (mounted) {
+          // Ensure widget is still mounted before navigating
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AdminLayout(
+                child: AdminDashboard(),
+              ),
             ),
-          ),
-        );
+          );
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Invalid credentials. Please try again.'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        if (mounted) {
+          // Ensure widget is still mounted before showing snackbar
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Invalid credentials. Please try again.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } catch (e) {
-      if (!mounted) return;
-
-      setState(() => _isLoading = false);
-
+      // Catch any errors during login or navigation setup
+      if (!mounted) return; // Check mounted state before any UI updates
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('An error occurred: $e'),
+          content: Text('Login failed: ${e.toString()}'),
           backgroundColor: Colors.red,
         ),
       );
+    } finally {
+      // Always ensure loading state is reset
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -339,43 +347,30 @@ class _LoginScreenState extends State<LoginScreen> {
     final bool isWide = size.width >= 840;
     final double formPadding = isWide ? 60 : 24;
 
-    if (isWide) {
-      return Scaffold(
-        body: SafeArea(
-          child: Row(
-            children: [
-              SizedBox(
-                width: size.width * 0.35,
-                height: size.height,
-                child: _headerSection(isWide, size),
-              ),
-              Expanded(
-                child: Container(
-                  color: AppColors.backgroundLight,
-                  child: Center(child: _formSection(isWide, formPadding)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       body: SafeArea(
-        child: Column(
-          children: [
-            _headerSection(isWide, size),
-            Expanded(
-              child: Container(
-                color: AppColors.backgroundLight,
-                width: double.infinity,
-                child: Center(child: _formSection(isWide, formPadding)),
+        child: isWide
+            ? Row(
+                children: [
+                  SizedBox(
+                    width: size.width * 0.35,
+                    height: size.height,
+                    child: _headerSection(isWide, size),
+                  ),
+                  Expanded(
+                    child: Center(child: _formSection(isWide, formPadding)),
+                  ),
+                ],
+              )
+            : Column(
+                children: [
+                  _headerSection(isWide, size),
+                  Expanded(
+                    child: Center(child: _formSection(isWide, formPadding)),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
