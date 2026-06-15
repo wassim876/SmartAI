@@ -11,10 +11,10 @@ class AIServicesScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final bool isNarrow = constraints.maxWidth < 500;
+              final title = Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -31,8 +31,8 @@ class AIServicesScreen extends StatelessWidget {
                     style: TextStyle(color: Colors.grey[600], fontSize: 14),
                   ),
                 ],
-              ),
-              MouseRegion(
+              );
+              final button = MouseRegion(
                 cursor: SystemMouseCursors.click,
                 child: ElevatedButton.icon(
                   onPressed: () {},
@@ -45,8 +45,31 @@ class AIServicesScreen extends StatelessWidget {
                         horizontal: 16, vertical: 12),
                   ),
                 ),
-              ),
-            ],
+              );
+
+              if (isNarrow) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    title,
+                    const SizedBox(height: 16),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: button,
+                    ),
+                  ],
+                );
+              }
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(child: title),
+                  const SizedBox(width: 16),
+                  button,
+                ],
+              );
+            },
           ),
           const SizedBox(height: 24),
 
@@ -58,19 +81,25 @@ class AIServicesScreen extends StatelessWidget {
                   : constraints.maxWidth > 700
                       ? 2
                       : 1;
+              final double childAspectRatio = constraints.maxWidth > 1100
+                  ? 1.4
+                  : constraints.maxWidth > 700
+                      ? 1.2
+                      : 0.85;
               return GridView.count(
                 crossAxisCount: crossAxisCount,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 mainAxisSpacing: 16,
                 crossAxisSpacing: 16,
-                childAspectRatio: 1.4,
+                childAspectRatio: childAspectRatio,
                 children: [
                   _buildServiceCard(
                     icon: Icons.chat_bubble_outline,
                     color: Colors.blue,
                     title: 'Chat Assistant',
-                    description: 'Conversational AI assistant for general queries',
+                    description:
+                        'Conversational AI assistant for general queries',
                     requests: '35,070',
                     usage: 35.6,
                     status: 'Active',
@@ -147,13 +176,14 @@ class AIServicesScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -162,17 +192,18 @@ class AIServicesScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: color, size: 26),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: isActive
-                      ? Colors.green.withOpacity(0.1)
-                      : Colors.orange.withOpacity(0.1),
+                      ? Colors.green.withValues(alpha: 0.1)
+                      : Colors.orange.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(

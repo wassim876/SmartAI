@@ -55,9 +55,8 @@ class AdminDashboard extends StatelessWidget {
                           const SizedBox(width: 12),
                           _buildNotificationBadge(context),
                         ],
-                      )
-                    else
-                      _buildNotificationBadge(context),
+                      ),
+                    // No bell on mobile — AppBar in AdminLayout already shows one
                   ],
                 );
               },
@@ -316,7 +315,7 @@ class AdminDashboard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: statusColor.withOpacity(0.1),
+            color: statusColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: statusColor, size: 20),
@@ -351,7 +350,7 @@ class AdminDashboard extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.1),
+              color: statusColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
