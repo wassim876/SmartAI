@@ -38,9 +38,15 @@ class _CustomTextFieldState extends State<CustomTextField> {
         contentPadding:
             const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
         hintText: widget.hint,
-        hintStyle: GoogleFonts.poppins(fontSize: 14, color: AppColors.textGrey),
-        prefixIcon:
-            Icon(widget.prefixIcon, color: AppColors.textGrey, size: 20),
+        hintStyle: GoogleFonts.poppins(
+          fontSize: 14,
+          color: AppColors.textGrey,
+        ),
+        prefixIcon: Icon(
+          widget.prefixIcon,
+          color: AppColors.textGrey,
+          size: 20,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: AppColors.inputBorder),
