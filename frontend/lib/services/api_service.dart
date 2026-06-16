@@ -145,7 +145,7 @@ class ApiService {
   Future<void> incrementUsage(String type, {int amount = 1}) async {
     try {
       await _dio.post(
-        '/accounts/increment-usage/',
+        '/user/increment-usage/',
         data: {'type': type, 'amount': amount},
       );
     } on DioException catch (e) {

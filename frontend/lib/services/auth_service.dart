@@ -37,14 +37,17 @@ class AuthService {
   Future<bool> register(String name, String email, String password) async {
     try {
       final response = await _dio.post('/register/', data: {
-        'username': email.split('@')[0], // Fallback username
+        'username': email, // Use full email as username to ensure uniqueness
         'email': email,
         'first_name': name,
         'password': password,
       });
       return response.statusCode == 201;
-    } catch (e) {
-      return false;
+    } on DioException catch (e) {
+      final message = e.response?.data is Map
+          ? e.response?.data.values.first
+          : 'Registration failed';
+      throw Exception(message);
     }
   }
 
@@ -54,7 +57,7 @@ class AuthService {
       if (token == null) return null;
 
       final response = await _dio.get(
-        '/profile/',
+        '/user/profile/',
         options: Options(
           headers: {'Authorization': 'Bearer $token'},
         ),
@@ -81,6 +84,20 @@ class AuthService {
   }
 
   Future<void> logout() async {
+    final accessToken = await _storage.read(key: 'access_token');
+    final refreshToken = await _storage.read(key: 'refresh_token');
+
+    if (accessToken != null && refreshToken != null) {
+      try {
+        await _dio.post(
+          '/logout/',
+          data: {'refresh': refreshToken},
+          options: Options(headers: {'Authorization': 'Bearer $accessToken'}),
+        );
+      } catch (e) {
+        // Continue to clear local storage even if API call fails
+      }
+    }
     await _storage.delete(key: 'access_token');
     await _storage.delete(key: 'refresh_token');
   }

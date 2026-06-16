@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../services/auth_service.dart';
+import '../../../providers/auth_provider.dart';
 import '../../auth/login_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -16,7 +17,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _pushNotifications = false;
   bool _twoFactorAuth = true;
   bool _isLoggingOut = false;
-  final AuthService _authService = AuthService();
 
   Future<void> _handleLogoutEverywhere() async {
     final confirmed = await showDialog<bool>(
@@ -44,17 +44,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     setState(() => _isLoggingOut = true);
 
-    await _authService.logout();
+    // Use AuthProvider to clear global state and notify listeners
+    await context.read<AuthProvider>().logout();
 
     if (!mounted) return;
 
     setState(() => _isLoggingOut = false);
 
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-      (route) => false,
-    );
+    Navigator.pushReplacementNamed(context, '/');
   }
 
   @override

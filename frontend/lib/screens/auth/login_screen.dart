@@ -24,6 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  bool _isAdminLogin = false;
   bool _isLoading = false;
 
   Future<void> _handleLogin() async {
@@ -50,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
       await authProvider.login(
         email: email,
         password: password,
-        isAdminLogin: false,
+        isAdminLogin: _isAdminLogin,
       );
 
       if (mounted) {
@@ -275,6 +276,21 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Checkbox(
+                  value: _isAdminLogin,
+                  onChanged: (value) => setState(() => _isAdminLogin = value!),
+                  activeColor: AppColors.primary,
+                ),
+                Text(
+                  'Admin Login',
+                  style: GoogleFonts.poppins(
+                      fontSize: 13, color: AppColors.textDark),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             PrimaryButton(

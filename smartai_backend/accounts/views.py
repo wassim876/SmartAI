@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes
@@ -102,5 +103,22 @@ def increment_usage(request):
         user.save()
         return Response({'success': True}, status=status.HTTP_200_OK)
         
+    except Exception as e:
+        return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def reset_daily_usage(request):
+    """
+    Reset user's daily usage counters.
+    """
+    user = request.user
+    try:
+        user.daily_messages_used = 0
+        user.translation_chars_used = 0
+        user.last_reset_date = timezone.now()
+        user.save()
+        return Response({'success': True}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -47,6 +47,11 @@ class AuthProvider extends ChangeNotifier {
         throw Exception('This account does not have admin privileges');
       }
 
+      // Step 4: Enforce strict separation (Admin cannot log in via regular portal)
+      if (!isAdminLogin && user.isAdmin) {
+        throw Exception('Admins must log in through the admin portal');
+      }
+
       _currentUser = user;
       notifyListeners();
     } catch (e) {
