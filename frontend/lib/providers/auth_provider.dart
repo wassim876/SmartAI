@@ -21,7 +21,6 @@ class AuthProvider extends ChangeNotifier {
   Future<void> login({
     required String email,
     required String password,
-    required bool isAdminLogin,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -40,16 +39,6 @@ class AuthProvider extends ChangeNotifier {
 
       if (user == null) {
         throw Exception('Could not fetch user profile');
-      }
-
-      // Step 3: Check if user type matches login type
-      if (isAdminLogin && !user.isAdmin) {
-        throw Exception('This account does not have admin privileges');
-      }
-
-      // Step 4: Enforce strict separation (Admin cannot log in via regular portal)
-      if (!isAdminLogin && user.isAdmin) {
-        throw Exception('Admins must log in through the admin portal');
       }
 
       _currentUser = user;
@@ -86,7 +75,6 @@ class AuthProvider extends ChangeNotifier {
       await login(
         email: email,
         password: password,
-        isAdminLogin: false,
       );
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -157,6 +145,20 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       print('Auth check failed: $e');
       await logout();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<List<UserModel>> fetchUsers() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      return await _authService.fetchUsers();
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();

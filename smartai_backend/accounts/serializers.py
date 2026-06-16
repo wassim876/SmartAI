@@ -19,9 +19,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'email', 'first_name', 'password')
         extra_kwargs = {
-            'first_name': {'required': True, 'allow_blank': False},
+            'first_name': {'required': False, 'allow_blank': True},
             'email': {'required': True, 'allow_blank': False},
-            'username': {'required': True, 'allow_blank': False}
+            'username': {'required': False, 'allow_blank': True}
         }
 
     def validate_email(self, value):
@@ -30,6 +30,11 @@ class RegisterSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
+        # Automatically generate username from email if missing
+        if not validated_data.get('username'):
+            email = validated_data.get('email', '')
+            validated_data['username'] = email.split('@')[0] if email else 'user'
+            
         password = validated_data.pop('password')
         user = User.objects.create_user(**validated_data, password=password)
         return user
@@ -58,3 +63,12 @@ class LoginSerializer(serializers.Serializer):
             data['user'] = user
             return data
         raise serializers.ValidationError("Must include 'username_or_email' and 'password'.")
+
+
+class UserListSerializer(serializers.ModelSerializer):
+    """
+    Serializer for listing user data for admin view.
+    """
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'is_active', 'is_staff', 'is_superuser', 'date_joined')

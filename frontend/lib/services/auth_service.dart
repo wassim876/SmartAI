@@ -72,6 +72,28 @@ class AuthService {
     }
   }
 
+  Future<List<UserModel>> fetchUsers() async {
+    try {
+      final token = await _storage.read(key: 'access_token');
+      if (token == null) throw Exception('Not authenticated');
+
+      final response = await _dio.get(
+        '/users/',
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        return data.map((json) => UserModel.fromJson(json)).toList();
+      }
+      throw Exception('Failed to fetch users');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<bool> isTokenValid() async {
     try {
       final token = await _storage.read(key: 'access_token');

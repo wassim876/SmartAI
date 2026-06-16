@@ -3,7 +3,7 @@ from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.exceptions import TokenError
 from .serializers import RegisterSerializer
 from .models import User
@@ -62,19 +62,31 @@ def user_profile(request):
         'is_superuser': user.is_superuser,
         
         # Premium and usage tracking
-        'is_premium': user.is_premium,
-        'daily_messages_used': user.daily_messages_used,
-        'daily_messages_limit': user.daily_messages_limit,
-        'monthly_speech_minutes_used': user.monthly_speech_minutes_used,
-        'monthly_speech_minutes_limit': user.monthly_speech_minutes_limit,
-        'translation_chars_used': user.translation_chars_used,
-        'translation_chars_limit': user.translation_chars_limit,
+        'is_premium': getattr(user, 'is_premium', False),
+        'daily_messages_used': getattr(user, 'daily_messages_used', 0),
+        'daily_messages_limit': getattr(user, 'daily_messages_limit', 10),
+        'monthly_speech_minutes_used': getattr(user, 'monthly_speech_minutes_used', 0),
+        'monthly_speech_minutes_limit': getattr(user, 'monthly_speech_minutes_limit', 30),
+        'translation_chars_used': getattr(user, 'translation_chars_used', 0),
+        'translation_chars_limit': getattr(user, 'translation_chars_limit', 5000),
         
-        'last_reset_date': user.last_reset_date,
-        'profile_picture': request.build_absolute_uri(user.profile_picture.url) if user.profile_picture else None,
+        'last_reset_date': getattr(user, 'last_reset_date', timezone.now()),
+        'profile_picture': request.build_absolute_uri(user.profile_picture.url) if hasattr(user, 'profile_picture') and user.profile_picture else None,
     }
     
     return Response(data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAdminUser]) # Only admin users can access this
+def list_users(request):
+    """
+    List all users in the system. Accessible only by admin users.
+    """
+    users = User.objects.all().order_by('date_joined')
+    serializer = UserListSerializer(users, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
 @api_view(['POST'])

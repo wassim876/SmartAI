@@ -60,7 +60,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _changeProfilePhoto() async {
     final userProvider = context.read<UserProvider>();
-    
+
     final choice = await showModalBottomSheet<String>(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -137,7 +137,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -168,6 +168,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
     final userProvider = context.watch<UserProvider>();
+    final authProvider = context.watch<AuthProvider>();
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -216,7 +217,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           child: CircleAvatar(
                             radius: 36,
                             backgroundColor: theme.colorScheme.primary,
-                            backgroundImage: userProvider.profileImageBytes != null
+                            backgroundImage: userProvider.profileImageBytes !=
+                                    null
                                 ? MemoryImage(userProvider.profileImageBytes!)
                                 : null,
                             child: userProvider.profileImageBytes == null
@@ -285,23 +287,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       _textField(
                         'Full Name',
                         userProvider.userName,
-                        onChanged: (value) => 
+                        onChanged: (value) =>
                             context.read<UserProvider>().updateUserName(value),
                       ),
                       _textField(
                         'Email Address',
-                        'john.doe@smartai.com',
+                        authProvider.currentUser?.email ?? 'Not available',
                         enabled: false,
                       ),
                       _textField(
                         'Role',
                         userProvider.userRole,
                         enabled: false,
-                      ),
-                      _textField(
-                        'Phone Number',
-                        '+1 (555) 123-4567',
-                        onChanged: (value) {},
                       ),
                     ];
                     if (isWide) {
@@ -313,11 +310,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             Expanded(child: fields[1])
                           ]),
                           const SizedBox(height: 16),
-                          Row(children: [
-                            Expanded(child: fields[2]),
-                            const SizedBox(width: 16),
-                            Expanded(child: fields[3])
-                          ]),
+                          // Role field takes the full width of the second row
+                          fields[2],
                         ],
                       );
                     }
@@ -328,8 +322,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         fields[1],
                         const SizedBox(height: 16),
                         fields[2],
-                        const SizedBox(height: 16),
-                        fields[3],
                       ],
                     );
                   },
@@ -416,7 +408,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         Text(
                           'Update your account password',
                           style: TextStyle(
-                            color: isDark ? Colors.white54 : theme.colorScheme.onSurfaceVariant,
+                            color: isDark
+                                ? Colors.white54
+                                : theme.colorScheme.onSurfaceVariant,
                             fontSize: 12,
                           ),
                         ),
@@ -487,7 +481,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         Text(
                           'Sign out from all active sessions',
                           style: TextStyle(
-                            color: isDark ? Colors.white54 : theme.colorScheme.onSurfaceVariant,
+                            color: isDark
+                                ? Colors.white54
+                                : theme.colorScheme.onSurfaceVariant,
                             fontSize: 12,
                           ),
                         ),
@@ -496,9 +492,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     SizedBox(
                       width: isNarrow ? double.infinity : null,
                       child: OutlinedButton(
-                        onPressed: _isLoggingOut
-                            ? null
-                            : _handleLogoutEverywhere,
+                        onPressed:
+                            _isLoggingOut ? null : _handleLogoutEverywhere,
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.red,
                           side: const BorderSide(color: Colors.red),
@@ -532,7 +527,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -542,8 +537,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         border: isDark ? Border.all(color: Colors.white10) : null,
         boxShadow: [
           BoxShadow(
-            color: isDark 
-                ? Colors.black.withValues(alpha: 0.4) 
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.4)
                 : Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
@@ -558,7 +553,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: titleColor ?? (isDark ? Colors.white : theme.colorScheme.onSurface),
+              color: titleColor ??
+                  (isDark ? Colors.white : theme.colorScheme.onSurface),
             ),
           ),
           const SizedBox(height: 16),
@@ -576,7 +572,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -591,7 +587,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const SizedBox(height: 6),
         TextField(
           enabled: enabled,
-          controller: TextEditingController(text: value),
+          controller: enabled ? null : TextEditingController(text: value),
           onChanged: onChanged,
           style: TextStyle(
             color: isDark ? Colors.white : Colors.black87,
@@ -623,7 +619,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             filled: true,
-            fillColor: isDark 
+            fillColor: isDark
                 ? (enabled ? const Color(0xFF1C1C2D) : const Color(0xFF2A2A3E))
                 : (enabled ? Colors.grey.shade50 : Colors.grey.shade100),
             hintStyle: TextStyle(
@@ -643,7 +639,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   ) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -663,7 +659,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Text(
                 subtitle,
                 style: TextStyle(
-                  color: isDark ? Colors.white54 : theme.colorScheme.onSurfaceVariant,
+                  color: isDark
+                      ? Colors.white54
+                      : theme.colorScheme.onSurfaceVariant,
                   fontSize: 12,
                 ),
               ),
@@ -675,7 +673,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Switch(
             value: value,
             activeColor: theme.colorScheme.primary,
-            activeTrackColor: isDark ? theme.primaryColor.withOpacity(0.5) : null,
+            activeTrackColor:
+                isDark ? theme.primaryColor.withOpacity(0.5) : null,
             onChanged: onChanged,
           ),
         ),

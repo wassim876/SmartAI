@@ -3,6 +3,10 @@ class UserModel {
   final String username;
   final String email;
   final String name;
+  final String firstName;
+  final String lastName;
+  final bool isActive;
+  final DateTime? dateJoined;
   final bool isAdmin;
   final bool isPremium;
   final int dailyMessagesUsed;
@@ -19,6 +23,10 @@ class UserModel {
     required this.username,
     required this.email,
     required this.name,
+    required this.firstName,
+    required this.lastName,
+    required this.isActive,
+    this.dateJoined,
     required this.isAdmin,
     required this.isPremium,
     required this.dailyMessagesUsed,
@@ -37,6 +45,12 @@ class UserModel {
       username: json['username'],
       email: json['email'],
       name: json['name'] ?? json['username'],
+      firstName: json['first_name'] ?? '',
+      lastName: json['last_name'] ?? '',
+      isActive: json['is_active'] ?? true,
+      dateJoined: json['date_joined'] != null
+          ? DateTime.parse(json['date_joined'])
+          : null,
       // Maps Django is_staff/is_superuser to isAdmin
       isAdmin: json['is_staff'] == true || json['is_superuser'] == true,
       isPremium: json['is_premium'] ?? false,
@@ -59,6 +73,10 @@ class UserModel {
       'username': username,
       'email': email,
       'name': name,
+      'first_name': firstName,
+      'last_name': lastName,
+      'is_active': isActive,
+      'date_joined': dateJoined?.toIso8601String(),
       'is_staff': isAdmin,
       'is_superuser': isAdmin,
       'is_premium': isPremium,
@@ -83,6 +101,10 @@ class UserModel {
       username: username,
       email: email,
       name: name,
+      firstName: firstName,
+      lastName: lastName,
+      isActive: isActive,
+      dateJoined: dateJoined,
       isAdmin: isAdmin,
       isPremium: isPremium,
       dailyMessagesUsed: dailyMessagesUsed ?? this.dailyMessagesUsed,
