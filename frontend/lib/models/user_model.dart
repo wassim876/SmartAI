@@ -53,6 +53,26 @@ class UserModel {
     );
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'username': username,
+      'email': email,
+      'name': name,
+      'is_staff': isAdmin,
+      'is_superuser': isAdmin,
+      'is_premium': isPremium,
+      'daily_messages_used': dailyMessagesUsed,
+      'daily_messages_limit': dailyMessagesLimit,
+      'monthly_speech_minutes_used': monthlySpeechMinutesUsed,
+      'monthly_speech_minutes_limit': monthlySpeechMinutesLimit,
+      'translation_chars_used': translationCharsUsed,
+      'translation_chars_limit': translationCharsLimit,
+      'last_reset_date': lastResetDate.toIso8601String(),
+      'profile_picture': avatarUrl,
+    };
+  }
+
   UserModel copyWith({
     int? dailyMessagesUsed,
     int? translationCharsUsed,

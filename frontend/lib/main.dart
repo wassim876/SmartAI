@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
 import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
+import 'services/storage_service.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
 import 'screens/user/home_screen.dart';
@@ -19,8 +20,10 @@ import 'screens/admin/reports/reports_screen.dart';
 import 'screens/admin/notifications/notifications_screen.dart';
 import 'screens/admin/setting/settings_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Initialize storage service
+  await StorageService().init();
   runApp(
     MultiProvider(
       providers: [

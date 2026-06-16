@@ -22,14 +22,14 @@ class StorageService {
   // ==========================================
   // Caches the user profile locally so the app loads instantly on restart
   Future<void> cacheUserProfile(UserModel user) async {
-    await _prefs?.setString('cached_user_profile', user.toJsonString());
+    await _prefs?.setString('cached_user_profile', jsonEncode(user.toJson()));
   }
 
   UserModel? getCachedUserProfile() {
     final jsonString = _prefs?.getString('cached_user_profile');
     if (jsonString != null) {
       try {
-        return UserModel.fromJsonString(jsonString);
+        return UserModel.fromJson(jsonDecode(jsonString));
       } catch (e) {
         return null;
       }
