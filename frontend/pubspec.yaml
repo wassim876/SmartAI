@@ -15,15 +15,12 @@ dependencies:
   shared_preferences: ^2.2.2
   cupertino_icons: ^1.0.2
   fl_chart: ^0.69.2
-  provider: ^6.1.1   # State management
-  intl: ^0.19.0      # For date formatting
-  flutter_slidable: ^3.1.0  # For swipe actions
+  provider: ^6.1.1
+  intl: ^0.19.0
+  flutter_slidable: ^3.1.0
   dio: ^5.9.2
-  image_picker: ^1.0.4
   flutter_secure_storage: ^10.3.1
-  image_picker: ^1.1.2
-
-
+  image_picker: ^1.1.2  # Make sure this is only here ONCE
 
 dev_dependencies:
   flutter_lints: ^6.0.0
