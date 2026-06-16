@@ -1,4 +1,7 @@
+// lib/widgets/sidebar.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/user_provider.dart';
 
 class Sidebar extends StatelessWidget {
   final bool isExpanded;
@@ -13,6 +16,7 @@ class Sidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentRoute = ModalRoute.of(context)?.settings.name ?? '/admin/dashboard';
+    final userProvider = context.watch<UserProvider>();
 
     return Container(
       width: isExpanded ? 260 : 80,
@@ -27,7 +31,7 @@ class Sidebar extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.asset(
-                    'assets/images/smartai.png',
+                    'assets/images/smartai.png',  // FIXED: removed duplicate 'assets/'
                     height: 40,
                     width: 40,
                     fit: BoxFit.cover,
@@ -164,28 +168,38 @@ class Sidebar extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    const CircleAvatar(
-                      backgroundColor: Color(0xFF5A4FCF),
+                    // Profile Image with fallback icon
+                    CircleAvatar(
+                      backgroundColor: const Color(0xFF5A4FCF),
                       radius: 20,
-                      child: Icon(Icons.person, color: Colors.white, size: 20),
+                      backgroundImage: userProvider.profileImageBytes != null
+                          ? MemoryImage(userProvider.profileImageBytes!)  // Changed to MemoryImage
+                          : null,
+                      child: userProvider.profileImageBytes == null
+                          ? const Icon(
+                              Icons.person,
+                              color: Colors.white,
+                              size: 20,
+                            )
+                          : null,
                     ),
                     if (isExpanded) ...[
                       const SizedBox(width: 10),
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'John Doe',
-                              style: TextStyle(
+                              userProvider.userName,
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                             Text(
-                              'Administrator',
-                              style: TextStyle(
+                              userProvider.userRole,
+                              style: const TextStyle(
                                 color: Colors.white54,
                                 fontSize: 12,
                               ),

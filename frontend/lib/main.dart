@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
 import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/user_provider.dart';
 import 'services/storage_service.dart';
+import 'services/photo_picker_service.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
 import 'screens/user/home_screen.dart';
@@ -20,6 +22,9 @@ import 'screens/admin/reports/reports_screen.dart';
 import 'screens/admin/notifications/notifications_screen.dart';
 import 'screens/admin/setting/settings_screen.dart';
 
+// Define navigatorKey here
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Initialize storage service
@@ -29,6 +34,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
       child: const SmartAIApp(),
     ),
@@ -44,6 +50,7 @@ class SmartAIApp extends StatelessWidget {
     return MaterialApp(
       title: 'SmartAi',
       debugShowCheckedModeBanner: false,
+      navigatorKey: navigatorKey,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
