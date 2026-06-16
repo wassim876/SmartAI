@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth import authenticate
 from .models import User # Assuming your custom User model is in accounts/models.py
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -29,11 +30,31 @@ class RegisterSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        user = User.objects.create(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            first_name=validated_data['first_name']
-        )
-        user.set_password(validated_data['password'])
-        user.save()
+        password = validated_data.pop('password')
+        user = User.objects.create_user(**validated_data, password=password)
         return user
+
+
+class LoginSerializer(serializers.Serializer):
+    """
+    Serializer for user login.
+    Handles validation of username/email and password.
+    """
+    username_or_email = serializers.CharField(write_only=True)
+    password = serializers.CharField(
+        write_only=True,
+        style={'input_type': 'password'}
+    )
+
+    def validate(self, data):
+        username_or_email = data.get('username_or_email')
+        password = data.get('password')
+
+        if username_or_email and password:
+            user = authenticate(request=self.context.get('request'),
+                                username=username_or_email, password=password)
+            if not user:
+                raise serializers.ValidationError("Unable to log in with provided credentials.")
+            data['user'] = user
+            return data
+        raise serializers.ValidationError("Must include 'username_or_email' and 'password'.")

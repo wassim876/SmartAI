@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
 import 'providers/theme_provider.dart';
-import 'screens/login_screen.dart';
+import 'providers/auth_provider.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/auth/signup_screen.dart';
+import 'screens/user/home_screen.dart';
+import 'screens/user/profile_screen.dart';
+import 'screens/user/history_screen.dart';
 import 'screens/admin/admin_dashboard.dart';
 import 'screens/admin/admin_layout.dart';
 import 'screens/admin/users/user_management_screen.dart';
@@ -17,8 +22,11 @@ import 'screens/admin/setting/settings_screen.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ],
       child: const SmartAIApp(),
     ),
   );
@@ -39,6 +47,10 @@ class SmartAIApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const LoginScreen(),
+        '/home': (context) => const HomeScreen(),
+        '/signup': (context) => const SignupScreen(),
+        '/profile': (context) => const ProfileScreen(),
+        '/history': (context) => const HistoryScreen(),
         '/admin/dashboard': (context) =>
             const AdminLayout(child: AdminDashboard()),
         '/admin/users': (context) =>

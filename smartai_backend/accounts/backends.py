@@ -11,7 +11,10 @@ class EmailOrUsernameModelBackend(ModelBackend):
     """
     def authenticate(self, request, username=None, password=None, **kwargs):
         try:
-            user = UserModel.objects.get(Q(username__iexact=username) | Q(email__iexact=username))
+            # Look up by email or username (case-insensitive)
+            user = UserModel.objects.get(
+                Q(username__iexact=username) | Q(email__iexact=username)
+            )
         except UserModel.DoesNotExist:
             return None
 

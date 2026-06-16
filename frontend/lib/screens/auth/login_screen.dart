@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 
-import '../theme/app_colors.dart';
-import '../widgets/custom_text_field.dart';
-import '../widgets/primary_button.dart';
-import '../widgets/social_button.dart';
+import '../../theme/app_colors.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../widgets/primary_button.dart';
+import '../../widgets/social_button.dart';
 import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
-import 'admin/admin_dashboard.dart';
-import 'admin/admin_layout.dart';
-import '../services/auth_service.dart';
+import '../admin/admin_dashboard.dart';
+import '../admin/admin_layout.dart';
+import '../../providers/auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -22,7 +23,6 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final AuthService _authService = AuthService();
 
   bool _isLoading = false;
 
@@ -46,29 +46,23 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final success = await _authService.login(email, password);
+      final authProvider = context.read<AuthProvider>();
+      await authProvider.login(
+        email: email,
+        password: password,
+        isAdminLogin: false,
+      );
 
-      if (success) {
-        if (mounted) {
-          // Ensure widget is still mounted before navigating
+      if (mounted) {
+        if (authProvider.isAdmin) {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => const AdminLayout(
-                child: AdminDashboard(),
-              ),
-            ),
+                builder: (context) =>
+                    const AdminLayout(child: AdminDashboard())),
           );
-        }
-      } else {
-        if (mounted) {
-          // Ensure widget is still mounted before showing snackbar
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Invalid credentials. Please try again.'),
-              backgroundColor: Colors.red,
-            ),
-          );
+        } else {
+          Navigator.pushReplacementNamed(context, '/home');
         }
       }
     } catch (e) {
