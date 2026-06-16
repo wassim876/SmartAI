@@ -1,248 +1,179 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../theme/app_colors.dart';
 import '../auth/login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  static const _primary = Color(0xFF5B4FE8);
+  static const _bg = Color(0xFFF5F6FA);
 
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthProvider>().currentUser;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: _bg,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppColors.textDark, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Profile',
-          style: GoogleFonts.poppins(
-            color: AppColors.textDark,
-            fontWeight: FontWeight.w600,
-            fontSize: 18,
-          ),
-        ),
+        title: Text('Profile', style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A2E))),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.edit_outlined, color: AppColors.primary),
-            onPressed: () {
-              // TODO: Implement edit profile
-            },
-          ),
+          IconButton(icon: const Icon(Icons.edit_outlined, color: _primary), onPressed: () {}),
         ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            const SizedBox(height: 10),
+        child: Column(children: [
+          // Avatar + name
+          const SizedBox(height: 10),
+          Stack(alignment: Alignment.bottomRight, children: [
             CircleAvatar(
-              radius: 50,
-              backgroundColor: AppColors.primary.withOpacity(0.1),
-              backgroundImage: user?.avatarUrl != null
-                  ? NetworkImage(user!.avatarUrl!)
-                  : null,
+              radius: 48,
+              backgroundColor: _primary.withOpacity(0.1),
+              backgroundImage: user?.avatarUrl != null ? NetworkImage(user!.avatarUrl!) : null,
               child: user?.avatarUrl == null
-                  ? Text(
-                      (user != null && user.name.isNotEmpty)
-                          ? user.name[0].toUpperCase()
-                          : 'U',
-                      style: GoogleFonts.poppins(
-                        fontSize: 40,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    )
+                  ? Text(user?.name.isNotEmpty == true ? user!.name[0].toUpperCase() : 'U',
+                      style: GoogleFonts.poppins(fontSize: 36, fontWeight: FontWeight.bold, color: _primary))
                   : null,
             ),
-            const SizedBox(height: 16),
-            Text(
-              user?.name ?? 'User',
-              style: GoogleFonts.poppins(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textDark,
-              ),
-            ),
-            Text(
-              user?.email ?? '',
-              style:
-                  GoogleFonts.poppins(color: AppColors.textGrey, fontSize: 14),
-            ),
-            const SizedBox(height: 12),
-            if (user?.isPremium ?? false)
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.amber.shade100,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.amber.shade300),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.workspace_premium,
-                        size: 16, color: Colors.amber.shade800),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Premium Member',
-                      style: GoogleFonts.poppins(
-                        color: Colors.amber.shade800,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            const SizedBox(height: 24),
-
-            // Usage Stats
             Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Usage Statistics',
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: AppColors.textDark,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildStatBar('Messages Used', user?.dailyMessagesUsed ?? 0,
-                      user?.dailyMessagesLimit ?? 50, Colors.purple),
-                  _buildStatBar(
-                      'Speech Minutes',
-                      user?.monthlySpeechMinutesUsed ?? 0,
-                      user?.monthlySpeechMinutesLimit ?? 10,
-                      Colors.blue),
-                  _buildStatBar(
-                      'Translation Chars',
-                      user?.translationCharsUsed ?? 0,
-                      user?.translationCharsLimit ?? 1000,
-                      Colors.green),
-                ],
-              ),
+              width: 28, height: 28,
+              decoration: BoxDecoration(color: _primary, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
+              child: const Icon(Icons.camera_alt_rounded, size: 14, color: Colors.white),
             ),
-            const SizedBox(height: 24),
+          ]),
+          const SizedBox(height: 14),
+          Text(user?.name ?? 'User', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A2E))),
+          Text(user?.email ?? '', style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey[500])),
+          const SizedBox(height: 12),
+          if (user?.isPremium ?? false)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              decoration: BoxDecoration(color: const Color(0xFFFEF3C7), borderRadius: BorderRadius.circular(20)),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                const Icon(Icons.workspace_premium_rounded, size: 15, color: Color(0xFFD97706)),
+                const SizedBox(width: 5),
+                Text('Premium Member', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFFD97706))),
+              ]),
+            ),
 
-            // Settings List
-            _buildListTile(Icons.settings_outlined, 'Settings', () {}),
-            _buildListTile(Icons.help_outline, 'Help & Support', () {}),
-            _buildListTile(Icons.info_outline, 'About SmartAI', () {}),
-            const Divider(),
-            _buildListTile(
-              Icons.logout,
-              'Logout',
-              () async {
-                await context.read<AuthProvider>().logout();
-                if (context.mounted) {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const LoginScreen()),
-                    (route) => false,
-                  );
-                }
-              },
-              isDestructive: true,
+          const SizedBox(height: 24),
+
+          // Stats row
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
             ),
-          ],
-        ),
+            child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+              _statItem('125', 'AI Chats'),
+              _vDivider(),
+              _statItem('48', 'Images'),
+              _vDivider(),
+              _statItem('32', 'Translations'),
+            ]),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Usage
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Text('Your Plan', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14, color: const Color(0xFF1A1A2E))),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(color: _primary.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
+                  child: Text(user?.isPremium == true ? '⭐ Premium' : 'Free', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: _primary)),
+                ),
+              ]),
+              const SizedBox(height: 16),
+              _statBar('Messages', user?.dailyMessagesUsed ?? 0, user?.dailyMessagesLimit ?? 50, _primary),
+              const SizedBox(height: 10),
+              _statBar('Speech (min)', user?.monthlySpeechMinutesUsed ?? 0, user?.monthlySpeechMinutesLimit ?? 10, const Color(0xFF3B82F6)),
+              const SizedBox(height: 10),
+              _statBar('Translation (chars)', user?.translationCharsUsed ?? 0, user?.translationCharsLimit ?? 1000, const Color(0xFF10B981)),
+            ]),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Settings
+          _section([
+            _tile(Icons.settings_outlined, 'Settings', const Color(0xFF6B7280), () {}),
+            _tile(Icons.help_outline_rounded, 'Help & Support', const Color(0xFF6B7280), () {}),
+            _tile(Icons.info_outline_rounded, 'About SmartAI', const Color(0xFF6B7280), () {}),
+          ]),
+
+          const SizedBox(height: 12),
+
+          _section([
+            _tile(Icons.logout_rounded, 'Logout', const Color(0xFFEF4444), () async {
+              await context.read<AuthProvider>().logout();
+              if (context.mounted) {
+                Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginScreen()), (_) => false);
+              }
+            }, isDestructive: true),
+          ]),
+
+          const SizedBox(height: 20),
+        ]),
       ),
     );
   }
 
-  Widget _buildStatBar(String label, int used, int limit, Color color) {
-    final double progress = limit > 0 ? (used / limit).clamp(0.0, 1.0) : 0.0;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(label,
-                  style: GoogleFonts.poppins(
-                      color: AppColors.textGrey, fontSize: 13)),
-              Text('$used / $limit',
-                  style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w600, fontSize: 13)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: progress,
-              backgroundColor: color.withOpacity(0.1),
-              valueColor: AlwaysStoppedAnimation<Color>(color),
-              minHeight: 8,
-            ),
-          ),
-        ],
-      ),
-    );
+  Widget _statItem(String val, String label) => Column(children: [
+    Text(val, style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700, color: const Color(0xFF1A1A2E))),
+    Text(label, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[500])),
+  ]);
+
+  Widget _vDivider() => Container(height: 36, width: 1, color: const Color(0xFFE5E7EB));
+
+  Widget _statBar(String label, int used, int limit, Color color) {
+    final progress = limit > 0 ? (used / limit).clamp(0.0, 1.0) : 0.0;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Text(label, style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[500])),
+        Text('$used / $limit', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A2E))),
+      ]),
+      const SizedBox(height: 6),
+      ClipRRect(borderRadius: BorderRadius.circular(6), child: LinearProgressIndicator(
+        value: progress, minHeight: 7,
+        backgroundColor: color.withOpacity(0.1),
+        valueColor: AlwaysStoppedAnimation(color),
+      )),
+    ]);
   }
 
-  Widget _buildListTile(IconData icon, String title, VoidCallback onTap,
-      {bool isDestructive = false}) {
+  Widget _section(List<Widget> tiles) => Container(
+    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE5E7EB))),
+    child: Column(children: tiles),
+  );
+
+  Widget _tile(IconData icon, String title, Color color, VoidCallback onTap, {bool isDestructive = false}) {
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: isDestructive
-              ? Colors.red.withOpacity(0.1)
-              : Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(
-          icon,
-          color: isDestructive ? Colors.red : AppColors.textDark,
-          size: 22,
-        ),
-      ),
-      title: Text(
-        title,
-        style: GoogleFonts.poppins(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          color: isDestructive ? Colors.red : AppColors.textDark,
-        ),
-      ),
-      trailing: Icon(
-        Icons.chevron_right,
-        color: Colors.grey.shade400,
-        size: 20,
-      ),
       onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      leading: Container(
+        width: 36, height: 36,
+        decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+        child: Icon(icon, color: color, size: 18),
+      ),
+      title: Text(title, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500, color: isDestructive ? const Color(0xFFEF4444) : const Color(0xFF1A1A2E))),
+      trailing: Icon(Icons.chevron_right_rounded, color: Colors.grey[300], size: 20),
     );
   }
 }

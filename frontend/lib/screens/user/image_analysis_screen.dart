@@ -1,12 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 
 class ImageAnalysisScreen extends StatefulWidget {
   const ImageAnalysisScreen({super.key});
-
   @override
   State<ImageAnalysisScreen> createState() => _ImageAnalysisScreenState();
 }
@@ -14,337 +14,181 @@ class ImageAnalysisScreen extends StatefulWidget {
 class _ImageAnalysisScreenState extends State<ImageAnalysisScreen> {
   File? _selectedImage;
   bool _isAnalyzing = false;
-  String? _analysisResult;
+  String? _result;
   final ImagePicker _picker = ImagePicker();
+
+  static const _primary = Color(0xFF3B82F6);
+  static const _primaryLight = Color(0xFFEFF6FF);
+  static const _bg = Color(0xFFF5F6FA);
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      final XFile? image = await _picker.pickImage(
-        source: source,
-        maxWidth: 1800,
-        maxHeight: 1800,
-        imageQuality: 85,
-      );
-
-      if (image != null) {
-        setState(() {
-          _selectedImage = File(image.path);
-          _analysisResult = null;
-        });
-      }
+      final XFile? img = await _picker.pickImage(source: source, maxWidth: 1800, maxHeight: 1800, imageQuality: 85);
+      if (img != null) setState(() { _selectedImage = File(img.path); _result = null; });
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error picking image: $e')),
-      );
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), behavior: SnackBarBehavior.floating));
     }
   }
 
-  Future<void> _analyzeImage() async {
+  Future<void> _analyze() async {
     if (_selectedImage == null) return;
-
-    setState(() {
-      _isAnalyzing = true;
-    });
-
-    // Increment usage
-    if (mounted) {
-      context.read<AuthProvider>().incrementDailyMessages();
-    }
-
-    // Simulate API call - Replace with actual AI image analysis API
+    setState(() { _isAnalyzing = true; });
+    try { await context.read<AuthProvider>().incrementDailyMessages(); } catch (_) {}
     await Future.delayed(const Duration(seconds: 3));
-
+    if (!mounted) return;
     setState(() {
       _isAnalyzing = false;
-      _analysisResult =
-          "This is a simulated analysis result. In production, this would contain the AI's analysis of your image. The image appears to show various objects and scenes that would be detected and described by the AI model.";
+      _result = 'This is a simulated analysis result. In production, this would contain the AI\'s detailed analysis of your image including detected objects, scene description, colors, and any text found.';
     });
   }
 
-  void _showImageSourceDialog() {
+  void _showSourcePicker() {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.camera_alt, color: Colors.purple),
-              title: const Text('Take a Photo'),
-              onTap: () {
-                Navigator.pop(context);
-                _pickImage(ImageSource.camera);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_library, color: Colors.purple),
-              title: const Text('Choose from Gallery'),
-              onTap: () {
-                Navigator.pop(context);
-                _pickImage(ImageSource.gallery);
-              },
-            ),
-          ],
-        ),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => SafeArea(child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(width: 36, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+          const SizedBox(height: 16),
+          ListTile(
+            leading: Container(width: 40, height: 40, decoration: BoxDecoration(color: _primaryLight, borderRadius: BorderRadius.circular(10)), child: const Icon(Icons.camera_alt_rounded, color: _primary)),
+            title: Text('Take a Photo', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+            onTap: () { Navigator.pop(context); _pickImage(ImageSource.camera); },
+          ),
+          ListTile(
+            leading: Container(width: 40, height: 40, decoration: BoxDecoration(color: _primaryLight, borderRadius: BorderRadius.circular(10)), child: const Icon(Icons.photo_library_rounded, color: _primary)),
+            title: Text('Choose from Gallery', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+            onTap: () { Navigator.pop(context); _pickImage(ImageSource.gallery); },
+          ),
+        ]),
+      )),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: _bg,
       appBar: AppBar(
-        title: const Text('Image Analysis'),
+        backgroundColor: Colors.white, elevation: 0,
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: Color(0xFF1A1A2E)), onPressed: () => Navigator.pop(context)),
+        title: Text('Image Analysis', style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A2E))),
         actions: [
           if (_selectedImage != null)
-            IconButton(
-              icon: const Icon(Icons.delete_outline),
-              onPressed: () {
-                setState(() {
-                  _selectedImage = null;
-                  _analysisResult = null;
-                });
-              },
-            ),
+            IconButton(icon: Icon(Icons.delete_outline_rounded, color: Colors.grey[600]), onPressed: () => setState(() { _selectedImage = null; _result = null; })),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Upload Area
-            if (_selectedImage == null)
-              GestureDetector(
-                onTap: _showImageSourceDialog,
-                child: Container(
-                  height: 300,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Colors.purple.shade200,
-                      width: 2,
-                      style: BorderStyle.solid,
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.add_photo_alternate_outlined,
-                        size: 80,
-                        color: Colors.purple.shade300,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Tap to upload an image',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Supports: JPG, PNG',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade400,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            else
-              Container(
-                height: 300,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.purple.shade200, width: 2),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      Image.file(
-                        _selectedImage!,
-                        fit: BoxFit.cover,
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withOpacity(0.5),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 16,
-                        right: 16,
-                        child: IconButton(
-                          icon:
-                              const Icon(Icons.camera_alt, color: Colors.white),
-                          onPressed: _showImageSourceDialog,
-                          style: IconButton.styleFrom(
-                            backgroundColor: Colors.purple,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            const SizedBox(height: 24),
-
-            // Analyze Button
-            if (_selectedImage != null && _analysisResult == null)
-              SizedBox(
-                height: 50,
-                child: ElevatedButton.icon(
-                  onPressed: _isAnalyzing ? null : _analyzeImage,
-                  icon: _isAnalyzing
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Icon(Icons.auto_awesome),
-                  label: Text(
-                    _isAnalyzing ? 'Analyzing...' : 'Analyze Image',
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.purple,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-
-            // Analysis Result
-            if (_analysisResult != null) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.green.shade200),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.check_circle, color: Colors.green.shade700),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Analysis Complete',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green.shade800,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      _analysisResult!,
-                      style: TextStyle(
-                        color: Colors.grey.shade800,
-                        height: 1.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              OutlinedButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _selectedImage = null;
-                    _analysisResult = null;
-                  });
-                },
-                icon: const Icon(Icons.refresh),
-                label: const Text('Analyze Another Image'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.purple,
-                  side: const BorderSide(color: Colors.purple),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ],
-
-            const SizedBox(height: 24),
-
-            // Features Info
-            Container(
-              padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
+        child: Column(children: [
+          // Image area
+          GestureDetector(
+            onTap: _showSourcePicker,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              height: 240,
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: _selectedImage != null ? _primary.withOpacity(0.4) : const Color(0xFFE5E7EB), width: _selectedImage != null ? 1.5 : 1),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.info_outline, color: Colors.blue.shade700),
-                      const SizedBox(width: 8),
-                      Text(
-                        'What can I analyze?',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue.shade800,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  _buildFeatureItem('Objects & Scenes', Icons.visibility),
-                  _buildFeatureItem('Text in Images (OCR)', Icons.text_fields),
-                  _buildFeatureItem('Faces & Emotions', Icons.face),
-                  _buildFeatureItem('Colors & Composition', Icons.palette),
-                ],
+              child: _selectedImage == null
+                  ? Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Container(width: 64, height: 64, decoration: BoxDecoration(color: _primaryLight, borderRadius: BorderRadius.circular(18)),
+                          child: const Icon(Icons.add_photo_alternate_rounded, color: _primary, size: 32)),
+                      const SizedBox(height: 14),
+                      Text('Tap to upload an image', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600, color: const Color(0xFF1A1A2E))),
+                      const SizedBox(height: 4),
+                      Text('Supports JPG, PNG', style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[400])),
+                    ])
+                  : ClipRRect(
+                      borderRadius: BorderRadius.circular(17),
+                      child: Stack(fit: StackFit.expand, children: [
+                        Image.file(_selectedImage!, fit: BoxFit.cover),
+                        Positioned(bottom: 12, right: 12,
+                          child: GestureDetector(
+                            onTap: _showSourcePicker,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                              decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(20)),
+                              child: Row(children: [const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 14), const SizedBox(width: 5), Text('Change', style: GoogleFonts.poppins(color: Colors.white, fontSize: 12))]),
+                            ),
+                          )),
+                      ]),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // Analyze button
+          if (_selectedImage != null && _result == null)
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _isAnalyzing ? null : _analyze,
+                icon: _isAnalyzing
+                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.auto_awesome_rounded, size: 18),
+                label: Text(_isAnalyzing ? 'Analyzing…' : 'Analyze Image', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _primary, foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), elevation: 0,
+                ),
               ),
             ),
+
+          // Result
+          if (_result != null) ...[
+            const SizedBox(height: 14),
+            Container(
+              width: double.infinity, padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFE5E7EB))),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [
+                  Container(width: 32, height: 32, decoration: BoxDecoration(color: const Color(0xFFD1FAE5), borderRadius: BorderRadius.circular(8)),
+                      child: const Icon(Icons.check_rounded, color: Color(0xFF10B981), size: 18)),
+                  const SizedBox(width: 10),
+                  Text('Analysis Complete', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14, color: const Color(0xFF1A1A2E))),
+                ]),
+                const SizedBox(height: 12),
+                Text(_result!, style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF374151), height: 1.6)),
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: () => setState(() { _selectedImage = null; _result = null; }),
+                  child: Text('Analyze another image →', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: _primary)),
+                ),
+              ]),
+            ),
           ],
-        ),
+
+          const SizedBox(height: 20),
+
+          // Capabilities
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(color: _primaryLight, borderRadius: BorderRadius.circular(14)),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('What I can analyze', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13, color: _primary)),
+              const SizedBox(height: 12),
+              Row(children: [
+                Expanded(child: Column(children: [_cap(Icons.visibility_rounded, 'Objects & Scenes'), _cap(Icons.text_fields_rounded, 'Text (OCR)')])),
+                Expanded(child: Column(children: [_cap(Icons.face_rounded, 'Faces & Emotions'), _cap(Icons.palette_rounded, 'Colors')])),
+              ]),
+            ]),
+          ),
+        ]),
       ),
     );
   }
 
-  Widget _buildFeatureItem(String text, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: Colors.blue.shade600),
-          const SizedBox(width: 8),
-          Text(
-            text,
-            style: TextStyle(color: Colors.grey.shade700),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _cap(IconData icon, String label) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 5),
+    child: Row(children: [
+      Icon(icon, size: 16, color: _primary),
+      const SizedBox(width: 8),
+      Text(label, style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF1E40AF))),
+    ]),
+  );
 }

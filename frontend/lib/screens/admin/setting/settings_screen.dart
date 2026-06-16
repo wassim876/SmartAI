@@ -19,10 +19,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _pushNotifications = false;
   bool _twoFactorAuth = true;
   bool _isLoggingOut = false;
-  final AuthService _authService = AuthService();
   final PhotoPickerService _photoPicker = PhotoPickerService();
 
   Future<void> _handleLogoutEverywhere() async {
+    final authProvider = context.read<AuthProvider>();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -49,7 +49,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _isLoggingOut = true);
 
     // Use AuthProvider to clear global state and notify listeners
-    await context.read<AuthProvider>().logout();
+    await authProvider.logout();
 
     if (!mounted) return;
 
@@ -60,6 +60,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _changeProfilePhoto() async {
     final userProvider = context.read<UserProvider>();
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     final choice = await showModalBottomSheet<String>(
       context: context,
@@ -111,7 +112,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final imageBytes = await _photoPicker.pickImageFromGallery();
       if (imageBytes != null && mounted) {
         userProvider.updateProfileImage(imageBytes);
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           const SnackBar(
             content: Text('Profile photo updated successfully!'),
             backgroundColor: Colors.green,
@@ -120,7 +121,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
     } else if (choice == 'remove') {
       userProvider.updateProfileImage(null);
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         const SnackBar(
           content: Text('Profile photo removed!'),
           backgroundColor: Colors.orange,
@@ -674,7 +675,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             value: value,
             activeColor: theme.colorScheme.primary,
             activeTrackColor:
-                isDark ? theme.primaryColor.withOpacity(0.5) : null,
+                isDark ? theme.primaryColor.withValues(alpha: 0.5) : null,
             onChanged: onChanged,
           ),
         ),
