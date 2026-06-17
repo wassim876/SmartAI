@@ -17,7 +17,7 @@ class AuthService {
   Future<bool> login(String email, String password) async {
     try {
       final response = await _dio.post('/token/', data: {
-        'username': email,
+        'username': email, // backend accepts email OR username
         'password': password,
       });
 
@@ -29,25 +29,43 @@ class AuthService {
         return true;
       }
       return false;
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      String message = 'Login failed. Please check your credentials.';
+      if (data is Map) {
+        message = data['detail'] ?? data['non_field_errors']?.first ?? message;
+      }
+      throw Exception(message);
     } catch (e) {
-      return false;
+      throw Exception('Connection error. Make sure the server is running.');
     }
   }
 
-  Future<bool> register(String name, String email, String password) async {
+  Future<bool> register(String username, String email, String password) async {
     try {
       final response = await _dio.post('/register/', data: {
-        'username': email,
+        'username': username,
         'email': email,
-        'first_name': name,
         'password': password,
       });
-      return response.statusCode == 201;
+      if (response.statusCode == 201) {
+        return true;
+      }
+      return false;
     } on DioException catch (e) {
-      final message = e.response?.data is Map
-          ? e.response?.data.values.first
-          : 'Registration failed';
+      final data = e.response?.data;
+      String message = 'Registration failed.';
+      if (data is Map) {
+        final firstError = data.values.first;
+        if (firstError is List && firstError.isNotEmpty) {
+          message = firstError.first.toString();
+        } else if (firstError is String) {
+          message = firstError;
+        }
+      }
       throw Exception(message);
+    } catch (e) {
+      throw Exception('Connection error. Make sure the server is running.');
     }
   }
 
@@ -89,19 +107,20 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = response.data;
-        
+
         // Handle both response formats
         List<dynamic> usersData;
-        
+
         // Check if response has the {success, data} format
-        if (data is Map<String, dynamic> && data['success'] == true && data['data'] != null) {
+        if (data is Map<String, dynamic> &&
+            data['success'] == true &&
+            data['data'] != null) {
           usersData = data['data'] as List<dynamic>;
-        } 
+        }
         // Check if response is a raw list
         else if (data is List<dynamic>) {
           usersData = data;
-        } 
-        else {
+        } else {
           throw Exception('Unexpected response format: ${data.runtimeType}');
         }
 
@@ -118,12 +137,14 @@ class AuthService {
             dateJoined: json['date_joined'] != null
                 ? DateTime.parse(json['date_joined'])
                 : DateTime.now(),
-            isAdmin: (json['is_staff'] ?? false) || (json['is_superuser'] ?? false),
+            isAdmin:
+                (json['is_staff'] ?? false) || (json['is_superuser'] ?? false),
             isPremium: json['is_premium'] ?? false,
             dailyMessagesUsed: json['daily_messages_used'] ?? 0,
             dailyMessagesLimit: json['daily_messages_limit'] ?? 50,
             monthlySpeechMinutesUsed: json['monthly_speech_minutes_used'] ?? 0,
-            monthlySpeechMinutesLimit: json['monthly_speech_minutes_limit'] ?? 10,
+            monthlySpeechMinutesLimit:
+                json['monthly_speech_minutes_limit'] ?? 10,
             translationCharsUsed: json['translation_chars_used'] ?? 0,
             translationCharsLimit: json['translation_chars_limit'] ?? 1000,
             lastResetDate: json['last_reset_date'] != null
@@ -150,108 +171,107 @@ class AuthService {
   // ========== NEW ADMIN USER MANAGEMENT METHODS ==========
 // Add these after fetchUsers() and before isTokenValid()
 
-Future<UserModel> updateUser(int userId, Map<String, dynamic> data) async {
-  try {
-    final token = await _storage.read(key: 'access_token');
-    if (token == null) throw Exception('Not authenticated');
+  Future<UserModel> updateUser(int userId, Map<String, dynamic> data) async {
+    try {
+      final token = await _storage.read(key: 'access_token');
+      if (token == null) throw Exception('Not authenticated');
 
-    final response = await _dio.put(
-      '/users/$userId/',
-      data: data,
-      options: Options(
-        headers: {'Authorization': 'Bearer $token'},
-      ),
-    );
+      final response = await _dio.put(
+        '/users/$userId/',
+        data: data,
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      );
 
-    if (response.statusCode == 200) {
-      final result = response.data;
-      if (result['success'] == true) {
-        return UserModel.fromJson(result['data']);
+      if (response.statusCode == 200) {
+        final result = response.data;
+        if (result['success'] == true) {
+          return UserModel.fromJson(result['data']);
+        } else {
+          throw Exception(result['message'] ?? 'Failed to update user');
+        }
+      }
+      throw Exception('Failed to update user: ${response.statusCode}');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> deleteUser(int userId) async {
+    try {
+      final token = await _storage.read(key: 'access_token');
+      if (token == null) throw Exception('Not authenticated');
+
+      final response = await _dio.delete(
+        '/users/$userId/delete/',
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final result = response.data;
+        if (result['success'] != true) {
+          throw Exception(result['message'] ?? 'Failed to delete user');
+        }
       } else {
-        throw Exception(result['message'] ?? 'Failed to update user');
+        throw Exception('Failed to delete user: ${response.statusCode}');
       }
+    } catch (e) {
+      rethrow;
     }
-    throw Exception('Failed to update user: ${response.statusCode}');
-  } catch (e) {
-    rethrow;
   }
-}
 
-Future<void> deleteUser(int userId) async {
-  try {
-    final token = await _storage.read(key: 'access_token');
-    if (token == null) throw Exception('Not authenticated');
+  Future<void> toggleUserStatus(int userId) async {
+    try {
+      final token = await _storage.read(key: 'access_token');
+      if (token == null) throw Exception('Not authenticated');
 
-    final response = await _dio.delete(
-      '/users/$userId/delete/',
-      options: Options(
-        headers: {'Authorization': 'Bearer $token'},
-      ),
-    );
+      final response = await _dio.post(
+        '/users/$userId/toggle-status/',
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      );
 
-    if (response.statusCode == 200) {
-      final result = response.data;
-      if (result['success'] != true) {
-        throw Exception(result['message'] ?? 'Failed to delete user');
+      if (response.statusCode == 200) {
+        final result = response.data;
+        if (result['success'] != true) {
+          throw Exception(result['message'] ?? 'Failed to toggle status');
+        }
+      } else {
+        throw Exception('Failed to toggle status: ${response.statusCode}');
       }
-    } else {
-      throw Exception('Failed to delete user: ${response.statusCode}');
+    } catch (e) {
+      rethrow;
     }
-  } catch (e) {
-    rethrow;
   }
-}
 
-Future<void> toggleUserStatus(int userId) async {
-  try {
-    final token = await _storage.read(key: 'access_token');
-    if (token == null) throw Exception('Not authenticated');
+  Future<void> toggleUserPremium(int userId) async {
+    try {
+      final token = await _storage.read(key: 'access_token');
+      if (token == null) throw Exception('Not authenticated');
 
-    final response = await _dio.post(
-      '/users/$userId/toggle-status/',
-      options: Options(
-        headers: {'Authorization': 'Bearer $token'},
-      ),
-    );
+      final response = await _dio.post(
+        '/users/$userId/toggle-premium/',
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      );
 
-    if (response.statusCode == 200) {
-      final result = response.data;
-      if (result['success'] != true) {
-        throw Exception(result['message'] ?? 'Failed to toggle status');
+      if (response.statusCode == 200) {
+        final result = response.data;
+        if (result['success'] != true) {
+          throw Exception(result['message'] ?? 'Failed to toggle premium');
+        }
+      } else {
+        throw Exception('Failed to toggle premium: ${response.statusCode}');
       }
-    } else {
-      throw Exception('Failed to toggle status: ${response.statusCode}');
+    } catch (e) {
+      rethrow;
     }
-  } catch (e) {
-    rethrow;
   }
-}
-
-Future<void> toggleUserPremium(int userId) async {
-  try {
-    final token = await _storage.read(key: 'access_token');
-    if (token == null) throw Exception('Not authenticated');
-
-    final response = await _dio.post(
-      '/users/$userId/toggle-premium/',
-      options: Options(
-        headers: {'Authorization': 'Bearer $token'},
-      ),
-    );
-
-    if (response.statusCode == 200) {
-      final result = response.data;
-      if (result['success'] != true) {
-        throw Exception(result['message'] ?? 'Failed to toggle premium');
-      }
-    } else {
-      throw Exception('Failed to toggle premium: ${response.statusCode}');
-    }
-  } catch (e) {
-    rethrow;
-  }
-}
-
 
   Future<bool> isTokenValid() async {
     try {
@@ -265,31 +285,32 @@ Future<void> toggleUserPremium(int userId) async {
   // lib/services/auth_service.dart
 // Add this method after fetchUsers() and before isTokenValid()
 
-Future<void> createUser(Map<String, dynamic> userData) async {
-  try {
-    final token = await _storage.read(key: 'access_token');
-    if (token == null) throw Exception('Not authenticated');
+  Future<void> createUser(Map<String, dynamic> userData) async {
+    try {
+      final token = await _storage.read(key: 'access_token');
+      if (token == null) throw Exception('Not authenticated');
 
-    final response = await _dio.post(
-      '/register/',  // Using existing register endpoint
-      data: {
-        'username': userData['username'] ?? userData['email'].split('@').first,
-        'email': userData['email'],
-        'first_name': userData['first_name'] ?? '',
-        'password': userData['password'],
-      },
-      options: Options(
-        headers: {'Authorization': 'Bearer $token'},
-      ),
-    );
+      final response = await _dio.post(
+        '/register/', // Using existing register endpoint
+        data: {
+          'username':
+              userData['username'] ?? userData['email'].split('@').first,
+          'email': userData['email'],
+          'first_name': userData['first_name'] ?? '',
+          'password': userData['password'],
+        },
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      );
 
-    if (response.statusCode != 201) {
-      throw Exception('Failed to create user');
+      if (response.statusCode != 201) {
+        throw Exception('Failed to create user');
+      }
+    } catch (e) {
+      rethrow;
     }
-  } catch (e) {
-    rethrow;
   }
-}
 
   Future<void> logout() async {
     final accessToken = await _storage.read(key: 'access_token');

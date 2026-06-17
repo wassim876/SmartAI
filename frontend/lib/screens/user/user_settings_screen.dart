@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/theme_provider.dart';
 
 class UserSettingsScreen extends StatefulWidget {
   const UserSettingsScreen({super.key});
@@ -18,7 +19,6 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
   static const _border = Color(0xFFEAEAF4);
 
   bool _notificationsEnabled = true;
-  bool _darkMode = false;
   String _selectedLanguage = 'English';
 
   void _showLanguagePicker() {
@@ -69,6 +69,7 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthProvider>().currentUser;
+    final themeProvider = context.watch<ThemeProvider>();
 
     return Scaffold(
       backgroundColor: _bg,
@@ -96,14 +97,6 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
           _buildSectionHeader('Account'),
           _buildSettingCard([
             _buildSettingItem(
-              icon: Icons.person_outline_rounded,
-              color: Colors.blue,
-              title: 'Profile Information',
-              subtitle: user?.email ?? 'Update your name and email',
-              onTap: () => Navigator.pushNamed(context, '/profile'),
-            ),
-            _buildDivider(),
-            _buildSettingItem(
               icon: Icons.lock_outline_rounded,
               color: Colors.orange,
               title: 'Security',
@@ -126,8 +119,8 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
               icon: Icons.dark_mode_outlined,
               color: Colors.indigo,
               title: 'Dark Mode',
-              value: _darkMode,
-              onChanged: (v) => setState(() => _darkMode = v),
+              value: themeProvider.isDarkMode,
+              onChanged: (v) => themeProvider.toggleDarkMode(),
             ),
             _buildDivider(),
             _buildSettingItem(
@@ -145,15 +138,7 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
               icon: Icons.help_outline_rounded,
               color: Colors.purple,
               title: 'Help Center',
-              onTap: () {},
-            ),
-            _buildDivider(),
-            _buildSettingItem(
-              icon: Icons.info_outline_rounded,
-              color: Colors.grey,
-              title: 'About SmartAI',
-              subtitle: 'Version 1.0.0',
-              onTap: () {},
+              onTap: () => Navigator.pushNamed(context, '/help'),
             ),
           ]),
           const SizedBox(height: 32),

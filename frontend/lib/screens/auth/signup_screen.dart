@@ -172,6 +172,7 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _isLoading = false;
 
   final _nameController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -179,6 +180,7 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   void dispose() {
     _nameController.dispose();
+    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -196,17 +198,25 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    final name = _nameController.text.trim();
+    final username = _usernameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
 
-    if (name.isEmpty ||
+    if (username.isEmpty ||
         email.isEmpty ||
         password.isEmpty ||
         confirmPassword.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields')),
+      );
+      return;
+    }
+
+    // Basic username validation
+    if (username.contains('@') || username.contains(' ')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Username cannot contain @ or spaces')),
       );
       return;
     }
@@ -230,13 +240,19 @@ class _SignupScreenState extends State<SignupScreen> {
 
     try {
       await context.read<AuthProvider>().signup(
-            name: name,
+            username: username,
             email: email,
             password: password,
           );
 
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account created successfully! Please log in.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pushReplacementNamed(context, '/login');
       }
     } catch (e) {
       if (mounted) {
@@ -427,16 +443,16 @@ class _SignupScreenState extends State<SignupScreen> {
                     style: GoogleFonts.poppins(
                         fontSize: 13, color: AppColors.textGrey))),
             const SizedBox(height: 24),
-            Text('Full Name',
+            Text('Username',
                 style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                     color: AppColors.textDark)),
             const SizedBox(height: 8),
             CustomTextField(
-                hint: 'Enter your full name',
-                controller: _nameController,
-                prefixIcon: Icons.person_outline_rounded),
+                hint: 'Enter Your Username',
+                controller: _usernameController,
+                prefixIcon: Icons.alternate_email_rounded),
             const SizedBox(height: 16),
             Text('Email Address',
                 style: GoogleFonts.poppins(

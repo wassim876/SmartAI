@@ -1,27 +1,83 @@
 from django.utils import timezone
+from django.contrib.auth import authenticate
 from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from .serializers import RegisterSerializer, UserListSerializer
-from .serializers import RegisterSerializer
 from .models import User
 
+
+# ── Custom login — accepts email OR username ──────────────────────
+class CustomLoginView(APIView):
+    """
+    POST /api/login/
+    Accepts { username_or_email, password }
+    Returns { access, refresh, user }
+    """
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request):
+        identifier = request.data.get('username', '') or request.data.get('username_or_email', '')
+        password   = request.data.get('password', '')
+
+        if not identifier or not password:
+            return Response(
+                {'detail': 'Username/email and password are required.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Try username first, then email
+        user = authenticate(request=request, username=identifier, password=password)
+
+        if user is None:
+            # Try finding by email and authenticating with the actual username
+            try:
+                db_user = User.objects.get(email__iexact=identifier)
+                user = authenticate(request=request, username=db_user.username, password=password)
+            except User.DoesNotExist:
+                pass
+
+        if user is None:
+            return Response(
+                {'detail': 'No active account found with the given credentials.'},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        if not user.is_active:
+            return Response(
+                {'detail': 'This account has been disabled.'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'access':  str(refresh.access_token),
+            'refresh': str(refresh),
+        }, status=status.HTTP_200_OK)
+
+
+# ── Register — returns tokens directly ───────────────────────────
 class RegisterView(generics.CreateAPIView):
-    """
-    API endpoint for user registration.
-    """
     queryset = User.objects.all()
     permission_classes = (permissions.AllowAny,)
     serializer_class = RegisterSerializer
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'access':  str(refresh.access_token),
+            'refresh': str(refresh),
+        }, status=status.HTTP_201_CREATED)
 
+
+# ── Logout ────────────────────────────────────────────────────────
 class LogoutView(APIView):
-    """
-    Blacklists the refresh token, logging the user out.
-    """
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request):
@@ -42,14 +98,11 @@ class LogoutView(APIView):
         return Response(status=status.HTTP_205_RESET_CONTENT)
 
 
+# ── User profile ──────────────────────────────────────────────────
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def user_profile(request):
-    """
-    Get current user profile data.
-    """
     user = request.user
-    
     data = {
         'id': user.id,
         'username': user.username,
@@ -57,256 +110,123 @@ def user_profile(request):
         'first_name': user.first_name,
         'last_name': user.last_name,
         'name': f"{user.first_name} {user.last_name}".strip() or user.username,
-        
-        # Admin detection (Flutter uses this to route to Admin vs User dashboard)
         'is_staff': user.is_staff,
         'is_superuser': user.is_superuser,
-        
-        # Premium and usage tracking
+        'is_active': user.is_active,
+        'date_joined': user.date_joined,
         'is_premium': getattr(user, 'is_premium', False),
         'daily_messages_used': getattr(user, 'daily_messages_used', 0),
-        'daily_messages_limit': getattr(user, 'daily_messages_limit', 10),
+        'daily_messages_limit': getattr(user, 'daily_messages_limit', 50),
         'monthly_speech_minutes_used': getattr(user, 'monthly_speech_minutes_used', 0),
-        'monthly_speech_minutes_limit': getattr(user, 'monthly_speech_minutes_limit', 30),
+        'monthly_speech_minutes_limit': getattr(user, 'monthly_speech_minutes_limit', 10),
         'translation_chars_used': getattr(user, 'translation_chars_used', 0),
-        'translation_chars_limit': getattr(user, 'translation_chars_limit', 5000),
-        
+        'translation_chars_limit': getattr(user, 'translation_chars_limit', 1000),
         'last_reset_date': getattr(user, 'last_reset_date', timezone.now()),
-        'profile_picture': request.build_absolute_uri(user.profile_picture.url) if hasattr(user, 'profile_picture') and user.profile_picture else None,
+        'profile_picture': request.build_absolute_uri(user.profile_picture.url)
+            if hasattr(user, 'profile_picture') and user.profile_picture else None,
     }
-    
     return Response(data, status=status.HTTP_200_OK)
 
 
-@api_view(['GET'])
-@permission_classes([permissions.IsAdminUser])
-def list_users(request):
-    """
-    List all users in the system. Accessible only by admin users.
-    """
-    try:
-        users = User.objects.all().order_by('date_joined')
-        serializer = UserListSerializer(users, many=True)
-        return Response({
-            'success': True,
-            'count': users.count(),
-            'data': serializer.data
-        }, status=status.HTTP_200_OK)
-    except Exception as e:
-        return Response({
-            'success': False,
-            'message': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-
+# ── Usage tracking ────────────────────────────────────────────────
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def increment_usage(request):
-    """
-    Increment user usage counters when they use AI, Speech, or Translation.
-    """
     user = request.user
-    usage_type = request.data.get('type') # 'message', 'speech', 'translation'
-    amount = request.data.get('amount', 1)
-    
-    if not usage_type:
-        return Response({'detail': 'Usage type is required.'}, status=status.HTTP_400_BAD_REQUEST)
-    
-    try:
-        if usage_type == 'message':
-            user.daily_messages_used += amount
-        elif usage_type == 'speech':
-            user.monthly_speech_minutes_used += amount
-        elif usage_type == 'translation':
-            user.translation_chars_used += amount
-        else:
-            return Response({'detail': 'Invalid usage type.'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        user.save()
-        return Response({'success': True}, status=status.HTTP_200_OK)
-        
-    except Exception as e:
-        return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    usage_type = request.data.get('type', 'message')
+    amount = int(request.data.get('amount', 1))
+
+    if usage_type == 'message':
+        user.daily_messages_used = min(
+            user.daily_messages_used + amount,
+            user.daily_messages_limit
+        )
+    elif usage_type == 'speech':
+        user.monthly_speech_minutes_used += amount
+    elif usage_type == 'translation':
+        user.translation_chars_used += amount
+
+    user.save()
+    return Response({'success': True}, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def reset_daily_usage(request):
-    """
-    Reset user's daily usage counters.
-    """
     user = request.user
-    try:
-        user.daily_messages_used = 0
-        user.translation_chars_used = 0
-        user.last_reset_date = timezone.now()
-        user.save()
-        return Response({'success': True}, status=status.HTTP_200_OK)
-    except Exception as e:
-        return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-# ========== NEW ADMIN USER MANAGEMENT FUNCTIONS ==========
-# Add these after reset_daily_usage function
+    user.daily_messages_used = 0
+    user.translation_chars_used = 0
+    user.last_reset_date = timezone.now()
+    user.save()
+    return Response({'success': True}, status=status.HTTP_200_OK)
 
-@api_view(['PUT'])
-@permission_classes([permissions.IsAdminUser])
+
+# ── Admin user management ─────────────────────────────────────────
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def list_users(request):
+    if not (request.user.is_staff or request.user.is_superuser):
+        return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
+    users = User.objects.all().order_by('-date_joined')
+    serializer = UserListSerializer(users, many=True)
+    return Response({'success': True, 'data': serializer.data}, status=status.HTTP_200_OK)
+
+
+@api_view(['PUT', 'PATCH'])
+@permission_classes([permissions.IsAuthenticated])
 def update_user(request, user_id):
-    """
-    Update user details. Admin only.
-    """
+    if not (request.user.is_staff or request.user.is_superuser):
+        return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
     try:
         user = User.objects.get(id=user_id)
-        
-        # Get data from request
-        data = request.data
-        first_name = data.get('first_name', '')
-        last_name = data.get('last_name', '')
-        email = data.get('email')
-        is_active = data.get('is_active')
-        is_premium = data.get('is_premium')
-        role = data.get('role')
-        
-        # Update fields
-        if email:
-            user.email = email
-        if first_name is not None:
-            user.first_name = first_name
-        if last_name is not None:
-            user.last_name = last_name
-        if is_active is not None:
-            user.is_active = is_active
-        if is_premium is not None:
-            user.is_premium = is_premium
-        if role:
-            if role == 'Admin':
-                user.is_staff = True
-                user.is_superuser = True
-            elif role == 'Staff':
-                user.is_staff = True
-                user.is_superuser = False
-            else:  # User
-                user.is_staff = False
-                user.is_superuser = False
-        
-        user.save()
-        
-        # Return updated user
-        serializer = UserListSerializer(user)
-        return Response({
-            'success': True,
-            'message': 'User updated successfully',
-            'data': serializer.data
-        }, status=status.HTTP_200_OK)
-        
     except User.DoesNotExist:
-        return Response({
-            'success': False,
-            'message': 'User not found'
-        }, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({
-            'success': False,
-            'message': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    for field in ['first_name', 'last_name', 'email', 'is_premium', 'daily_messages_limit',
+                  'is_active', 'is_staff']:
+        if field in request.data:
+            setattr(user, field, request.data[field])
+    user.save()
+    serializer = UserListSerializer(user)
+    return Response({'success': True, 'data': serializer.data}, status=status.HTTP_200_OK)
 
 
 @api_view(['DELETE'])
-@permission_classes([permissions.IsAdminUser])
+@permission_classes([permissions.IsAuthenticated])
 def delete_user(request, user_id):
-    """
-    Delete a user. Admin only.
-    """
+    if not (request.user.is_staff or request.user.is_superuser):
+        return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
     try:
         user = User.objects.get(id=user_id)
-        
-        # Prevent deleting yourself
-        if request.user.id == user.id:
-            return Response({
-                'success': False,
-                'message': 'Cannot delete your own account'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
         user.delete()
-        return Response({
-            'success': True,
-            'message': 'User deleted successfully'
-        }, status=status.HTTP_200_OK)
-        
+        return Response({'success': True}, status=status.HTTP_200_OK)
     except User.DoesNotExist:
-        return Response({
-            'success': False,
-            'message': 'User not found'
-        }, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({
-            'success': False,
-            'message': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['POST'])
-@permission_classes([permissions.IsAdminUser])
+@permission_classes([permissions.IsAuthenticated])
 def toggle_user_status(request, user_id):
-    """
-    Toggle user active status. Admin only.
-    """
+    if not (request.user.is_staff or request.user.is_superuser):
+        return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
     try:
         user = User.objects.get(id=user_id)
-        
-        # Prevent toggling yourself
-        if request.user.id == user.id:
-            return Response({
-                'success': False,
-                'message': 'Cannot toggle your own status'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
         user.is_active = not user.is_active
         user.save()
-        
-        return Response({
-            'success': True,
-            'message': f"User {'activated' if user.is_active else 'deactivated'} successfully",
-            'data': {'is_active': user.is_active}
-        }, status=status.HTTP_200_OK)
-        
+        return Response({'success': True, 'is_active': user.is_active}, status=status.HTTP_200_OK)
     except User.DoesNotExist:
-        return Response({
-            'success': False,
-            'message': 'User not found'
-        }, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({
-            'success': False,
-            'message': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
 
 
 @api_view(['POST'])
-@permission_classes([permissions.IsAdminUser])
+@permission_classes([permissions.IsAuthenticated])
 def toggle_user_premium(request, user_id):
-    """
-    Toggle user premium status. Admin only.
-    """
+    if not (request.user.is_staff or request.user.is_superuser):
+        return Response({'detail': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
     try:
         user = User.objects.get(id=user_id)
-        
         user.is_premium = not user.is_premium
         user.save()
-        
-        return Response({
-            'success': True,
-            'message': f"User premium {'enabled' if user.is_premium else 'disabled'} successfully",
-            'data': {'is_premium': user.is_premium}
-        }, status=status.HTTP_200_OK)
-        
+        return Response({'success': True, 'is_premium': user.is_premium}, status=status.HTTP_200_OK)
     except User.DoesNotExist:
-        return Response({
-            'success': False,
-            'message': 'User not found'
-        }, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({
-            'success': False,
-            'message': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)

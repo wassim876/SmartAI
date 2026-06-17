@@ -48,8 +48,10 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
       _currentUser = null;
-      await _authService
-          .logout(); // Clean up tokens on error but preserve error message
+      // Clear tokens without calling the API logout endpoint
+      try {
+        await _authService.logout();
+      } catch (_) {}
       rethrow;
     } finally {
       _isLoading = false;
@@ -58,7 +60,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> signup({
-    required String name,
+    required String username,
     required String email,
     required String password,
   }) async {
@@ -67,17 +69,8 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final success = await _authService.register(name, email, password);
-
-      if (!success) {
-        throw Exception('Registration failed');
-      }
-
-      // Auto-login after signup
-      await login(
-        email: email,
-        password: password,
-      );
+      final success = await _authService.register(username, email, password);
+      if (!success) throw Exception('Registration failed');
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
       rethrow;
@@ -156,23 +149,23 @@ class AuthProvider extends ChangeNotifier {
   // lib/providers/auth_provider.dart
 // Add this method after fetchUsers() and before logout()
 
-Future<void> createUser(Map<String, dynamic> userData) async {
-  _isLoading = true;
-  _errorMessage = null;
-  notifyListeners();
-
-  try {
-    await _authService.createUser(userData);
-    // Refresh the user list after creating
-    await fetchUsers();
-  } catch (e) {
-    _errorMessage = e.toString().replaceAll('Exception: ', '');
-    rethrow;
-  } finally {
-    _isLoading = false;
+  Future<void> createUser(Map<String, dynamic> userData) async {
+    _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
+
+    try {
+      await _authService.createUser(userData);
+      // Refresh the user list after creating
+      await fetchUsers();
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
-}
 
   Future<List<UserModel>> fetchUsers() async {
     _isLoading = true;

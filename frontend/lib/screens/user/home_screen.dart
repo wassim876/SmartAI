@@ -8,6 +8,7 @@ import 'user_settings_screen.dart';
 import 'translate_screen.dart';
 import 'speech_to_text_screen.dart';
 import 'image_analysis_screen.dart';
+import 'about_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -385,7 +386,7 @@ class _HeroGreeting extends StatelessWidget {
         Expanded(
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Hello, ${user?.username ?? 'User'}! 👋',
+          Text('Hello, ${user?.displayName ?? 'User'}! 👋',
               style: GoogleFonts.poppins(
                   fontSize: wide ? 26 : 21,
                   fontWeight: FontWeight.w700,
@@ -717,7 +718,7 @@ class _RightPanel extends StatelessWidget {
             _Avatar(user: user, radius: 26),
             const SizedBox(width: 12),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(user?.username ?? 'User',
+              Text(user?.displayName ?? 'User',
                   style: GoogleFonts.poppins(
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
@@ -998,15 +999,6 @@ class _Sidebar extends StatelessWidget {
           child: Column(children: [
             _footerItem(
                 context,
-                Icons.person_outline_rounded,
-                'Profile',
-                false,
-                () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const UserSettingsScreen()))),
-            _footerItem(
-                context,
                 Icons.settings_outlined,
                 'Settings',
                 false,
@@ -1015,7 +1007,14 @@ class _Sidebar extends StatelessWidget {
                     MaterialPageRoute(
                         builder: (_) => const UserSettingsScreen()))),
             _footerItem(
-                context, Icons.help_outline_rounded, 'Support', false, () {}),
+                context,
+                Icons.info_outline_rounded,
+                'About',
+                false,
+                () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const AboutScreen()))),
+            _footerItem(context, Icons.help_outline_rounded, 'Support', false,
+                () => Navigator.pushNamed(context, '/help')),
             _footerItem(
                 context,
                 Icons.logout_rounded,
@@ -1098,26 +1097,73 @@ class _TopBar extends StatelessWidget {
         const SizedBox(width: 14),
         _NotifBell(),
         const SizedBox(width: 14),
-        _Avatar(user: user, radius: 18),
-        const SizedBox(width: 9),
-        Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(user?.username ?? 'User',
-                  style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF12112A))),
-              if (user?.isPremium == true)
-                Text('Premium',
-                    style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        color: const Color(0xFFD97706),
-                        fontWeight: FontWeight.w500)),
-            ]),
-        Icon(Icons.keyboard_arrow_down_rounded,
-            color: Colors.grey[400], size: 18),
+        PopupMenuButton<String>(
+          offset: const Offset(0, 45),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          onSelected: (val) {
+            if (val == 'settings') {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const UserSettingsScreen()));
+            } else if (val == 'about') {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const AboutScreen()));
+            } else if (val == 'support') {
+              Navigator.pushNamed(context, '/help');
+            } else if (val == 'logout') {
+              context.read<AuthProvider>().logout().then((_) {
+                if (context.mounted)
+                  Navigator.pushReplacementNamed(context, '/');
+              });
+            }
+          },
+          itemBuilder: (ctx) => [
+            _buildPopupItem('settings', Icons.settings_outlined, 'Settings'),
+            _buildPopupItem('about', Icons.info_outline_rounded, 'About'),
+            _buildPopupItem('support', Icons.help_outline_rounded, 'Support'),
+            const PopupMenuDivider(),
+            _buildPopupItem('logout', Icons.logout_rounded, 'Logout',
+                color: Colors.red),
+          ],
+          child: Row(children: [
+            _Avatar(user: user, radius: 18),
+            const SizedBox(width: 9),
+            Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(user?.displayName ?? 'User',
+                      style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF12112A))),
+                  if (user?.isPremium == true)
+                    Text('Premium',
+                        style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            color: const Color(0xFFD97706),
+                            fontWeight: FontWeight.w500)),
+                ]),
+            Icon(Icons.keyboard_arrow_down_rounded,
+                color: Colors.grey[400], size: 18),
+          ]),
+        ),
+      ]),
+    );
+  }
+
+  PopupMenuItem<String> _buildPopupItem(String val, IconData icon, String label,
+      {Color? color}) {
+    return PopupMenuItem(
+      value: val,
+      child: Row(children: [
+        Icon(icon, size: 18, color: color ?? const Color(0xFF12112A)),
+        const SizedBox(width: 12),
+        Text(label,
+            style: GoogleFonts.poppins(
+                fontSize: 13, color: color ?? const Color(0xFF12112A))),
       ]),
     );
   }
@@ -1134,7 +1180,7 @@ class _BottomNav extends StatelessWidget {
     (Icons.history_rounded, 'History'),
     (Icons.add_rounded, ''),
     (Icons.star_outline_rounded, 'Favorites'),
-    (Icons.person_outline_rounded, 'Profile'),
+    (Icons.settings_outlined, 'Settings'),
   ];
   static const _primary = Color(0xFF6C63FF);
 
@@ -1228,8 +1274,8 @@ class _Avatar extends StatelessWidget {
           user?.avatarUrl != null ? NetworkImage(user!.avatarUrl!) : null,
       child: user?.avatarUrl == null
           ? Text(
-              user?.username?.isNotEmpty == true
-                  ? user!.username[0].toUpperCase()
+              user?.displayName?.isNotEmpty == true
+                  ? user!.displayName[0].toUpperCase()
                   : 'U',
               style: TextStyle(
                   color: const Color(0xFF6C63FF),
