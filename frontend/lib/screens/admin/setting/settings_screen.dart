@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../providers/user_provider.dart';
 import '../../../providers/auth_provider.dart';
-import '../../../services/auth_service.dart';
 import '../../../services/photo_picker_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -22,7 +21,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final PhotoPickerService _photoPicker = PhotoPickerService();
 
   Future<void> _handleLogoutEverywhere() async {
-    final authProvider = context.read<AuthProvider>();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -49,7 +47,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _isLoggingOut = true);
 
     // Use AuthProvider to clear global state and notify listeners
-    await authProvider.logout();
+    await context.read<AuthProvider>().logout();
 
     if (!mounted) return;
 
@@ -60,7 +58,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _changeProfilePhoto() async {
     final userProvider = context.read<UserProvider>();
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
     final choice = await showModalBottomSheet<String>(
       context: context,
@@ -112,7 +109,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final imageBytes = await _photoPicker.pickImageFromGallery();
       if (imageBytes != null && mounted) {
         userProvider.updateProfileImage(imageBytes);
-        scaffoldMessenger.showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Profile photo updated successfully!'),
             backgroundColor: Colors.green,
@@ -121,7 +118,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
     } else if (choice == 'remove') {
       userProvider.updateProfileImage(null);
-      scaffoldMessenger.showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Profile photo removed!'),
           backgroundColor: Colors.orange,
@@ -675,7 +672,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             value: value,
             activeColor: theme.colorScheme.primary,
             activeTrackColor:
-                isDark ? theme.primaryColor.withValues(alpha: 0.5) : null,
+                isDark ? theme.primaryColor.withOpacity(0.5) : null,
             onChanged: onChanged,
           ),
         ),
