@@ -233,7 +233,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: selectedRole,
+                  initialValue: selectedRole,
                   dropdownColor:
                       isDark ? const Color(0xFF1E1E3F) : Colors.white,
                   items: const [
@@ -331,6 +331,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         }
                       }
                     },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF5A4FCF),
+                foregroundColor: Colors.white,
+              ),
               child: isSaving
                   ? const SizedBox(
                       width: 20,
@@ -341,10 +345,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       ),
                     )
                   : const Text('Save'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF5A4FCF),
-                foregroundColor: Colors.white,
-              ),
             ),
           ],
         ),
@@ -526,7 +526,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    value: selectedRole,
+                    initialValue: selectedRole,
                     dropdownColor:
                         isDark ? const Color(0xFF1E1E3F) : Colors.white,
                     items: const [
@@ -602,6 +602,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         }
                       }
                     },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF5A4FCF),
+                foregroundColor: Colors.white,
+              ),
               child: isSaving
                   ? const SizedBox(
                       width: 20,
@@ -612,10 +616,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       ),
                     )
                   : const Text('Create'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF5A4FCF),
-                foregroundColor: Colors.white,
-              ),
             ),
           ],
         ),
@@ -861,7 +861,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                       ..._filteredUsers
                                           .map((user) =>
                                               _buildUserRow(user, isDark))
-                                          .toList(),
+                                          ,
                                     ],
                                   ),
                                 ),

@@ -702,8 +702,8 @@ class __TermsAndConditionsDialogContentState
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
-            disabledBackgroundColor: AppColors.primary.withOpacity(0.3),
-            disabledForegroundColor: Colors.white.withOpacity(0.6),
+            disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.3),
+            disabledForegroundColor: Colors.white.withValues(alpha: 0.6),
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
             elevation: _hasScrolledToEnd ? 2 : 0,
             shape:

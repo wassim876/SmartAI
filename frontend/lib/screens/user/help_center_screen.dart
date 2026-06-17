@@ -343,42 +343,20 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               ),
 
               const SizedBox(height: 16),
-
-              // Response time info
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                        color: Color(0xFF22C55E), shape: BoxShape.circle)),
-                const SizedBox(width: 8),
-                Text('Support available 9 AM – 6 PM (GMT+1)',
-                    style: GoogleFonts.poppins(fontSize: 12, color: _text2)),
-              ]),
+              const Divider(height: 1, color: _border),
+              const SizedBox(height: 18),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _infoItem('Response', '< 24h'),
+                  _infoItem('Support', '24/7'),
+                  _infoItem('Reliability', '100%'),
+                ],
+              ),
             ]),
           ),
 
           const SizedBox(height: 28),
-
-          // ── App info ──────────────────────────────────────────────
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: _border)),
-            child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _infoItem('Version', '1.0.0'),
-                  Container(width: 1, height: 32, color: _border),
-                  _infoItem('Platform', 'Flutter'),
-                  Container(width: 1, height: 32, color: _border),
-                  _infoItem('Backend', 'Django'),
-                ]),
-          ),
-
-          const SizedBox(height: 20),
         ]),
       ),
     );
@@ -417,7 +395,7 @@ class _QuickCard extends StatelessWidget {
             border: Border.all(color: const Color(0xFFEAEAF4)),
             boxShadow: [
               BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
+                  color: Colors.black.withValues(alpha: 0.03),
                   blurRadius: 8,
                   offset: const Offset(0, 2))
             ],

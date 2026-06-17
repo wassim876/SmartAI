@@ -16,15 +16,15 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+const _primary = Color(0xFF6C63FF);
+const _surface = Colors.white;
+const _bg = Color(0xFFF4F6FB);
+const _text1 = Color(0xFF12112A);
+const _text2 = Color(0xFF7B7A8E);
+const _border = Color(0xFFEAEAF4);
+
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-
-  static const _primary = Color(0xFF6C63FF);
-  static const _surface = Colors.white;
-  static const _bg = Color(0xFFF4F6FB);
-  static const _text1 = Color(0xFF12112A);
-  static const _text2 = Color(0xFF7B7A8E);
-  static const _border = Color(0xFFEAEAF4);
 
   final _features = const [
     _Feature('AI Chat', 'Ask anything, get intelligent answers',
@@ -464,7 +464,7 @@ class _QuickStats extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFEAEAF4)),
+                    border: Border.all(color: _border),
                   ),
                   child: Row(children: [
                     Container(
@@ -544,7 +544,7 @@ class _FeatureCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: const Color(0xFFEAEAF4)),
+            border: Border.all(color: _border),
             boxShadow: [
               BoxShadow(
                   color: Colors.black.withValues(alpha: 0.04),
@@ -585,9 +585,7 @@ class _FeatureCard extends StatelessWidget {
               const SizedBox(height: 3),
               Text(feature.subtitle,
                   style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      color: const Color(0xFF7B7A8E),
-                      height: 1.4),
+                      fontSize: 11, color: _text2, height: 1.4),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis),
             ])),
@@ -608,13 +606,11 @@ class _FeatureCard extends StatelessWidget {
         const Spacer(),
         Text(feature.title,
             style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w700,
-                fontSize: 13,
-                color: const Color(0xFF12112A))),
+                fontWeight: FontWeight.w700, fontSize: 13, color: _text1)),
         const SizedBox(height: 3),
         Text(feature.subtitle,
-            style: GoogleFonts.poppins(
-                fontSize: 10, color: const Color(0xFF7B7A8E), height: 1.4),
+            style:
+                GoogleFonts.poppins(fontSize: 10, color: _text2, height: 1.4),
             maxLines: 2,
             overflow: TextOverflow.ellipsis),
         const SizedBox(height: 12),
@@ -639,17 +635,13 @@ class _FeatureCard extends StatelessWidget {
 
 // ── Activity section ──────────────────────────────────────────────
 class _ActivitySection extends StatelessWidget {
-  static const _primary = Color(0xFF6C63FF);
-
   @override
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Text('Recent Activity',
             style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF12112A))),
+                fontSize: 16, fontWeight: FontWeight.w700, color: _text1)),
         GestureDetector(
           onTap: () => Navigator.pushNamed(context, '/history'),
           child: Text('View all →',
@@ -712,7 +704,7 @@ class _RightPanel extends StatelessWidget {
         decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: const Color(0xFFEAEAF4))),
+            border: Border.all(color: _border)),
         child: Column(children: [
           Row(children: [
             _Avatar(user: user, radius: 26),
@@ -722,7 +714,7 @@ class _RightPanel extends StatelessWidget {
                   style: GoogleFonts.poppins(
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
-                      color: const Color(0xFF12112A))),
+                      color: _text1)),
               if (user?.isPremium == true)
                 Container(
                   margin: const EdgeInsets.only(top: 3),
@@ -745,20 +737,18 @@ class _RightPanel extends StatelessWidget {
             ]),
           ]),
           const SizedBox(height: 16),
-          const Divider(color: Color(0xFFEAEAF4)),
+          const Divider(color: _border),
           const SizedBox(height: 12),
           // Usage
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             Text('Daily Usage',
                 style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF12112A))),
+                    fontSize: 13, fontWeight: FontWeight.w600, color: _text1)),
             Text('$used / $limit',
                 style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF6C63FF))),
+                    color: _primary)),
           ]),
           const SizedBox(height: 8),
           ClipRRect(
@@ -773,8 +763,7 @@ class _RightPanel extends StatelessWidget {
           Align(
               alignment: Alignment.centerLeft,
               child: Text('Resets in 24 hours',
-                  style: GoogleFonts.poppins(
-                      fontSize: 11, color: const Color(0xFF7B7A8E)))),
+                  style: GoogleFonts.poppins(fontSize: 11, color: _text2))),
         ]),
       ),
 
@@ -786,13 +775,11 @@ class _RightPanel extends StatelessWidget {
         decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: const Color(0xFFEAEAF4))),
+            border: Border.all(color: _border)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('Tips for you',
               style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                  color: const Color(0xFF12112A))),
+                  fontWeight: FontWeight.w700, fontSize: 14, color: _text1)),
           const SizedBox(height: 14),
           _tip(Icons.mic_rounded, const Color(0xFF8B5CF6), 'Try voice input',
               'Faster than typing'),
@@ -821,12 +808,8 @@ class _RightPanel extends StatelessWidget {
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(t,
               style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF12112A))),
-          Text(s,
-              style: GoogleFonts.poppins(
-                  fontSize: 11, color: const Color(0xFF7B7A8E))),
+                  fontSize: 12, fontWeight: FontWeight.w600, color: _text1)),
+          Text(s, style: GoogleFonts.poppins(fontSize: 11, color: _text2)),
         ])),
       ]);
 }
@@ -848,21 +831,19 @@ class _UsageMini extends StatelessWidget {
       decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFEAEAF4))),
+          border: Border.all(color: _border)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Text('Daily Usage',
               style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                  color: const Color(0xFF12112A))),
+                  fontWeight: FontWeight.w600, fontSize: 14, color: _text1)),
           GestureDetector(
               onTap: onUpgrade,
               child: Text('Upgrade ↗',
                   style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF6C63FF)))),
+                      color: _primary))),
         ]),
         const SizedBox(height: 12),
         ClipRRect(
@@ -875,8 +856,7 @@ class _UsageMini extends StatelessWidget {
             )),
         const SizedBox(height: 8),
         Text('$used of $limit messages used today',
-            style: GoogleFonts.poppins(
-                fontSize: 12, color: const Color(0xFF7B7A8E))),
+            style: GoogleFonts.poppins(fontSize: 12, color: _text2)),
       ]),
     );
   }
@@ -896,15 +876,13 @@ class _Sidebar extends StatelessWidget {
       required this.user,
       required this.onUpgrade});
 
-  static const _primary = Color(0xFF6C63FF);
-
   @override
   Widget build(BuildContext context) {
     return Container(
       width: 230,
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(right: BorderSide(color: Color(0xFFEAEAF4))),
+        border: Border(right: BorderSide(color: _border)),
       ),
       child: Column(children: [
         // Logo
@@ -925,7 +903,7 @@ class _Sidebar extends StatelessWidget {
                     style: GoogleFonts.poppins(
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF12112A))),
+                        color: _text1)),
                 TextSpan(
                     text: 'AI',
                     style: GoogleFonts.poppins(
@@ -934,12 +912,11 @@ class _Sidebar extends StatelessWidget {
                         color: _primary)),
               ])),
               Text('Your AI Assistant',
-                  style: GoogleFonts.poppins(
-                      fontSize: 10, color: const Color(0xFF7B7A8E))),
+                  style: GoogleFonts.poppins(fontSize: 10, color: _text2)),
             ]),
           ]),
         ),
-        const Divider(height: 1, color: Color(0xFFEAEAF4)),
+        const Divider(height: 1, color: _border),
         const SizedBox(height: 10),
 
         // Nav items
@@ -966,9 +943,7 @@ class _Sidebar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(children: [
-                    Icon(item.icon,
-                        size: 19,
-                        color: sel ? _primary : const Color(0xFF7B7A8E)),
+                    Icon(item.icon, size: 19, color: sel ? _primary : _text2),
                     const SizedBox(width: 11),
                     Expanded(
                         child: Text(item.label,
@@ -991,7 +966,7 @@ class _Sidebar extends StatelessWidget {
           },
         )),
 
-        const Divider(height: 1, color: Color(0xFFEAEAF4)),
+        const Divider(height: 1, color: _border),
 
         // Footer links
         Padding(
@@ -1065,7 +1040,7 @@ class _TopBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 26),
       decoration: const BoxDecoration(
           color: Colors.white,
-          border: Border(bottom: BorderSide(color: Color(0xFFEAEAF4)))),
+          border: Border(bottom: BorderSide(color: _border))),
       child: Row(children: [
         // Search
         Expanded(
@@ -1074,7 +1049,7 @@ class _TopBar extends StatelessWidget {
           decoration: BoxDecoration(
               color: const Color(0xFFF4F6FB),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFEAEAF4))),
+              border: Border.all(color: _border)),
           child: Row(children: [
             const SizedBox(width: 12),
             Icon(Icons.search_rounded, size: 17, color: Colors.grey[400]),
@@ -1114,8 +1089,9 @@ class _TopBar extends StatelessWidget {
               Navigator.pushNamed(context, '/help');
             } else if (val == 'logout') {
               context.read<AuthProvider>().logout().then((_) {
-                if (context.mounted)
+                if (context.mounted) {
                   Navigator.pushReplacementNamed(context, '/');
+                }
               });
             }
           },
@@ -1138,7 +1114,7 @@ class _TopBar extends StatelessWidget {
                       style: GoogleFonts.poppins(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF12112A))),
+                          color: _text1)),
                   if (user?.isPremium == true)
                     Text('Premium',
                         style: GoogleFonts.poppins(
@@ -1159,11 +1135,10 @@ class _TopBar extends StatelessWidget {
     return PopupMenuItem(
       value: val,
       child: Row(children: [
-        Icon(icon, size: 18, color: color ?? const Color(0xFF12112A)),
+        Icon(icon, size: 18, color: color ?? _text1),
         const SizedBox(width: 12),
         Text(label,
-            style: GoogleFonts.poppins(
-                fontSize: 13, color: color ?? const Color(0xFF12112A))),
+            style: GoogleFonts.poppins(fontSize: 13, color: color ?? _text1)),
       ]),
     );
   }
@@ -1182,7 +1157,6 @@ class _BottomNav extends StatelessWidget {
     (Icons.star_outline_rounded, 'Favorites'),
     (Icons.settings_outlined, 'Settings'),
   ];
-  static const _primary = Color(0xFF6C63FF);
 
   @override
   Widget build(BuildContext context) {
@@ -1190,8 +1164,7 @@ class _BottomNav extends StatelessWidget {
       height: 64 + MediaQuery.of(context).padding.bottom,
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
       decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: Color(0xFFEAEAF4)))),
+          color: Colors.white, border: Border(top: BorderSide(color: _border))),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: _items.asMap().entries.map((e) {

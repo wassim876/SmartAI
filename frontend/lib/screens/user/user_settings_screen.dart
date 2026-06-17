@@ -27,11 +27,11 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) {
+      builder: (modalContext) {
         // StatefulBuilder allows the modal UI to re-render instantly
         // when a user selects a new language checkmark.
         return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setModalState) {
+          builder: (BuildContext innerContext, StateSetter setModalState) {
             return Container(
               padding: const EdgeInsets.symmetric(vertical: 20),
               child: ListView(
@@ -53,7 +53,8 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
                             // Give the user a brief visual confirmation before closing
                             Future.delayed(const Duration(milliseconds: 150),
                                 () {
-                              if (context.mounted) Navigator.pop(context);
+                              if (innerContext.mounted)
+                                Navigator.pop(innerContext);
                             });
                           },
                         ))
@@ -68,7 +69,6 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<AuthProvider>().currentUser;
     final themeProvider = context.watch<ThemeProvider>();
 
     return Scaffold(
@@ -120,7 +120,7 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
               color: Colors.indigo,
               title: 'Dark Mode',
               value: themeProvider.isDarkMode,
-              onChanged: (v) => themeProvider.toggleDarkMode(),
+              onChanged: (v) => themeProvider.toggleTheme(v),
             ),
             _buildDivider(),
             _buildSettingItem(
@@ -149,12 +149,12 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
     );
   }
 
-  Widget _buildLogoutButton(BuildContext context) {
+  Widget _buildLogoutButton(BuildContext ctx) {
     return InkWell(
       onTap: () async {
-        await context.read<AuthProvider>().logout();
-        if (context.mounted) {
-          Navigator.pushReplacementNamed(context, '/');
+        await Provider.of<AuthProvider>(ctx, listen: false).logout();
+        if (mounted) {
+          Navigator.pushReplacementNamed(ctx, '/');
         }
       },
       borderRadius: BorderRadius.circular(16),

@@ -142,7 +142,7 @@ class AboutScreen extends StatelessWidget {
             'SmartAI is a next-generation multimodal platform designed to bring the power of artificial intelligence to your fingertips. From advanced chat capabilities to image analysis and instant translation, we strive to make AI accessible, intuitive, and helpful for everyone.',
             style: GoogleFonts.poppins(
               fontSize: 13,
-              color: AppColors.textDark.withOpacity(0.8),
+              color: AppColors.textDark.withValues(alpha: 0.8),
               height: 1.6,
             ),
           ),
@@ -160,7 +160,8 @@ class AboutScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _buildListTile(Icons.headset_mic_outlined, 'Contact Support', () {}),
+          _buildListTile(Icons.headset_mic_outlined, 'Contact Support',
+              () => Navigator.pushNamed(context, '/help')),
           const Divider(height: 1, indent: 56),
           _buildListTile(Icons.star_outline_rounded, 'Rate the App', () {}),
           const Divider(height: 1, indent: 56),

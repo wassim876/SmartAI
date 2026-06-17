@@ -13,12 +13,12 @@ import 'screens/admin/admin_dashboard.dart';
 import 'screens/admin/admin_layout.dart';
 import 'screens/admin/users/user_management_screen.dart';
 import 'screens/admin/ai_services/ai_services_screen.dart';
-import 'screens/admin/analytics/analytics_screen.dart';
+import 'screens/admin/analystic/analytics_screen.dart';
 import 'screens/admin/chat_logs/chat_logs_screen.dart';
 import 'screens/admin/transactions/transactions_screen.dart';
 import 'screens/admin/reports/reports_screen.dart';
 import 'screens/admin/notifications/notifications_screen.dart';
-import 'screens/admin/settings_screen.dart';
+import 'screens/admin/setting/settings_screen.dart';
 import 'screens/user/about_screen.dart';
 import 'screens/user/user_settings_screen.dart';
 import 'screens/user/help_center_screen.dart';
@@ -79,7 +79,8 @@ class SmartAIApp extends StatelessWidget {
             const AdminLayout(child: ReportsScreen()),
         '/admin/notifications': (context) =>
             const AdminLayout(child: NotificationsScreen()),
-        '/admin/settings': (context) => AdminLayout(child: SettingsScreen()),
+        '/admin/settings': (context) =>
+            const AdminLayout(child: SettingsScreen()),
         '/help': (context) => const HelpCenterScreen(),
         '/login': (context) => const LoginScreen(),
       },
@@ -102,7 +103,7 @@ class _AuthGateState extends State<_AuthGate> {
   }
 
   Future<void> _check() async {
-    final auth = context.read<AuthProvider>();
+    final auth = Provider.of<AuthProvider>(context, listen: false);
     await auth.checkAuthStatus();
     if (!mounted) return;
     if (auth.isAuthenticated) {
