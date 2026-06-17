@@ -31,7 +31,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     try {
       final authProvider = context.read<AuthProvider>();
       await authProvider.fetchUsers();
-      
+
       if (mounted) {
         _updateFilteredUsers();
       }
@@ -84,7 +84,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                user.displayName,
+                user.username,
                 style: TextStyle(
                   color: isDark ? Colors.white : Colors.black87,
                 ),
@@ -100,10 +100,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               _buildInfoTile('Username', user.username, isDark),
               _buildInfoTile('Email', user.email, isDark),
               _buildInfoTile('Role', user.role, isDark),
-              _buildInfoTile('Status', user.isActive ? 'Active' : 'Inactive', isDark),
+              _buildInfoTile(
+                  'Status', user.isActive ? 'Active' : 'Inactive', isDark),
               _buildInfoTile('Premium', user.isPremium ? 'Yes' : 'No', isDark),
               _buildInfoTile('Joined', _formatDate(user.dateJoined), isDark),
-              _buildInfoTile('Daily Usage', '${user.dailyMessagesUsed}/${user.dailyMessagesLimit}', isDark),
+              _buildInfoTile(
+                  'Daily Usage',
+                  '${user.dailyMessagesUsed}/${user.dailyMessagesLimit}',
+                  isDark),
             ],
           ),
         ),
@@ -171,9 +175,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   void _showEditUserDialog(UserModel user) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final TextEditingController nameController = 
+    final TextEditingController nameController =
         TextEditingController(text: user.displayName);
-    final TextEditingController emailController = 
+    final TextEditingController emailController =
         TextEditingController(text: user.email);
     String selectedRole = user.role;
     bool isActive = user.isActive;
@@ -229,8 +233,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  initialValue: selectedRole,
-                  dropdownColor: isDark ? const Color(0xFF1E1E3F) : Colors.white,
+                  value: selectedRole,
+                  dropdownColor:
+                      isDark ? const Color(0xFF1E1E3F) : Colors.white,
                   items: const [
                     DropdownMenuItem(value: 'User', child: Text('User')),
                     DropdownMenuItem(value: 'Staff', child: Text('Staff')),
@@ -312,10 +317,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                           'is_active': isActive,
                           'is_premium': isPremium,
                         });
-                        
+
                         if (mounted) {
                           Navigator.pop(context);
-                          _showSnackBar('User updated successfully!', Colors.green);
+                          _showSnackBar(
+                              'User updated successfully!', Colors.green);
                           await _fetchUsers();
                         }
                       } catch (e) {
@@ -351,7 +357,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     try {
       final authProvider = context.read<AuthProvider>();
       await authProvider.toggleUserStatus(user.id);
-      
+
       if (mounted) {
         await _fetchUsers();
         _showSnackBar(
@@ -371,7 +377,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     try {
       final authProvider = context.read<AuthProvider>();
       await authProvider.toggleUserPremium(user.id);
-      
+
       if (mounted) {
         await _fetchUsers();
         _showSnackBar(
@@ -413,7 +419,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       try {
         final authProvider = context.read<AuthProvider>();
         await authProvider.deleteUser(user.id);
-        
+
         if (mounted) {
           await _fetchUsers();
           _showSnackBar('User deleted successfully!', Colors.green);
@@ -520,8 +526,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    initialValue: selectedRole,
-                    dropdownColor: isDark ? const Color(0xFF1E1E3F) : Colors.white,
+                    value: selectedRole,
+                    dropdownColor:
+                        isDark ? const Color(0xFF1E1E3F) : Colors.white,
                     items: const [
                       DropdownMenuItem(value: 'User', child: Text('User')),
                       DropdownMenuItem(value: 'Staff', child: Text('Staff')),
@@ -566,10 +573,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       if (usernameController.text.isEmpty ||
                           emailController.text.isEmpty ||
                           passwordController.text.isEmpty) {
-                        _showSnackBar('Please fill all required fields', Colors.orange);
+                        _showSnackBar(
+                            'Please fill all required fields', Colors.orange);
                         return;
                       }
-                      
+
                       setDialogState(() => isSaving = true);
                       try {
                         final authProvider = context.read<AuthProvider>();
@@ -580,10 +588,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                           'password': passwordController.text,
                           'role': selectedRole,
                         });
-                        
+
                         if (mounted) {
                           Navigator.pop(context);
-                          _showSnackBar('User created successfully!', Colors.green);
+                          _showSnackBar(
+                              'User created successfully!', Colors.green);
                           await _fetchUsers();
                         }
                       } catch (e) {
@@ -764,7 +773,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         borderSide: BorderSide(color: Colors.grey[300]!),
                       ),
                       filled: true,
-                      fillColor: isDark ? const Color(0xFF2A2A3E) : Colors.grey[50],
+                      fillColor:
+                          isDark ? const Color(0xFF2A2A3E) : Colors.grey[50],
                       hintStyle: TextStyle(
                         color: isDark ? Colors.white54 : Colors.grey,
                       ),
@@ -789,16 +799,16 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 ),
 
                 // Scrollable Table Content
-                _isLoading
+                authProvider.isLoading
                     ? const Padding(
                         padding: EdgeInsets.all(20.0),
                         child: CircularProgressIndicator(),
                       )
-                    : _errorMessage != null
+                    : authProvider.errorMessage != null
                         ? Padding(
                             padding: const EdgeInsets.all(20.0),
                             child: Text(
-                              _errorMessage!,
+                              authProvider.errorMessage!,
                               style: const TextStyle(color: Colors.red),
                             ),
                           )
@@ -822,23 +832,23 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                           children: [
                                             Expanded(
                                                 flex: 3,
-                                                child: _tableHeader(
-                                                    'USER', isDark)),
+                                                child: _buildTableHeader(
+                                                    'USERNAME', isDark)),
                                             Expanded(
                                                 flex: 3,
-                                                child: _tableHeader(
-                                                    'EMAIL', isDark)),
+                                                child: _buildTableHeader(
+                                                    'DISPLAY NAME', isDark)),
                                             Expanded(
                                                 flex: 2,
-                                                child: _tableHeader(
+                                                child: _buildTableHeader(
                                                     'JOINED DATE', isDark)),
                                             Expanded(
                                                 flex: 1,
-                                                child: _tableHeader(
+                                                child: _buildTableHeader(
                                                     'STATUS', isDark)),
                                             Expanded(
                                                 flex: 1,
-                                                child: _tableHeader(
+                                                child: _buildTableHeader(
                                                     'ACTIONS', isDark)),
                                           ],
                                         ),
@@ -880,34 +890,27 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          // USER
+          // USERNAME
           Expanded(
             flex: 3,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  user.displayName,
+                  user.username,
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                     color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
-                Text(
-                  '@${user.username}',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isDark ? Colors.white54 : Colors.grey[500],
-                  ),
-                ),
               ],
             ),
           ),
-          // EMAIL
+          // DISPLAY NAME
           Expanded(
             flex: 2,
             child: Text(
-              user.email,
+              user.displayName,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: isDark ? Colors.white70 : Colors.grey[600],
@@ -951,9 +954,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: isActive
-                    ? Colors.green.withOpacity(0.1)
-                    : Colors.red.withOpacity(0.1),
+                color: user.isActive
+                    ? Colors.green.withValues(alpha: 0.1)
+                    : Colors.red.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -996,9 +999,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       color: isDark ? Colors.white70 : Colors.grey[600],
                     ),
                     onPressed: () {
-                      final RenderBox renderBox = context.findRenderObject() as RenderBox;
-                      final Offset offset = renderBox.localToGlobal(Offset.zero);
-                      
+                      final RenderBox renderBox =
+                          context.findRenderObject() as RenderBox;
+                      final Offset offset =
+                          renderBox.localToGlobal(Offset.zero);
+
                       showMenu<String>(
                         context: context,
                         position: RelativeRect.fromLTRB(
@@ -1023,9 +1028,13 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                             child: Row(
                               children: [
                                 Icon(
-                                  user.isActive ? Icons.block : Icons.check_circle,
+                                  user.isActive
+                                      ? Icons.block
+                                      : Icons.check_circle,
                                   size: 20,
-                                  color: user.isActive ? Colors.orange : Colors.green,
+                                  color: user.isActive
+                                      ? Colors.orange
+                                      : Colors.green,
                                 ),
                                 const SizedBox(width: 12),
                                 Text(user.isActive ? 'Deactivate' : 'Activate'),
@@ -1037,12 +1046,18 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                             child: Row(
                               children: [
                                 Icon(
-                                  user.isPremium ? Icons.star_border : Icons.star,
+                                  user.isPremium
+                                      ? Icons.star_border
+                                      : Icons.star,
                                   size: 20,
-                                  color: user.isPremium ? Colors.orange : Colors.amber,
+                                  color: user.isPremium
+                                      ? Colors.orange
+                                      : Colors.amber,
                                 ),
                                 const SizedBox(width: 12),
-                                Text(user.isPremium ? 'Remove Premium' : 'Make Premium'),
+                                Text(user.isPremium
+                                    ? 'Remove Premium'
+                                    : 'Make Premium'),
                               ],
                             ),
                           ),
@@ -1051,9 +1066,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                             value: 'delete',
                             child: Row(
                               children: [
-                                Icon(Icons.delete_outline, size: 20, color: Colors.red),
+                                Icon(Icons.delete_outline,
+                                    size: 20, color: Colors.red),
                                 SizedBox(width: 12),
-                                Text('Delete User', style: TextStyle(color: Colors.red)),
+                                Text('Delete User',
+                                    style: TextStyle(color: Colors.red)),
                               ],
                             ),
                           ),

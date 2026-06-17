@@ -385,7 +385,7 @@ class _HeroGreeting extends StatelessWidget {
         Expanded(
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Hello, ${user?.name ?? 'User'}! 👋',
+          Text('Hello, ${user?.username ?? 'User'}! 👋',
               style: GoogleFonts.poppins(
                   fontSize: wide ? 26 : 21,
                   fontWeight: FontWeight.w700,
@@ -717,7 +717,7 @@ class _RightPanel extends StatelessWidget {
             _Avatar(user: user, radius: 26),
             const SizedBox(width: 12),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(user?.name ?? 'User',
+              Text(user?.username ?? 'User',
                   style: GoogleFonts.poppins(
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
@@ -1104,7 +1104,7 @@ class _TopBar extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(user?.name ?? 'User',
+              Text(user?.username ?? 'User',
                   style: GoogleFonts.poppins(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -1228,8 +1228,8 @@ class _Avatar extends StatelessWidget {
           user?.avatarUrl != null ? NetworkImage(user!.avatarUrl!) : null,
       child: user?.avatarUrl == null
           ? Text(
-              user?.name?.isNotEmpty == true
-                  ? user!.name[0].toUpperCase()
+              user?.username?.isNotEmpty == true
+                  ? user!.username[0].toUpperCase()
                   : 'U',
               style: TextStyle(
                   color: const Color(0xFF6C63FF),
