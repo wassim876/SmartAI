@@ -5,6 +5,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.exceptions import TokenError
+from .serializers import RegisterSerializer, UserListSerializer
 from .serializers import RegisterSerializer
 from .models import User
 
@@ -78,14 +79,24 @@ def user_profile(request):
 
 
 @api_view(['GET'])
-@permission_classes([permissions.IsAdminUser]) # Only admin users can access this
+@permission_classes([permissions.IsAdminUser])
 def list_users(request):
     """
     List all users in the system. Accessible only by admin users.
     """
-    users = User.objects.all().order_by('date_joined')
-    serializer = UserListSerializer(users, many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    try:
+        users = User.objects.all().order_by('date_joined')
+        serializer = UserListSerializer(users, many=True)
+        return Response({
+            'success': True,
+            'count': users.count(),
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 

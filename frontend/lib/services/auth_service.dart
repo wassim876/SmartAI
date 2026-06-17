@@ -1,3 +1,4 @@
+// lib/services/auth_service.dart
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../core/api_config.dart';
@@ -15,7 +16,6 @@ class AuthService {
 
   Future<bool> login(String email, String password) async {
     try {
-      // Standard SimpleJWT endpoint
       final response = await _dio.post('/token/', data: {
         'username': email,
         'password': password,
@@ -37,7 +37,7 @@ class AuthService {
   Future<bool> register(String name, String email, String password) async {
     try {
       final response = await _dio.post('/register/', data: {
-        'username': email, // Use full email as username to ensure uniqueness
+        'username': email,
         'email': email,
         'first_name': name,
         'password': password,
@@ -84,12 +84,65 @@ class AuthService {
         ),
       );
 
+      print('Fetch users response status: ${response.statusCode}');
+      print('Fetch users response data: ${response.data}');
+
       if (response.statusCode == 200) {
-        final List<dynamic> data = response.data;
-        return data.map((json) => UserModel.fromJson(json)).toList();
+        final data = response.data;
+        
+        // Handle both response formats
+        List<dynamic> usersData;
+        
+        // Check if response has the {success, data} format
+        if (data is Map<String, dynamic> && data['success'] == true && data['data'] != null) {
+          usersData = data['data'] as List<dynamic>;
+        } 
+        // Check if response is a raw list
+        else if (data is List<dynamic>) {
+          usersData = data;
+        } 
+        else {
+          throw Exception('Unexpected response format: ${data.runtimeType}');
+        }
+
+        return usersData.map((json) {
+          // Convert to UserModel with default values for missing fields
+          return UserModel(
+            id: json['id'] ?? 0,
+            username: json['username'] ?? '',
+            email: json['email'] ?? '',
+            name: json['name'] ?? json['username'] ?? '',
+            firstName: json['first_name'] ?? '',
+            lastName: json['last_name'] ?? '',
+            isActive: json['is_active'] ?? false,
+            dateJoined: json['date_joined'] != null
+                ? DateTime.parse(json['date_joined'])
+                : DateTime.now(),
+            isAdmin: (json['is_staff'] ?? false) || (json['is_superuser'] ?? false),
+            isPremium: json['is_premium'] ?? false,
+            dailyMessagesUsed: json['daily_messages_used'] ?? 0,
+            dailyMessagesLimit: json['daily_messages_limit'] ?? 50,
+            monthlySpeechMinutesUsed: json['monthly_speech_minutes_used'] ?? 0,
+            monthlySpeechMinutesLimit: json['monthly_speech_minutes_limit'] ?? 10,
+            translationCharsUsed: json['translation_chars_used'] ?? 0,
+            translationCharsLimit: json['translation_chars_limit'] ?? 1000,
+            lastResetDate: json['last_reset_date'] != null
+                ? DateTime.parse(json['last_reset_date'])
+                : DateTime.now(),
+            avatarUrl: json['profile_picture'],
+          );
+        }).toList();
       }
-      throw Exception('Failed to fetch users');
+      throw Exception('Failed to fetch users: ${response.statusCode}');
+    } on DioException catch (e) {
+      print('Dio error: ${e.message}');
+      if (e.response != null) {
+        print('Response data: ${e.response?.data}');
+        print('Response status: ${e.response?.statusCode}');
+      }
+      rethrow;
     } catch (e) {
+      print('Error fetching users: $e');
       rethrow;
     }
   }
@@ -97,8 +150,6 @@ class AuthService {
   Future<bool> isTokenValid() async {
     try {
       final token = await _storage.read(key: 'access_token');
-      // A more robust app would decode the JWT to check expiry,
-      // but checking for existence is enough to trigger a profile fetch.
       return token != null;
     } catch (e) {
       return false;
@@ -126,7 +177,6 @@ class AuthService {
 
   Future<void> resetPassword(String email) async {
     try {
-      // Matches your ForgotPasswordScreen call
       await _dio.post('/password-reset/', data: {'email': email});
     } on DioException catch (e) {
       throw Exception(
