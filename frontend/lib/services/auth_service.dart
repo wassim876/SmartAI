@@ -147,6 +147,112 @@ class AuthService {
     }
   }
 
+  // ========== NEW ADMIN USER MANAGEMENT METHODS ==========
+// Add these after fetchUsers() and before isTokenValid()
+
+Future<UserModel> updateUser(int userId, Map<String, dynamic> data) async {
+  try {
+    final token = await _storage.read(key: 'access_token');
+    if (token == null) throw Exception('Not authenticated');
+
+    final response = await _dio.put(
+      '/users/$userId/',
+      data: data,
+      options: Options(
+        headers: {'Authorization': 'Bearer $token'},
+      ),
+    );
+
+    if (response.statusCode == 200) {
+      final result = response.data;
+      if (result['success'] == true) {
+        return UserModel.fromJson(result['data']);
+      } else {
+        throw Exception(result['message'] ?? 'Failed to update user');
+      }
+    }
+    throw Exception('Failed to update user: ${response.statusCode}');
+  } catch (e) {
+    rethrow;
+  }
+}
+
+Future<void> deleteUser(int userId) async {
+  try {
+    final token = await _storage.read(key: 'access_token');
+    if (token == null) throw Exception('Not authenticated');
+
+    final response = await _dio.delete(
+      '/users/$userId/delete/',
+      options: Options(
+        headers: {'Authorization': 'Bearer $token'},
+      ),
+    );
+
+    if (response.statusCode == 200) {
+      final result = response.data;
+      if (result['success'] != true) {
+        throw Exception(result['message'] ?? 'Failed to delete user');
+      }
+    } else {
+      throw Exception('Failed to delete user: ${response.statusCode}');
+    }
+  } catch (e) {
+    rethrow;
+  }
+}
+
+Future<void> toggleUserStatus(int userId) async {
+  try {
+    final token = await _storage.read(key: 'access_token');
+    if (token == null) throw Exception('Not authenticated');
+
+    final response = await _dio.post(
+      '/users/$userId/toggle-status/',
+      options: Options(
+        headers: {'Authorization': 'Bearer $token'},
+      ),
+    );
+
+    if (response.statusCode == 200) {
+      final result = response.data;
+      if (result['success'] != true) {
+        throw Exception(result['message'] ?? 'Failed to toggle status');
+      }
+    } else {
+      throw Exception('Failed to toggle status: ${response.statusCode}');
+    }
+  } catch (e) {
+    rethrow;
+  }
+}
+
+Future<void> toggleUserPremium(int userId) async {
+  try {
+    final token = await _storage.read(key: 'access_token');
+    if (token == null) throw Exception('Not authenticated');
+
+    final response = await _dio.post(
+      '/users/$userId/toggle-premium/',
+      options: Options(
+        headers: {'Authorization': 'Bearer $token'},
+      ),
+    );
+
+    if (response.statusCode == 200) {
+      final result = response.data;
+      if (result['success'] != true) {
+        throw Exception(result['message'] ?? 'Failed to toggle premium');
+      }
+    } else {
+      throw Exception('Failed to toggle premium: ${response.statusCode}');
+    }
+  } catch (e) {
+    rethrow;
+  }
+}
+
+
   Future<bool> isTokenValid() async {
     try {
       final token = await _storage.read(key: 'access_token');
@@ -155,6 +261,35 @@ class AuthService {
       return false;
     }
   }
+
+  // lib/services/auth_service.dart
+// Add this method after fetchUsers() and before isTokenValid()
+
+Future<void> createUser(Map<String, dynamic> userData) async {
+  try {
+    final token = await _storage.read(key: 'access_token');
+    if (token == null) throw Exception('Not authenticated');
+
+    final response = await _dio.post(
+      '/register/',  // Using existing register endpoint
+      data: {
+        'username': userData['username'] ?? userData['email'].split('@').first,
+        'email': userData['email'],
+        'first_name': userData['first_name'] ?? '',
+        'password': userData['password'],
+      },
+      options: Options(
+        headers: {'Authorization': 'Bearer $token'},
+      ),
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception('Failed to create user');
+    }
+  } catch (e) {
+    rethrow;
+  }
+}
 
   Future<void> logout() async {
     final accessToken = await _storage.read(key: 'access_token');

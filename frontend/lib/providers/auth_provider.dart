@@ -8,6 +8,7 @@ class AuthProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
 
   UserModel? _currentUser;
+  List<UserModel> _users = [];
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -16,6 +17,7 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated => _currentUser != null;
   bool get isAdmin => _currentUser?.isAdmin ?? false;
   bool get isPremium => _currentUser?.isPremium ?? false;
+  List<UserModel> get users => _users;
   String? get errorMessage => _errorMessage;
 
   Future<void> login({
@@ -151,17 +153,144 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  // lib/providers/auth_provider.dart
+// Add this method after fetchUsers() and before logout()
+
+Future<void> createUser(Map<String, dynamic> userData) async {
+  _isLoading = true;
+  _errorMessage = null;
+  notifyListeners();
+
+  try {
+    await _authService.createUser(userData);
+    // Refresh the user list after creating
+    await fetchUsers();
+  } catch (e) {
+    _errorMessage = e.toString().replaceAll('Exception: ', '');
+    rethrow;
+  } finally {
+    _isLoading = false;
+    notifyListeners();
+  }
+}
+
   Future<List<UserModel>> fetchUsers() async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
     try {
-      return await _authService.fetchUsers();
+      final users = await _authService.fetchUsers();
+      _users = users;
+      return _users;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
       rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  // ========== NEW ADMIN USER MANAGEMENT METHODS ==========
+// Add these after fetchUsers() and before logout()
+
+  Future<UserModel> updateUser(int userId, Map<String, dynamic> data) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final updatedUser = await _authService.updateUser(userId, data);
+
+      // Update local user list
+      final userIndex = _users.indexWhere((u) => u.id == userId);
+      if (userIndex != -1) {
+        _users[userIndex] = updatedUser;
+      }
+
+      // Update current user if it's the same
+      if (_currentUser?.id == userId) {
+        _currentUser = updatedUser;
+      }
+
+      notifyListeners();
+      return updatedUser;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteUser(int userId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _authService.deleteUser(userId);
+
+      // Remove from local list
+      _users.removeWhere((u) => u.id == userId);
+
+      // If current user was deleted, logout
+      if (_currentUser?.id == userId) {
+        await logout();
+      }
+
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> toggleUserStatus(int userId) async {
+    try {
+      await _authService.toggleUserStatus(userId);
+
+      // Update local user list
+      final userIndex = _users.indexWhere((u) => u.id == userId);
+      if (userIndex != -1) {
+        final user = _users[userIndex];
+        _users[userIndex] = user.copyWith(isActive: !user.isActive);
+
+        // Update current user if it's the same
+        if (_currentUser?.id == userId) {
+          _currentUser = _users[userIndex];
+        }
+
+        notifyListeners();
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> toggleUserPremium(int userId) async {
+    try {
+      await _authService.toggleUserPremium(userId);
+
+      // Update local user list
+      final userIndex = _users.indexWhere((u) => u.id == userId);
+      if (userIndex != -1) {
+        final user = _users[userIndex];
+        _users[userIndex] = user.copyWith(isPremium: !user.isPremium);
+
+        // Update current user if it's the same
+        if (_currentUser?.id == userId) {
+          _currentUser = _users[userIndex];
+        }
+
+        notifyListeners();
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
