@@ -5,6 +5,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework_simplejwt.exceptions import TokenError
+from .serializers import RegisterSerializer, UserListSerializer
 from .serializers import RegisterSerializer
 from .models import User
 
@@ -78,14 +79,24 @@ def user_profile(request):
 
 
 @api_view(['GET'])
-@permission_classes([permissions.IsAdminUser]) # Only admin users can access this
+@permission_classes([permissions.IsAdminUser])
 def list_users(request):
     """
     List all users in the system. Accessible only by admin users.
     """
-    users = User.objects.all().order_by('date_joined')
-    serializer = UserListSerializer(users, many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    try:
+        users = User.objects.all().order_by('date_joined')
+        serializer = UserListSerializer(users, many=True)
+        return Response({
+            'success': True,
+            'count': users.count(),
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
@@ -134,3 +145,168 @@ def reset_daily_usage(request):
         return Response({'success': True}, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+# ========== NEW ADMIN USER MANAGEMENT FUNCTIONS ==========
+# Add these after reset_daily_usage function
+
+@api_view(['PUT'])
+@permission_classes([permissions.IsAdminUser])
+def update_user(request, user_id):
+    """
+    Update user details. Admin only.
+    """
+    try:
+        user = User.objects.get(id=user_id)
+        
+        # Get data from request
+        data = request.data
+        first_name = data.get('first_name', '')
+        last_name = data.get('last_name', '')
+        email = data.get('email')
+        is_active = data.get('is_active')
+        is_premium = data.get('is_premium')
+        role = data.get('role')
+        
+        # Update fields
+        if email:
+            user.email = email
+        if first_name is not None:
+            user.first_name = first_name
+        if last_name is not None:
+            user.last_name = last_name
+        if is_active is not None:
+            user.is_active = is_active
+        if is_premium is not None:
+            user.is_premium = is_premium
+        if role:
+            if role == 'Admin':
+                user.is_staff = True
+                user.is_superuser = True
+            elif role == 'Staff':
+                user.is_staff = True
+                user.is_superuser = False
+            else:  # User
+                user.is_staff = False
+                user.is_superuser = False
+        
+        user.save()
+        
+        # Return updated user
+        serializer = UserListSerializer(user)
+        return Response({
+            'success': True,
+            'message': 'User updated successfully',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+        
+    except User.DoesNotExist:
+        return Response({
+            'success': False,
+            'message': 'User not found'
+        }, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['DELETE'])
+@permission_classes([permissions.IsAdminUser])
+def delete_user(request, user_id):
+    """
+    Delete a user. Admin only.
+    """
+    try:
+        user = User.objects.get(id=user_id)
+        
+        # Prevent deleting yourself
+        if request.user.id == user.id:
+            return Response({
+                'success': False,
+                'message': 'Cannot delete your own account'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        user.delete()
+        return Response({
+            'success': True,
+            'message': 'User deleted successfully'
+        }, status=status.HTTP_200_OK)
+        
+    except User.DoesNotExist:
+        return Response({
+            'success': False,
+            'message': 'User not found'
+        }, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAdminUser])
+def toggle_user_status(request, user_id):
+    """
+    Toggle user active status. Admin only.
+    """
+    try:
+        user = User.objects.get(id=user_id)
+        
+        # Prevent toggling yourself
+        if request.user.id == user.id:
+            return Response({
+                'success': False,
+                'message': 'Cannot toggle your own status'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        user.is_active = not user.is_active
+        user.save()
+        
+        return Response({
+            'success': True,
+            'message': f"User {'activated' if user.is_active else 'deactivated'} successfully",
+            'data': {'is_active': user.is_active}
+        }, status=status.HTTP_200_OK)
+        
+    except User.DoesNotExist:
+        return Response({
+            'success': False,
+            'message': 'User not found'
+        }, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAdminUser])
+def toggle_user_premium(request, user_id):
+    """
+    Toggle user premium status. Admin only.
+    """
+    try:
+        user = User.objects.get(id=user_id)
+        
+        user.is_premium = not user.is_premium
+        user.save()
+        
+        return Response({
+            'success': True,
+            'message': f"User premium {'enabled' if user.is_premium else 'disabled'} successfully",
+            'data': {'is_premium': user.is_premium}
+        }, status=status.HTTP_200_OK)
+        
+    except User.DoesNotExist:
+        return Response({
+            'success': False,
+            'message': 'User not found'
+        }, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

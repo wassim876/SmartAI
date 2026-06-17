@@ -18,6 +18,9 @@ class UserModel {
   final DateTime lastResetDate;
   final String? avatarUrl;
 
+  String get displayName => name.isNotEmpty ? name : username;
+  String get role => isAdmin ? 'Admin' : 'User';
+
   UserModel({
     required this.id,
     required this.username,
@@ -95,18 +98,21 @@ class UserModel {
     int? dailyMessagesUsed,
     int? translationCharsUsed,
     DateTime? lastResetDate,
+    bool? isActive,
+    bool? isPremium,
+    String? name,
   }) {
     return UserModel(
       id: id,
       username: username,
       email: email,
-      name: name,
+      name: name ?? this.name,
       firstName: firstName,
       lastName: lastName,
-      isActive: isActive,
+      isActive: isActive ?? this.isActive,
       dateJoined: dateJoined,
       isAdmin: isAdmin,
-      isPremium: isPremium,
+      isPremium: isPremium ?? this.isPremium,
       dailyMessagesUsed: dailyMessagesUsed ?? this.dailyMessagesUsed,
       dailyMessagesLimit: dailyMessagesLimit,
       monthlySpeechMinutesUsed: monthlySpeechMinutesUsed,
