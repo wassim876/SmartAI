@@ -68,7 +68,7 @@ class _ChatScreenState extends State<ChatScreen> {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-                color: _primary.withOpacity(0.1),
+                color: _primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10)),
             child: Padding(
               padding: EdgeInsets.all(4.0),
@@ -131,7 +131,7 @@ class _ChatScreenState extends State<ChatScreen> {
         width: 72,
         height: 72,
         decoration: BoxDecoration(
-            color: _primary.withOpacity(0.1),
+            color: _primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(12.0),
@@ -164,7 +164,7 @@ class _ChatScreenState extends State<ChatScreen> {
               width: 42,
               height: 42,
               decoration: BoxDecoration(
-                  color: _primary.withOpacity(0.1),
+                  color: _primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8)),
               child: Padding(
                 padding: const EdgeInsets.all(4.0),
@@ -186,7 +186,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 boxShadow: [
                   BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 6,
                       offset: const Offset(0, 2))
                 ],
@@ -212,7 +212,7 @@ class _ChatScreenState extends State<ChatScreen> {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-              color: _primary.withOpacity(0.1),
+              color: _primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8)),
           child: Padding(
             padding: const EdgeInsets.all(4.0),
@@ -243,7 +243,7 @@ class _ChatScreenState extends State<ChatScreen> {
           width: 7,
           height: 7,
           decoration: BoxDecoration(
-              color: Colors.grey[400]!.withOpacity(0.4 + 0.6 * v),
+              color: Colors.grey[400]!.withValues(alpha: 0.4 + 0.6 * v),
               shape: BoxShape.circle),
         ),
       );

@@ -33,7 +33,7 @@ class ProfileScreen extends StatelessWidget {
           Stack(alignment: Alignment.bottomRight, children: [
             CircleAvatar(
               radius: 48,
-              backgroundColor: _primary.withOpacity(0.1),
+              backgroundColor: _primary.withValues(alpha: 0.1),
               backgroundImage: user?.avatarUrl != null ? NetworkImage(user!.avatarUrl!) : null,
               child: user?.avatarUrl == null
                   ? Text(user?.name.isNotEmpty == true ? user!.name[0].toUpperCase() : 'U',
@@ -96,7 +96,7 @@ class ProfileScreen extends StatelessWidget {
                 Text('Your Plan', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14, color: const Color(0xFF1A1A2E))),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: _primary.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
+                  decoration: BoxDecoration(color: _primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
                   child: Text(user?.isPremium == true ? '⭐ Premium' : 'Free', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: _primary)),
                 ),
               ]),
@@ -152,7 +152,7 @@ class ProfileScreen extends StatelessWidget {
       const SizedBox(height: 6),
       ClipRRect(borderRadius: BorderRadius.circular(6), child: LinearProgressIndicator(
         value: progress, minHeight: 7,
-        backgroundColor: color.withOpacity(0.1),
+        backgroundColor: color.withValues(alpha: 0.1),
         valueColor: AlwaysStoppedAnimation(color),
       )),
     ]);
@@ -169,7 +169,7 @@ class ProfileScreen extends StatelessWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
       leading: Container(
         width: 36, height: 36,
-        decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+        decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
         child: Icon(icon, color: color, size: 18),
       ),
       title: Text(title, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500, color: isDestructive ? const Color(0xFFEF4444) : const Color(0xFF1A1A2E))),

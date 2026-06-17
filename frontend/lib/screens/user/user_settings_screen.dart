@@ -11,7 +11,12 @@ class UserSettingsScreen extends StatefulWidget {
 }
 
 class _UserSettingsScreenState extends State<UserSettingsScreen> {
-  static const _primary = Color(0xFF5B4FE8);
+  static const _primary = Color(0xFF6C63FF);
+  static const _bg = Color(0xFFF4F6FB);
+  static const _text1 = Color(0xFF12112A);
+  static const _text2 = Color(0xFF7B7A8E);
+  static const _border = Color(0xFFEAEAF4);
+
   bool _notificationsEnabled = true;
   bool _darkMode = false;
   String _selectedLanguage = 'English';
@@ -34,7 +39,8 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
                 children: ['English', 'French', 'Spanish', 'Arabic', 'German']
                     .map((lang) => ListTile(
                           title: Text(lang,
-                              style: GoogleFonts.poppins(fontSize: 14)),
+                              style: GoogleFonts.poppins(
+                                  fontSize: 14, color: _text1)),
                           trailing: _selectedLanguage == lang
                               ? const Icon(Icons.check_rounded, color: _primary)
                               : null,
@@ -65,13 +71,13 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
     final user = context.watch<AuthProvider>().currentUser;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: _bg,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Color(0xFF1A1A2E), size: 20),
+              color: _text1, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -79,7 +85,7 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF1A1A2E),
+            color: _text1,
           ),
         ),
         centerTitle: true,
@@ -150,7 +156,46 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
               onTap: () {},
             ),
           ]),
+          const SizedBox(height: 32),
+          _buildLogoutButton(context),
+          const SizedBox(height: 20),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLogoutButton(BuildContext context) {
+    return InkWell(
+      onTap: () async {
+        await context.read<AuthProvider>().logout();
+        if (context.mounted) {
+          Navigator.pushReplacementNamed(context, '/');
+        }
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFFEE2E2)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.logout_rounded,
+                color: Color(0xFFEF4444), size: 20),
+            const SizedBox(width: 10),
+            Text(
+              'Sign Out',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFFEF4444),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -163,7 +208,7 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
         style: GoogleFonts.poppins(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: Colors.grey[500],
+          color: _text2,
           letterSpacing: 1.1,
         ),
       ),
@@ -175,7 +220,14 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        border: Border.all(color: _border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(children: children),
     );
@@ -193,21 +245,19 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10)),
         child: Icon(icon, color: color, size: 20),
       ),
       title: Text(title,
           style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: const Color(0xFF1A1A2E))),
+              fontSize: 14, fontWeight: FontWeight.w500, color: _text1)),
       subtitle: subtitle != null
           ? Text(subtitle,
-              style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[500]))
+              style: GoogleFonts.poppins(fontSize: 12, color: _text2))
           : null,
       trailing:
-          const Icon(Icons.chevron_right_rounded, color: Color(0xFFD1D5DB)),
+          const Icon(Icons.chevron_right_rounded, color: _text2, size: 20),
     );
   }
 
@@ -224,15 +274,13 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10)),
         child: Icon(icon, color: color, size: 20),
       ),
       title: Text(title,
           style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: const Color(0xFF1A1A2E))),
+              fontSize: 14, fontWeight: FontWeight.w500, color: _text1)),
       trailing: Switch.adaptive(
         value: value,
         onChanged: onChanged,
@@ -242,5 +290,5 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
   }
 
   Widget _buildDivider() =>
-      const Divider(height: 1, indent: 60, color: Color(0xFFF3F4F6));
+      const Divider(height: 1, indent: 56, color: _border);
 }

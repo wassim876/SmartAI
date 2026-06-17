@@ -91,7 +91,7 @@ class _ImageAnalysisScreenState extends State<ImageAnalysisScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: _selectedImage != null ? _primary.withOpacity(0.4) : const Color(0xFFE5E7EB), width: _selectedImage != null ? 1.5 : 1),
+                border: Border.all(color: _selectedImage != null ? _primary.withValues(alpha: 0.4) : const Color(0xFFE5E7EB), width: _selectedImage != null ? 1.5 : 1),
               ),
               child: _selectedImage == null
                   ? Column(mainAxisAlignment: MainAxisAlignment.center, children: [

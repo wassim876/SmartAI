@@ -71,7 +71,7 @@ class _SpeechToTextScreenState extends State<SpeechToTextScreen> with SingleTick
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: _isRecording ? const Color(0xFFEF4444) : _primary,
-                    boxShadow: [BoxShadow(color: (_isRecording ? const Color(0xFFEF4444) : _primary).withOpacity(0.35), blurRadius: 24, spreadRadius: 4)],
+                    boxShadow: [BoxShadow(color: (_isRecording ? const Color(0xFFEF4444) : _primary).withValues(alpha: 0.35), blurRadius: 24, spreadRadius: 4)],
                   ),
                   child: Icon(_isRecording ? Icons.stop_rounded : Icons.mic_rounded, color: Colors.white, size: 48),
                 ),
@@ -100,7 +100,7 @@ class _SpeechToTextScreenState extends State<SpeechToTextScreen> with SingleTick
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: _transcription.isNotEmpty ? _primary.withOpacity(0.4) : const Color(0xFFE5E7EB)),
+              border: Border.all(color: _transcription.isNotEmpty ? _primary.withValues(alpha: 0.4) : const Color(0xFFE5E7EB)),
             ),
             child: _transcription.isEmpty
                 ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [

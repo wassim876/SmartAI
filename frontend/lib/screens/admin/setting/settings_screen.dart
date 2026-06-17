@@ -670,9 +670,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           cursor: SystemMouseCursors.click,
           child: Switch(
             value: value,
-            activeColor: theme.colorScheme.primary,
+            activeThumbColor: theme.colorScheme.primary,
             activeTrackColor:
-                isDark ? theme.primaryColor.withOpacity(0.5) : null,
+                isDark ? theme.primaryColor.withValues(alpha: 0.5) : null,
             onChanged: onChanged,
           ),
         ),

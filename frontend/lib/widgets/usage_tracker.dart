@@ -34,7 +34,7 @@ class UsageTracker extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -51,7 +51,7 @@ class UsageTracker extends StatelessWidget {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: barColor.withOpacity(0.1),
+                    color: barColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(9),
                   ),
                   child: Icon(
@@ -91,7 +91,7 @@ class UsageTracker extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 8,
-              backgroundColor: barColor.withOpacity(0.1),
+              backgroundColor: barColor.withValues(alpha: 0.1),
               valueColor: AlwaysStoppedAnimation<Color>(barColor),
             ),
           ),

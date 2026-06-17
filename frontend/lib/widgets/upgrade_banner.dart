@@ -20,7 +20,7 @@ class UpgradeBanner extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF5B4FE8).withOpacity(0.3),
+            color: const Color(0xFF5B4FE8).withValues(alpha: 0.3),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -45,7 +45,7 @@ class UpgradeBanner extends StatelessWidget {
                 Text(
                   'Get unlimited access to advanced AI models and priority support.',
                   style: GoogleFonts.poppins(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 12,
                     height: 1.5,
                   ),

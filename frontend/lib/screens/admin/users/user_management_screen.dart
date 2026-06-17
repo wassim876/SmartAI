@@ -125,8 +125,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               boxShadow: [
                 BoxShadow(
                   color: isDark
-                      ? Colors.black.withOpacity(0.2)
-                      : Colors.black.withOpacity(0.05),
+                      ? Colors.black.withValues(alpha: 0.2)
+                      : Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 2),
                 ),
@@ -223,7 +223,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                       ..._filteredUsers
                                           .map((user) =>
                                               _buildUserRow(user, isDark))
-                                          .toList(),
+                                          ,
                                     ],
                                   ),
                                 ),
@@ -287,8 +287,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
                 color: isActive
-                    ? Colors.green.withOpacity(0.1)
-                    : Colors.red.withOpacity(0.1),
+                    ? Colors.green.withValues(alpha: 0.1)
+                    : Colors.red.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(

@@ -2,15 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../widgets/feature_card.dart';
-import '../../widgets/usage_tracker.dart';
-import '../../widgets/upgrade_banner.dart';
 import '../../widgets/activity_tile.dart';
 import 'chat_screen.dart';
+import 'user_settings_screen.dart';
 import 'translate_screen.dart';
 import 'speech_to_text_screen.dart';
 import 'image_analysis_screen.dart';
-import 'user_settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,37 +17,148 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  static const _primary = Color(0xFF5B4FE8);
+
+  static const _primary = Color(0xFF6C63FF);
+  static const _surface = Colors.white;
+  static const _bg = Color(0xFFF4F6FB);
+  static const _text1 = Color(0xFF12112A);
+  static const _text2 = Color(0xFF7B7A8E);
+  static const _border = Color(0xFFEAEAF4);
+
+  final _features = const [
+    _Feature('AI Chat', 'Ask anything, get intelligent answers',
+        Icons.auto_awesome_rounded, Color(0xFF6C63FF), Color(0xFFEEEDFF)),
+    _Feature('Translate', 'Translate across 100+ languages',
+        Icons.translate_rounded, Color(0xFF10B981), Color(0xFFD1FAE5)),
+    _Feature('Image Analysis', 'Upload an image, get AI insights',
+        Icons.image_search_rounded, Color(0xFF3B82F6), Color(0xFFDBEAFE)),
+    _Feature('Speech to Text', 'Turn your voice into text instantly',
+        Icons.mic_rounded, Color(0xFF8B5CF6), Color(0xFFEDE9FE)),
+    _Feature('Text to Speech', 'Convert any text to natural voice',
+        Icons.record_voice_over_rounded, Color(0xFFF59E0B), Color(0xFFFEF3C7)),
+    _Feature('Documents', 'Analyze & summarize your documents',
+        Icons.description_rounded, Color(0xFF06B6D4), Color(0xFFCFFAFE)),
+  ];
 
   final _navItems = const [
-    _NavItem(icon: Icons.home_rounded, label: 'Home'),
-    _NavItem(icon: Icons.chat_bubble_outline_rounded, label: 'AI Chat'),
-    _NavItem(icon: Icons.image_search_rounded, label: 'Image Analysis'),
-    _NavItem(icon: Icons.translate_rounded, label: 'Translate'),
-    _NavItem(icon: Icons.mic_outlined, label: 'Speech to Text'),
-    _NavItem(icon: Icons.record_voice_over_outlined, label: 'Text to Speech'),
-    _NavItem(icon: Icons.description_outlined, label: 'Documents'),
-    _NavItem(icon: Icons.history_rounded, label: 'History'),
-    _NavItem(icon: Icons.star_outline_rounded, label: 'Favorites'),
+    _NavItem(Icons.home_rounded, 'Home'),
+    _NavItem(Icons.auto_awesome_rounded, 'AI Chat'),
+    _NavItem(Icons.image_search_rounded, 'Image Analysis'),
+    _NavItem(Icons.translate_rounded, 'Translate'),
+    _NavItem(Icons.mic_outlined, 'Speech to Text'),
+    _NavItem(Icons.record_voice_over_outlined, 'Text to Speech'),
+    _NavItem(Icons.description_outlined, 'Documents'),
+    _NavItem(Icons.history_rounded, 'History'),
+    _NavItem(Icons.star_outline_rounded, 'Favorites'),
   ];
 
-  final _bottomNavItems = const [
-    _NavItem(icon: Icons.home_rounded, label: 'Home'),
-    _NavItem(icon: Icons.history_rounded, label: 'History'),
-    _NavItem(icon: Icons.add_circle_rounded, label: ''),
-    _NavItem(icon: Icons.star_outline_rounded, label: 'Favorites'),
-    _NavItem(icon: Icons.person_outline_rounded, label: 'Profile'),
-  ];
+  void _navigate(int i) {
+    final user = context.read<AuthProvider>().currentUser;
+    setState(() => _selectedIndex = i);
+    switch (i) {
+      case 1:
+        Navigator.push(context, _route(const ChatScreen()));
+        break;
+      case 2:
+        Navigator.push(context, _route(const ImageAnalysisScreen()));
+        break;
+      case 3:
+        Navigator.push(context, _route(const TranslateScreen()));
+        break;
+      case 4:
+        Navigator.push(context, _route(const SpeechToTextScreen()));
+        break;
+      case 5:
+      case 6:
+        if (user?.isPremium ?? false) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Feature coming soon!')));
+        } else {
+          _showUpgrade();
+        }
+        break;
+      case 7:
+        Navigator.pushNamed(context, '/history');
+        break;
+      case 8:
+        Navigator.pushNamed(context, '/history');
+        break;
+    }
+  }
 
-  void _showUpgradeDialog() {
+  PageRoute _route(Widget page) => MaterialPageRoute(builder: (_) => page);
+
+  void _showUpgrade() {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        contentPadding: EdgeInsets.zero,
-        content: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: UpgradeBanner(onUpgradeTap: () => Navigator.pop(context)),
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Container(
+          padding: const EdgeInsets.all(28),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+                colors: [Color(0xFF6C63FF), Color(0xFF9F7AFF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight),
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.auto_awesome_rounded,
+                    color: Colors.white, size: 32),
+                const SizedBox(height: 14),
+                Text('Upgrade to Premium',
+                    style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700)),
+                const SizedBox(height: 8),
+                Text('Unlock unlimited AI power and priority access.',
+                    style: GoogleFonts.poppins(
+                        color: Colors.white70, fontSize: 13)),
+                const SizedBox(height: 20),
+                ...[
+                  'Unlimited AI messages',
+                  'Image & document analysis',
+                  'Faster response time',
+                  'Priority support',
+                ].map((t) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(children: [
+                        const Icon(Icons.check_circle_rounded,
+                            color: Colors.white, size: 16),
+                        const SizedBox(width: 10),
+                        Text(t,
+                            style: GoogleFonts.poppins(
+                                color: Colors.white, fontSize: 13)),
+                      ]),
+                    )),
+                const SizedBox(height: 24),
+                Row(children: [
+                  Expanded(
+                      child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF6C63FF),
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      elevation: 0,
+                    ),
+                    child: Text('Upgrade Now',
+                        style:
+                            GoogleFonts.poppins(fontWeight: FontWeight.w700)),
+                  )),
+                  const SizedBox(width: 12),
+                  TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text('Later',
+                          style: GoogleFonts.poppins(color: Colors.white70))),
+                ]),
+              ]),
         ),
       ),
     );
@@ -58,137 +166,47 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isWide = MediaQuery.of(context).size.width >= 700;
-
-    if (isWide) {
-      return _buildWideLayout();
-    } else {
-      return _buildMobileLayout();
-    }
+    final wide = MediaQuery.of(context).size.width >= 700;
+    return wide ? _wide() : _mobile();
   }
 
-  // ── WIDE (web/tablet) layout ─────────────────────────────────────
-  Widget _buildWideLayout() {
+  // ── WIDE layout ─────────────────────────────────────────────────
+  Widget _wide() {
     final user = context.watch<AuthProvider>().currentUser;
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
-      body: Row(
-        children: [
-          _Sidebar(
-            navItems: _navItems,
-            selectedIndex: _selectedIndex,
-            onSelect: (i) {
-              setState(() => _selectedIndex = i);
-              switch (i) {
-                case 0:
-                  break; // Home — already here
-                case 1:
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => const ChatScreen()));
-                  break;
-                case 2:
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const ImageAnalysisScreen()));
-                  break;
-                case 3:
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const TranslateScreen()));
-                  break;
-                case 4:
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const SpeechToTextScreen()));
-                  break;
-                case 5:
-                case 6:
-                  _showUpgradeDialog();
-                  break;
-                case 7:
-                  Navigator.pushNamed(context, '/history');
-                  break;
-                case 8:
-                  Navigator.pushNamed(context, '/history');
-                  break;
-              }
-            },
+      backgroundColor: _bg,
+      body: Row(children: [
+        _Sidebar(
+            items: _navItems,
+            selected: _selectedIndex,
+            onTap: _navigate,
             user: user,
-            onUpgrade: _showUpgradeDialog,
-          ),
-          Expanded(
-            child: Column(
-              children: [
-                _WebTopBar(user: user),
-                Expanded(child: _buildHomeContent(wide: true)),
-              ],
-            ),
-          ),
-        ],
-      ),
+            onUpgrade: _showUpgrade),
+        Expanded(
+            child: Column(children: [
+          _TopBar(user: user),
+          Expanded(child: _content(wide: true)),
+        ])),
+      ]),
     );
   }
 
-  // ── MOBILE layout ────────────────────────────────────────────────
-  Widget _buildMobileLayout() {
+  // ── MOBILE layout ───────────────────────────────────────────────
+  Widget _mobile() {
     final user = context.watch<AuthProvider>().currentUser;
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        titleSpacing: 16,
-        title: Row(children: [
-          Image.asset('assets/images/smartai.png', width: 32, height: 32),
-          const SizedBox(width: 8),
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('SmartAI',
-                style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: _primary)),
-            Text('Your AI Assistant',
-                style:
-                    GoogleFonts.poppins(fontSize: 10, color: Colors.grey[500])),
-          ]),
-        ]),
-        actions: [
-          Stack(alignment: Alignment.topRight, children: [
-            IconButton(
-                icon:
-                    Icon(Icons.notifications_outlined, color: Colors.grey[700]),
-                onPressed: () {}),
-            Positioned(
-                top: 10,
-                right: 10,
-                child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                        color: Colors.red, shape: BoxShape.circle))),
-          ]),
-          Padding(
-            padding: const EdgeInsets.only(right: 12, left: 4),
-            child: GestureDetector(
-              onTap: () => Navigator.pushNamed(context, '/profile'),
-              child: _Avatar(user: user, radius: 17),
-            ),
-          ),
-        ],
-      ),
-      body: _buildHomeContent(wide: false),
-      bottomNavigationBar: _MobileBottomNav(
-        items: _bottomNavItems,
-        selectedIndex: _selectedIndex,
-        onSelect: (i) {
-          if (i == 4)
-            Navigator.pushNamed(context, '/profile');
-          else if (i == 1)
+      backgroundColor: _bg,
+      appBar: _buildMobileAppBar(user),
+      body: _content(wide: false),
+      bottomNavigationBar: _BottomNav(
+        selected: _selectedIndex,
+        onTap: (i) {
+          if (i == 4) {
+            Navigator.push(context, _route(const UserSettingsScreen()));
+          } else if (i == 1)
             Navigator.pushNamed(context, '/history');
+          else if (i == 2)
+            Navigator.push(context, _route(const ChatScreen()));
           else
             setState(() => _selectedIndex = i);
         },
@@ -196,128 +214,140 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ── Shared home content ──────────────────────────────────────────
-  Widget _buildHomeContent({required bool wide}) {
+  PreferredSizeWidget _buildMobileAppBar(dynamic user) {
+    return AppBar(
+      backgroundColor: _surface,
+      elevation: 0,
+      automaticallyImplyLeading: false,
+      titleSpacing: 18,
+      title: Row(children: [
+        // Bigger logo
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.asset('assets/images/smartai.png',
+              width: 44, height: 44, fit: BoxFit.cover),
+        ),
+        const SizedBox(width: 10),
+        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          RichText(
+              text: TextSpan(children: [
+            TextSpan(
+                text: 'Smart',
+                style: GoogleFonts.poppins(
+                    fontSize: 17, fontWeight: FontWeight.w700, color: _text1)),
+            TextSpan(
+                text: 'AI',
+                style: GoogleFonts.poppins(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: _primary)),
+          ])),
+          Text('Your AI Assistant',
+              style: GoogleFonts.poppins(fontSize: 10, color: _text2)),
+        ]),
+      ]),
+      actions: [
+        _NotifBell(),
+        const SizedBox(width: 4),
+        GestureDetector(
+          // Avatar tap for mobile
+          onTap: () =>
+              Navigator.push(context, _route(const UserSettingsScreen())),
+          child: Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: _Avatar(user: user, radius: 19),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── Main content ─────────────────────────────────────────────────
+  Widget _content({required bool wide}) {
     final user = context.watch<AuthProvider>().currentUser;
-    final crossCount = wide ? 4 : 2;
-    final aspectRatio = wide ? 1.15 : 0.95;
+    final cols = wide ? 3 : 2;
 
     return SingleChildScrollView(
-      padding: EdgeInsets.all(wide ? 28 : 18),
+      padding: EdgeInsets.fromLTRB(
+          wide ? 32 : 18, wide ? 28 : 20, wide ? 32 : 18, 24),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        // Greeting
-        Text('Hello, ${user?.name ?? 'User'}! 👋',
-            style: GoogleFonts.poppins(
-                fontSize: wide ? 26 : 22,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF1A1A2E))),
-        Text('Welcome back! What would you like to do today?',
-            style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey[500])),
-        const SizedBox(height: 24),
+        // ── Hero greeting ──────────────────────────────────────────
+        _HeroGreeting(user: user, wide: wide),
+        SizedBox(height: wide ? 32 : 22),
 
-        // Feature cards
-        GridView.count(
+        // ── Quick stats row (web only) ─────────────────────────────
+        if (wide) ...[
+          _QuickStats(user: user),
+          const SizedBox(height: 28),
+        ],
+
+        // ── Section label ──────────────────────────────────────────
+        _SectionLabel(
+            title: 'AI Features', subtitle: 'Choose a tool to get started'),
+        const SizedBox(height: 14),
+
+        // ── Feature grid ──────────────────────────────────────────
+        GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: crossCount,
-          crossAxisSpacing: 14,
-          mainAxisSpacing: 14,
-          childAspectRatio: aspectRatio,
-          children: [
-            FeatureCard(
-              title: 'Chat with AI',
-              subtitle: 'Ask anything and get intelligent answers',
-              icon: Icons.chat_bubble_rounded,
-              color: _primary,
-              buttonLabel: 'Start Chat',
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const ChatScreen())),
-            ),
-            FeatureCard(
-              title: 'Translate',
-              subtitle: 'Translate text between 100+ languages',
-              icon: Icons.translate_rounded,
-              color: const Color(0xFF10B981),
-              buttonLabel: 'Translate Now',
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const TranslateScreen())),
-            ),
-            FeatureCard(
-              title: 'Image Analysis',
-              subtitle: 'Upload an image and get AI insights',
-              icon: Icons.image_search_rounded,
-              color: const Color(0xFF3B82F6),
-              buttonLabel: 'Analyze Image',
-              onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const ImageAnalysisScreen())),
-            ),
-            FeatureCard(
-              title: 'Speech to Text',
-              subtitle: 'Convert speech to text instantly',
-              icon: Icons.mic_rounded,
-              color: const Color(0xFF8B5CF6),
-              buttonLabel: 'Start Recording',
-              onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const SpeechToTextScreen())),
-            ),
-            FeatureCard(
-              title: 'Text to Speech',
-              subtitle: 'Convert text to voice',
-              icon: Icons.record_voice_over_rounded,
-              color: const Color(0xFFF59E0B),
-              buttonLabel: 'Convert',
-              isLocked: !(user?.isPremium ?? false),
-              onTap: _showUpgradeDialog,
-            ),
-            FeatureCard(
-              title: 'Documents',
-              subtitle: 'Analyze your documents',
-              icon: Icons.description_rounded,
-              color: const Color(0xFF06B6D4),
-              buttonLabel: 'Analyze',
-              isLocked: !(user?.isPremium ?? false),
-              onTap: _showUpgradeDialog,
-            ),
-          ],
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: cols,
+            crossAxisSpacing: 14,
+            mainAxisSpacing: 14,
+            childAspectRatio: wide ? 1.6 : 0.85,
+          ),
+          itemCount: _features.length,
+          itemBuilder: (_, i) {
+            final f = _features[i];
+            final locked = i >= 4 && !(user?.isPremium ?? false);
+            return _FeatureCard(
+              feature: f,
+              locked: locked,
+              wide: wide,
+              onTap: locked
+                  ? _showUpgrade
+                  : () {
+                      switch (i) {
+                        case 0:
+                          Navigator.push(context, _route(const ChatScreen()));
+                          break;
+                        case 1:
+                          Navigator.push(
+                              context, _route(const TranslateScreen()));
+                          break;
+                        case 2:
+                          Navigator.push(
+                              context, _route(const ImageAnalysisScreen()));
+                          break;
+                        case 3:
+                          Navigator.push(
+                              context, _route(const SpeechToTextScreen()));
+                          break;
+                        default:
+                          // Handle other features or show placeholder
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Feature coming soon!')));
+                          break;
+                      }
+                    },
+            );
+          },
         ),
 
-        const SizedBox(height: 28),
+        SizedBox(height: wide ? 32 : 24),
 
         if (wide)
-          // Wide: recent activity + right panel side by side
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Recent activity
-              Expanded(
-                flex: 3,
-                child: _RecentActivitySection(onUpgrade: _showUpgradeDialog),
-              ),
-              const SizedBox(width: 20),
-              // Right panel: profile card + plan + tips
-              Expanded(
-                flex: 2,
-                child: _RightPanel(user: user, onUpgrade: _showUpgradeDialog),
-              ),
-            ],
-          )
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(flex: 3, child: _ActivitySection()),
+            const SizedBox(width: 20),
+            Expanded(flex: 2, child: _RightPanel(user: user)),
+          ])
         else ...[
-          // Mobile: stacked
-          _RecentActivitySection(onUpgrade: _showUpgradeDialog),
+          _ActivitySection(),
           const SizedBox(height: 20),
-          if (!(user?.isPremium ?? false)) ...[
-            UsageTracker(
-              messagesUsed: user?.dailyMessagesUsed ?? 0,
-              messagesLimit: user?.dailyMessagesLimit ?? 50,
-              onUpgradeTap: _showUpgradeDialog,
-            ),
-            const SizedBox(height: 16),
-            UpgradeBanner(onUpgradeTap: _showUpgradeDialog),
-          ],
+          if (!(user?.isPremium ?? false))
+            _UsageMini(user: user, onUpgrade: _showUpgrade),
         ],
 
         const SizedBox(height: 20),
@@ -326,361 +356,289 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-// ── Sidebar ──────────────────────────────────────────────────────
-class _Sidebar extends StatelessWidget {
-  final List<_NavItem> navItems;
-  final int selectedIndex;
-  final ValueChanged<int> onSelect;
+// ── Hero greeting ─────────────────────────────────────────────────
+class _HeroGreeting extends StatelessWidget {
   final dynamic user;
-  final VoidCallback onUpgrade;
-
-  const _Sidebar(
-      {required this.navItems,
-      required this.selectedIndex,
-      required this.onSelect,
-      required this.user,
-      required this.onUpgrade});
-
-  static const _primary = Color(0xFF5B4FE8);
+  final bool wide;
+  const _HeroGreeting({required this.user, required this.wide});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 220,
-      color: Colors.white,
-      child: Column(
-        children: [
-          // Logo
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-            child: Row(children: [
-              Image.asset('assets/images/smartai.png', width: 36, height: 36),
-              const SizedBox(width: 10),
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                RichText(
-                    text: TextSpan(children: [
-                  TextSpan(
-                      text: 'Smart',
-                      style: GoogleFonts.poppins(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF1A1A2E))),
-                  TextSpan(
-                      text: 'AI',
-                      style: GoogleFonts.poppins(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: _primary)),
-                ])),
-                Text('Your AI Assistant',
-                    style: GoogleFonts.poppins(
-                        fontSize: 10, color: Colors.grey[500])),
-              ]),
-            ]),
-          ),
-          const Divider(height: 1, color: Color(0xFFE5E7EB)),
-          const SizedBox(height: 8),
-
-          // Nav items
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              itemCount: navItems.length,
-              itemBuilder: (_, i) {
-                final item = navItems[i];
-                final selected = selectedIndex == i;
-                return GestureDetector(
-                  onTap: () => onSelect(i),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
-                    margin: const EdgeInsets.symmetric(vertical: 2),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: selected
-                          ? _primary.withOpacity(0.08)
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(children: [
-                      Icon(item.icon,
-                          size: 18,
-                          color: selected ? _primary : const Color(0xFF6B7280)),
-                      const SizedBox(width: 10),
-                      Text(item.label,
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight:
-                                selected ? FontWeight.w600 : FontWeight.w400,
-                            color:
-                                selected ? _primary : const Color(0xFF374151),
-                          )),
-                      if (selected) ...[
-                        const Spacer(),
-                        Container(
-                            width: 4,
-                            height: 4,
-                            decoration: const BoxDecoration(
-                                color: _primary, shape: BoxShape.circle)),
-                      ],
-                    ]),
-                  ),
-                );
-              },
-            ),
-          ),
-
-          // Divider + profile & settings
-          const Divider(height: 1, color: Color(0xFFE5E7EB)),
-          _SidebarFooter(
-              navItems: const [
-                _NavItem(icon: Icons.person_outline_rounded, label: 'Profile'),
-                _NavItem(icon: Icons.settings_outlined, label: 'Settings'),
-                _NavItem(icon: Icons.help_outline_rounded, label: 'Support'),
-                _NavItem(icon: Icons.logout_rounded, label: 'Logout'),
-              ],
-              onTap: (label) {
-                switch (label) {
-                  case 'Profile':
-                    Navigator.pushNamed(context, '/profile');
-                    break;
-                  case 'Settings':
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const UserSettingsScreen()));
-                    break;
-                  case 'Support':
-                    break;
-                  case 'Logout':
-                    context.read<AuthProvider>().logout().then((_) {
-                      if (context.mounted)
-                        Navigator.pushReplacementNamed(context, '/');
-                    });
-                    break;
-                }
-              }),
-
-          // Upgrade to Pro card
-          if (!(user?.isPremium ?? false))
-            _SidebarUpgradeCard(onUpgrade: onUpgrade),
-
-          const SizedBox(height: 12),
+      width: double.infinity,
+      padding: EdgeInsets.all(wide ? 28 : 20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF6C63FF), Color(0xFF9F7AFF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+              color: const Color(0xFF6C63FF).withValues(alpha: 0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 8))
         ],
       ),
-    );
-  }
-}
-
-class _SidebarFooter extends StatelessWidget {
-  final List<_NavItem> navItems;
-  final ValueChanged<String> onTap;
-  const _SidebarFooter({required this.navItems, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Column(
-        children: navItems.map((item) {
-          final isLogout = item.label == 'Logout';
-          return GestureDetector(
-            onTap: () => onTap(item.label),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-              child: Row(children: [
-                Icon(item.icon,
-                    size: 18,
-                    color: isLogout
-                        ? const Color(0xFFEF4444)
-                        : const Color(0xFF6B7280)),
-                const SizedBox(width: 10),
-                Text(item.label,
-                    style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        color: isLogout
-                            ? const Color(0xFFEF4444)
-                            : const Color(0xFF374151))),
-              ]),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-}
-
-class _SidebarUpgradeCard extends StatelessWidget {
-  final VoidCallback onUpgrade;
-  const _SidebarUpgradeCard({required this.onUpgrade});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-              colors: [Color(0xFF5B4FE8), Color(0xFF8B5CF6)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            const Icon(Icons.auto_awesome_rounded,
-                color: Colors.white, size: 16),
-            const SizedBox(width: 6),
-            Text('Upgrade to Pro',
-                style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13)),
-          ]),
-          const SizedBox(height: 8),
-          _benefit('Unlimited AI messages'),
-          _benefit('Faster responses'),
-          _benefit('Advanced models'),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: onUpgrade,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: const Color(0xFF5B4FE8),
-                padding: const EdgeInsets.symmetric(vertical: 9),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
-                elevation: 0,
-              ),
-              child: Text('Upgrade Now',
-                  style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w700, fontSize: 12)),
-            ),
-          ),
-        ]),
-      ),
-    );
-  }
-
-  Widget _benefit(String text) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2),
-        child: Row(children: [
-          const Icon(Icons.check_circle_outline_rounded,
-              size: 13, color: Colors.white70),
-          const SizedBox(width: 6),
-          Text(text,
-              style: GoogleFonts.poppins(fontSize: 11, color: Colors.white)),
-        ]),
-      );
-}
-
-// ── Web top bar ──────────────────────────────────────────────────
-class _WebTopBar extends StatelessWidget {
-  final dynamic user;
-  const _WebTopBar({required this.user});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 60,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFE5E7EB))),
-      ),
       child: Row(children: [
-        // Search bar
         Expanded(
-          child: Container(
-            height: 38,
-            decoration: BoxDecoration(
-                color: const Color(0xFFF5F6FA),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFE5E7EB))),
-            child: Row(children: [
-              const SizedBox(width: 12),
-              Icon(Icons.search_rounded, size: 18, color: Colors.grey[400]),
-              const SizedBox(width: 8),
-              Text('Search anything...',
-                  style: GoogleFonts.poppins(
-                      fontSize: 13, color: Colors.grey[400])),
-              const Spacer(),
-              Container(
-                margin: const EdgeInsets.only(right: 10),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                    color: const Color(0xFFE5E7EB),
-                    borderRadius: BorderRadius.circular(6)),
-                child: Text('Ctrl /',
-                    style: GoogleFonts.poppins(
-                        fontSize: 11, color: Colors.grey[500])),
-              ),
-            ]),
-          ),
-        ),
-        const SizedBox(width: 16),
-        // Theme toggle
-        IconButton(
-            icon: Icon(Icons.wb_sunny_outlined, color: Colors.grey[600]),
-            onPressed: () {}),
-        // Notifications
-        Stack(alignment: Alignment.topRight, children: [
-          IconButton(
-              icon: Icon(Icons.notifications_outlined, color: Colors.grey[600]),
-              onPressed: () {}),
-          Positioned(
-              top: 8,
-              right: 8,
-              child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                      color: Colors.red, shape: BoxShape.circle))),
-        ]),
-        const SizedBox(width: 4),
-        // Avatar + name
-        Row(children: [
-          _Avatar(user: user, radius: 18),
-          const SizedBox(width: 8),
-          Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(user?.name ?? 'User',
-                    style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF1A1A2E))),
-                if (user?.isPremium == true)
-                  Row(children: [
-                    const Icon(Icons.workspace_premium_rounded,
-                        size: 11, color: Color(0xFFD97706)),
-                    const SizedBox(width: 3),
-                    Text('Premium',
-                        style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            color: const Color(0xFFD97706),
-                            fontWeight: FontWeight.w500)),
-                  ]),
-              ]),
-          const SizedBox(width: 4),
-          Icon(Icons.keyboard_arrow_down_rounded,
-              size: 18, color: Colors.grey[400]),
-        ]),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Hello, ${user?.name ?? 'User'}! 👋',
+              style: GoogleFonts.poppins(
+                  fontSize: wide ? 26 : 21,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white)),
+          const SizedBox(height: 6),
+          Text('Welcome back! What would you like to do today?',
+              style: GoogleFonts.poppins(
+                  fontSize: 13, color: Colors.white70, height: 1.5)),
+          const SizedBox(height: 16),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            _HeroPill(icon: Icons.auto_awesome_rounded, label: 'AI Powered'),
+            _HeroPill(icon: Icons.bolt_rounded, label: 'Instant Results'),
+          ]),
+        ])),
+        if (wide) ...[
+          const SizedBox(width: 20),
+          Image.asset('assets/images/home_ai.png', width: 90, height: 90),
+        ],
       ]),
     );
   }
 }
 
-// ── Recent activity section ──────────────────────────────────────
-class _RecentActivitySection extends StatelessWidget {
-  final VoidCallback onUpgrade;
-  const _RecentActivitySection({required this.onUpgrade});
+class _HeroPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _HeroPill({required this.icon, required this.label});
 
-  static const _primary = Color(0xFF5B4FE8);
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(20)),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(icon, color: Colors.white, size: 13),
+        const SizedBox(width: 5),
+        Text(label,
+            style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w500)),
+      ]),
+    );
+  }
+}
+
+// ── Quick stats (web) ─────────────────────────────────────────────
+class _QuickStats extends StatelessWidget {
+  final dynamic user;
+  const _QuickStats({required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    final stats = [
+      ('125', 'AI Chats', Icons.chat_bubble_rounded, const Color(0xFF6C63FF)),
+      ('48', 'Images', Icons.image_rounded, const Color(0xFF3B82F6)),
+      ('32', 'Translations', Icons.translate_rounded, const Color(0xFF10B981)),
+      (
+        '18h',
+        'Hours Saved',
+        Icons.access_time_rounded,
+        const Color(0xFFF59E0B)
+      ),
+    ];
+    return Row(
+      children: stats
+          .map((s) => Expanded(
+                  child: Padding(
+                padding: EdgeInsets.only(right: s == stats.last ? 0 : 14),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFFEAEAF4)),
+                  ),
+                  child: Row(children: [
+                    Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                            color: s.$4.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10)),
+                        child: Icon(s.$3, color: s.$4, size: 19)),
+                    const SizedBox(width: 12),
+                    Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(s.$1,
+                              style: GoogleFonts.poppins(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF12112A))),
+                          Text(s.$2,
+                              style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  color: const Color(0xFF7B7A8E))),
+                        ]),
+                  ]),
+                ),
+              )))
+          .toList(),
+    );
+  }
+}
+
+// ── Section label ─────────────────────────────────────────────────
+class _SectionLabel extends StatelessWidget {
+  final String title, subtitle;
+  const _SectionLabel({required this.title, required this.subtitle});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(title,
+                style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF12112A))),
+            Text(subtitle,
+                style: GoogleFonts.poppins(
+                    fontSize: 12, color: const Color(0xFF7B7A8E))),
+          ]),
+        ]);
+  }
+}
+
+// ── Feature card ──────────────────────────────────────────────────
+class _FeatureCard extends StatelessWidget {
+  final _Feature feature;
+  final bool locked, wide;
+  final VoidCallback onTap;
+  const _FeatureCard(
+      {required this.feature,
+      required this.locked,
+      required this.wide,
+      required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFEAEAF4)),
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4))
+            ],
+          ),
+          child: wide ? _wideContent() : _mobileContent(),
+        ),
+      ),
+    );
+  }
+
+  Widget _wideContent() => Row(children: [
+        Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+                color: feature.bg, borderRadius: BorderRadius.circular(14)),
+            child: Icon(feature.icon, color: feature.color, size: 24)),
+        const SizedBox(width: 14),
+        Expanded(
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+              Row(children: [
+                Expanded(
+                    child: Text(feature.title,
+                        style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                            color: const Color(0xFF12112A)))),
+                if (locked)
+                  const Icon(Icons.lock_rounded,
+                      size: 14, color: Color(0xFFB0B0C8)),
+              ]),
+              const SizedBox(height: 3),
+              Text(feature.subtitle,
+                  style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      color: const Color(0xFF7B7A8E),
+                      height: 1.4),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis),
+            ])),
+      ]);
+
+  Widget _mobileContent() =>
+      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                  color: feature.bg, borderRadius: BorderRadius.circular(13)),
+              child: Icon(feature.icon, color: feature.color, size: 22)),
+          if (locked)
+            const Icon(Icons.lock_rounded, size: 14, color: Color(0xFFB0B0C8)),
+        ]),
+        const Spacer(),
+        Text(feature.title,
+            style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+                color: const Color(0xFF12112A))),
+        const SizedBox(height: 3),
+        Text(feature.subtitle,
+            style: GoogleFonts.poppins(
+                fontSize: 10, color: const Color(0xFF7B7A8E), height: 1.4),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: locked ? const Color(0xFFF0F0F8) : feature.color,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Center(
+              child: Text(
+            locked ? '🔒 Upgrade' : 'Open',
+            style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: locked ? const Color(0xFFB0B0C8) : Colors.white),
+          )),
+        ),
+      ]);
+}
+
+// ── Activity section ──────────────────────────────────────────────
+class _ActivitySection extends StatelessWidget {
+  static const _primary = Color(0xFF6C63FF);
 
   @override
   Widget build(BuildContext context) {
@@ -689,19 +647,22 @@ class _RecentActivitySection extends StatelessWidget {
         Text('Recent Activity',
             style: GoogleFonts.poppins(
                 fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF1A1A2E))),
-        Text('View all',
-            style: GoogleFonts.poppins(
-                fontSize: 13, fontWeight: FontWeight.w600, color: _primary)),
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF12112A))),
+        GestureDetector(
+          onTap: () => Navigator.pushNamed(context, '/history'),
+          child: Text('View all →',
+              style: GoogleFonts.poppins(
+                  fontSize: 12, fontWeight: FontWeight.w600, color: _primary)),
+        ),
       ]),
       const SizedBox(height: 12),
       ActivityTile(
-          icon: Icons.chat_bubble_rounded,
+          icon: Icons.auto_awesome_rounded,
           color: _primary,
           title: 'Chat with AI',
           subtitle: 'Explain quantum computing in simple terms…',
-          time: '2 minutes ago',
+          time: '2 min ago',
           onTap: () => Navigator.push(
               context, MaterialPageRoute(builder: (_) => const ChatScreen()))),
       ActivityTile(
@@ -709,7 +670,7 @@ class _RecentActivitySection extends StatelessWidget {
           color: const Color(0xFF3B82F6),
           title: 'Image Analysis',
           subtitle: 'Mountains landscape.jpg',
-          time: '15 minutes ago',
+          time: '15 min ago',
           onTap: () => Navigator.push(context,
               MaterialPageRoute(builder: (_) => const ImageAnalysisScreen()))),
       ActivityTile(
@@ -717,7 +678,7 @@ class _RecentActivitySection extends StatelessWidget {
           color: const Color(0xFF10B981),
           title: 'Translate',
           subtitle: 'Bonjour, comment allez-vous?',
-          time: '1 hour ago',
+          time: '1 hr ago',
           onTap: () => Navigator.push(context,
               MaterialPageRoute(builder: (_) => const TranslateScreen()))),
       ActivityTile(
@@ -725,29 +686,32 @@ class _RecentActivitySection extends StatelessWidget {
           color: const Color(0xFF8B5CF6),
           title: 'Speech to Text',
           subtitle: 'Meeting notes voice recording',
-          time: '2 hours ago',
+          time: '2 hr ago',
           onTap: () => Navigator.push(context,
               MaterialPageRoute(builder: (_) => const SpeechToTextScreen()))),
     ]);
   }
 }
 
-// ── Right panel (web only) ───────────────────────────────────────
+// ── Right panel (web) ─────────────────────────────────────────────
 class _RightPanel extends StatelessWidget {
   final dynamic user;
-  final VoidCallback onUpgrade;
-  const _RightPanel({required this.user, required this.onUpgrade});
+  const _RightPanel({required this.user});
 
   @override
   Widget build(BuildContext context) {
+    final used = user?.dailyMessagesUsed ?? 0;
+    final limit = user?.dailyMessagesLimit ?? 50;
+    final progress = limit > 0 ? (used / limit).clamp(0.0, 1.0) : 0.0;
+
     return Column(children: [
       // Profile card
       Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE5E7EB))),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFEAEAF4))),
         child: Column(children: [
           Row(children: [
             _Avatar(user: user, radius: 26),
@@ -757,189 +721,499 @@ class _RightPanel extends StatelessWidget {
                   style: GoogleFonts.poppins(
                       fontWeight: FontWeight.w700,
                       fontSize: 15,
-                      color: const Color(0xFF1A1A2E))),
+                      color: const Color(0xFF12112A))),
               if (user?.isPremium == true)
-                Row(children: [
-                  const Icon(Icons.workspace_premium_rounded,
-                      size: 13, color: Color(0xFFD97706)),
-                  const SizedBox(width: 4),
-                  Text('Premium User',
-                      style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: const Color(0xFFD97706),
-                          fontWeight: FontWeight.w600)),
-                ]),
+                Container(
+                  margin: const EdgeInsets.only(top: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(20)),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    const Icon(Icons.workspace_premium_rounded,
+                        size: 11, color: Color(0xFFD97706)),
+                    const SizedBox(width: 4),
+                    Text('Premium',
+                        style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            color: const Color(0xFFD97706),
+                            fontWeight: FontWeight.w600)),
+                  ]),
+                ),
             ]),
           ]),
           const SizedBox(height: 16),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-            _statCol('125', 'AI Chats'),
-            _divider(),
-            _statCol('48', 'Images Analyzed'),
-            _divider(),
-            _statCol('32', 'Translations'),
-            _divider(),
-            _statCol('18', 'Hours Saved'),
+          const Divider(color: Color(0xFFEAEAF4)),
+          const SizedBox(height: 12),
+          // Usage
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Text('Daily Usage',
+                style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF12112A))),
+            Text('$used / $limit',
+                style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF6C63FF))),
           ]),
+          const SizedBox(height: 8),
+          ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 7,
+                backgroundColor: const Color(0xFFEEEDFF),
+                valueColor: const AlwaysStoppedAnimation(Color(0xFF6C63FF)),
+              )),
+          const SizedBox(height: 6),
+          Align(
+              alignment: Alignment.centerLeft,
+              child: Text('Resets in 24 hours',
+                  style: GoogleFonts.poppins(
+                      fontSize: 11, color: const Color(0xFF7B7A8E)))),
         ]),
       ),
-      const SizedBox(height: 14),
 
-      // Plan + usage
-      UsageTracker(
-        messagesUsed: user?.dailyMessagesUsed ?? 0,
-        messagesLimit: user?.dailyMessagesLimit ?? 50,
-        onUpgradeTap: onUpgrade,
-      ),
       const SizedBox(height: 14),
 
       // Tips
       Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE5E7EB))),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFEAEAF4))),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('Tips for you',
               style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                   fontSize: 14,
-                  color: const Color(0xFF1A1A2E))),
+                  color: const Color(0xFF12112A))),
+          const SizedBox(height: 14),
+          _tip(Icons.mic_rounded, const Color(0xFF8B5CF6), 'Try voice input',
+              'Faster than typing'),
           const SizedBox(height: 12),
-          _tip(
-              Icons.mic_rounded,
-              const Color(0xFF8B5CF6),
-              'Try voice commands for faster input',
-              'Use speech to text feature'),
-          const SizedBox(height: 10),
-          _tip(
-              Icons.image_rounded,
-              const Color(0xFF3B82F6),
-              'Upload clear images for better analysis',
-              'High quality images give better results'),
-          const SizedBox(height: 10),
-          _tip(Icons.bookmark_rounded, const Color(0xFF5B4FE8),
-              'Save your favorite conversations', 'Bookmark important chats'),
+          _tip(Icons.image_rounded, const Color(0xFF3B82F6),
+              'Clear images work best', 'Higher quality = better insights'),
+          const SizedBox(height: 12),
+          _tip(Icons.bookmark_rounded, const Color(0xFF6C63FF),
+              'Bookmark key chats', 'Save important conversations'),
         ]),
       ),
-
-      // Upgrade banner (free users only)
-      if (!(user?.isPremium ?? false)) ...[
-        const SizedBox(height: 14),
-        UpgradeBanner(onUpgradeTap: onUpgrade),
-      ],
     ]);
   }
 
-  Widget _statCol(String val, String label) => Column(children: [
-        Text(val,
-            style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF1A1A2E))),
-        Text(label,
-            style: GoogleFonts.poppins(fontSize: 10, color: Colors.grey[500]),
-            textAlign: TextAlign.center),
-      ]);
-
-  Widget _divider() =>
-      Container(height: 32, width: 1, color: const Color(0xFFE5E7EB));
-
-  Widget _tip(IconData icon, Color color, String title, String subtitle) =>
-      Row(children: [
+  Widget _tip(IconData icon, Color color, String t, String s) => Row(children: [
         Container(
             width: 34,
             height: 34,
             decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(9)),
             child: Icon(icon, color: color, size: 17)),
         const SizedBox(width: 10),
         Expanded(
             child:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title,
+          Text(t,
               style: GoogleFonts.poppins(
                   fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFF1A1A2E))),
-          Text(subtitle,
-              style:
-                  GoogleFonts.poppins(fontSize: 11, color: Colors.grey[500])),
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF12112A))),
+          Text(s,
+              style: GoogleFonts.poppins(
+                  fontSize: 11, color: const Color(0xFF7B7A8E))),
         ])),
       ]);
 }
 
-// ── Mobile bottom nav ────────────────────────────────────────────
-class _MobileBottomNav extends StatelessWidget {
-  final List<_NavItem> items;
-  final int selectedIndex;
-  final ValueChanged<int> onSelect;
-  const _MobileBottomNav(
-      {required this.items,
-      required this.selectedIndex,
-      required this.onSelect});
+// ── Mobile usage mini card ────────────────────────────────────────
+class _UsageMini extends StatelessWidget {
+  final dynamic user;
+  final VoidCallback onUpgrade;
+  const _UsageMini({required this.user, required this.onUpgrade});
 
-  static const _primary = Color(0xFF5B4FE8);
+  @override
+  Widget build(BuildContext context) {
+    final used = user?.dailyMessagesUsed ?? 0;
+    final limit = user?.dailyMessagesLimit ?? 50;
+    final progress = limit > 0 ? (used / limit).clamp(0.0, 1.0) : 0.0;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFEAEAF4))),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Text('Daily Usage',
+              style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  color: const Color(0xFF12112A))),
+          GestureDetector(
+              onTap: onUpgrade,
+              child: Text('Upgrade ↗',
+                  style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF6C63FF)))),
+        ]),
+        const SizedBox(height: 12),
+        ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 8,
+              backgroundColor: const Color(0xFFEEEDFF),
+              valueColor: const AlwaysStoppedAnimation(Color(0xFF6C63FF)),
+            )),
+        const SizedBox(height: 8),
+        Text('$used of $limit messages used today',
+            style: GoogleFonts.poppins(
+                fontSize: 12, color: const Color(0xFF7B7A8E))),
+      ]),
+    );
+  }
+}
+
+// ── Sidebar ───────────────────────────────────────────────────────
+class _Sidebar extends StatelessWidget {
+  final List<_NavItem> items;
+  final int selected;
+  final ValueChanged<int> onTap;
+  final dynamic user;
+  final VoidCallback onUpgrade;
+  const _Sidebar(
+      {required this.items,
+      required this.selected,
+      required this.onTap,
+      required this.user,
+      required this.onUpgrade});
+
+  static const _primary = Color(0xFF6C63FF);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 230,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(right: BorderSide(color: Color(0xFFEAEAF4))),
+      ),
+      child: Column(children: [
+        // Logo
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
+          child: Row(children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.asset('assets/images/smartai.png',
+                  width: 42, height: 42, fit: BoxFit.cover),
+            ),
+            const SizedBox(width: 12),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              RichText(
+                  text: TextSpan(children: [
+                TextSpan(
+                    text: 'Smart',
+                    style: GoogleFonts.poppins(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF12112A))),
+                TextSpan(
+                    text: 'AI',
+                    style: GoogleFonts.poppins(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: _primary)),
+              ])),
+              Text('Your AI Assistant',
+                  style: GoogleFonts.poppins(
+                      fontSize: 10, color: const Color(0xFF7B7A8E))),
+            ]),
+          ]),
+        ),
+        const Divider(height: 1, color: Color(0xFFEAEAF4)),
+        const SizedBox(height: 10),
+
+        // Nav items
+        Expanded(
+            child: ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          itemCount: items.length,
+          itemBuilder: (_, i) {
+            final item = items[i];
+            final sel = selected == i;
+            return MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () => onTap(i),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 160),
+                  margin: const EdgeInsets.symmetric(vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                  decoration: BoxDecoration(
+                    color: sel
+                        ? _primary.withValues(alpha: 0.09)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(children: [
+                    Icon(item.icon,
+                        size: 19,
+                        color: sel ? _primary : const Color(0xFF7B7A8E)),
+                    const SizedBox(width: 11),
+                    Expanded(
+                        child: Text(item.label,
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              fontWeight:
+                                  sel ? FontWeight.w600 : FontWeight.w400,
+                              color: sel ? _primary : const Color(0xFF374151),
+                            ))),
+                    if (sel)
+                      Container(
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(
+                              color: _primary, shape: BoxShape.circle)),
+                  ]),
+                ),
+              ),
+            );
+          },
+        )),
+
+        const Divider(height: 1, color: Color(0xFFEAEAF4)),
+
+        // Footer links
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Column(children: [
+            _footerItem(
+                context,
+                Icons.person_outline_rounded,
+                'Profile',
+                false,
+                () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const UserSettingsScreen()))),
+            _footerItem(
+                context,
+                Icons.settings_outlined,
+                'Settings',
+                false,
+                () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const UserSettingsScreen()))),
+            _footerItem(
+                context, Icons.help_outline_rounded, 'Support', false, () {}),
+            _footerItem(
+                context,
+                Icons.logout_rounded,
+                'Logout',
+                true,
+                () => context.read<AuthProvider>().logout().then((_) {
+                      if (context.mounted) {
+                        Navigator.pushReplacementNamed(context, '/');
+                      }
+                    })),
+          ]),
+        ),
+
+        const SizedBox(height: 8),
+      ]),
+    );
+  }
+
+  Widget _footerItem(BuildContext ctx, IconData icon, String label, bool red,
+      VoidCallback onTap) {
+    final color = red ? const Color(0xFFEF4444) : const Color(0xFF6B7280);
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 14),
+          child: Row(children: [
+            Icon(icon, size: 18, color: color),
+            const SizedBox(width: 11),
+            Text(label, style: GoogleFonts.poppins(fontSize: 13, color: color)),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Top bar ───────────────────────────────────────────────────────
+class _TopBar extends StatelessWidget {
+  final dynamic user;
+  const _TopBar({required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 62,
+      padding: const EdgeInsets.symmetric(horizontal: 26),
+      decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(bottom: BorderSide(color: Color(0xFFEAEAF4)))),
+      child: Row(children: [
+        // Search
+        Expanded(
+            child: Container(
+          height: 38,
+          decoration: BoxDecoration(
+              color: const Color(0xFFF4F6FB),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFEAEAF4))),
+          child: Row(children: [
+            const SizedBox(width: 12),
+            Icon(Icons.search_rounded, size: 17, color: Colors.grey[400]),
+            const SizedBox(width: 8),
+            Text('Search anything...',
+                style:
+                    GoogleFonts.poppins(fontSize: 13, color: Colors.grey[400])),
+            const Spacer(),
+            Container(
+                margin: const EdgeInsets.only(right: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                    color: const Color(0xFFE5E7EB),
+                    borderRadius: BorderRadius.circular(6)),
+                child: Text('Ctrl /',
+                    style: GoogleFonts.poppins(
+                        fontSize: 11, color: Colors.grey[500]))),
+          ]),
+        )),
+        const SizedBox(width: 14),
+        _NotifBell(),
+        const SizedBox(width: 14),
+        _Avatar(user: user, radius: 18),
+        const SizedBox(width: 9),
+        Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(user?.name ?? 'User',
+                  style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF12112A))),
+              if (user?.isPremium == true)
+                Text('Premium',
+                    style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        color: const Color(0xFFD97706),
+                        fontWeight: FontWeight.w500)),
+            ]),
+        Icon(Icons.keyboard_arrow_down_rounded,
+            color: Colors.grey[400], size: 18),
+      ]),
+    );
+  }
+}
+
+// ── Bottom nav (mobile) ───────────────────────────────────────────
+class _BottomNav extends StatelessWidget {
+  final int selected;
+  final ValueChanged<int> onTap;
+  const _BottomNav({required this.selected, required this.onTap});
+
+  static const _items = [
+    (Icons.home_rounded, 'Home'),
+    (Icons.history_rounded, 'History'),
+    (Icons.add_rounded, ''),
+    (Icons.star_outline_rounded, 'Favorites'),
+    (Icons.person_outline_rounded, 'Profile'),
+  ];
+  static const _primary = Color(0xFF6C63FF);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 64 + MediaQuery.of(context).padding.bottom,
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
       decoration: const BoxDecoration(
           color: Colors.white,
-          border: Border(top: BorderSide(color: Color(0xFFE5E7EB)))),
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+          border: Border(top: BorderSide(color: Color(0xFFEAEAF4)))),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: items.asMap().entries.map((e) {
+        children: _items.asMap().entries.map((e) {
           final i = e.key;
           final item = e.value;
-          final selected = selectedIndex == i;
+          final sel = selected == i;
           if (i == 2) {
-            // Center FAB
             return GestureDetector(
-              onTap: () => onSelect(i),
-              child: Container(
-                width: 50,
-                height: 50,
-                decoration: const BoxDecoration(
-                    color: _primary,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                          color: Color(0x335B4FE8),
-                          blurRadius: 12,
-                          offset: Offset(0, 4))
-                    ]),
-                child: const Icon(Icons.add_rounded,
-                    color: Colors.white, size: 26),
-              ),
-            );
+                onTap: () => onTap(i),
+                child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                        color: _primary,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                              color: _primary.withValues(alpha: 0.35),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4))
+                        ]),
+                    child: const Icon(Icons.add_rounded,
+                        color: Colors.white, size: 26)));
           }
-          return GestureDetector(
-            onTap: () => onSelect(i),
-            child:
-                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(item.icon,
-                  size: 22, color: selected ? _primary : Colors.grey[400]),
-              const SizedBox(height: 3),
-              Text(item.label,
-                  style: GoogleFonts.poppins(
-                      fontSize: 10,
-                      color: selected ? _primary : Colors.grey[400],
-                      fontWeight:
-                          selected ? FontWeight.w600 : FontWeight.normal)),
-            ]),
-          );
+          return MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                  onTap: () => onTap(i),
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(item.$1,
+                            size: 22, color: sel ? _primary : Colors.grey[400]),
+                        const SizedBox(height: 3),
+                        Text(item.$2,
+                            style: GoogleFonts.poppins(
+                                fontSize: 10,
+                                color: sel ? _primary : Colors.grey[400],
+                                fontWeight:
+                                    sel ? FontWeight.w600 : FontWeight.normal)),
+                      ])));
         }).toList(),
       ),
     );
   }
 }
 
-// ── Avatar ───────────────────────────────────────────────────────
+// ── Notification bell ─────────────────────────────────────────────
+class _NotifBell extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Stack(alignment: Alignment.topRight, children: [
+      IconButton(
+          icon: Icon(Icons.notifications_outlined, color: Colors.grey[600]),
+          onPressed: () {}),
+      Positioned(
+          top: 8,
+          right: 8,
+          child: Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                  color: Colors.red, shape: BoxShape.circle))),
+    ]);
+  }
+}
+
+// ── Avatar ────────────────────────────────────────────────────────
 class _Avatar extends StatelessWidget {
   final dynamic user;
   final double radius;
@@ -949,7 +1223,7 @@ class _Avatar extends StatelessWidget {
   Widget build(BuildContext context) {
     return CircleAvatar(
       radius: radius,
-      backgroundColor: const Color(0xFF5B4FE8).withOpacity(0.1),
+      backgroundColor: const Color(0xFF6C63FF).withValues(alpha: 0.12),
       backgroundImage:
           user?.avatarUrl != null ? NetworkImage(user!.avatarUrl!) : null,
       child: user?.avatarUrl == null
@@ -958,17 +1232,24 @@ class _Avatar extends StatelessWidget {
                   ? user!.name[0].toUpperCase()
                   : 'U',
               style: TextStyle(
-                  color: const Color(0xFF5B4FE8),
-                  fontWeight: FontWeight.bold,
-                  fontSize: radius * 0.8))
+                  color: const Color(0xFF6C63FF),
+                  fontWeight: FontWeight.w700,
+                  fontSize: radius * 0.85))
           : null,
     );
   }
 }
 
-// ── Data class ───────────────────────────────────────────────────
+// ── Data classes ──────────────────────────────────────────────────
 class _NavItem {
   final IconData icon;
   final String label;
-  const _NavItem({required this.icon, required this.label});
+  const _NavItem(this.icon, this.label);
+}
+
+class _Feature {
+  final String title, subtitle;
+  final IconData icon;
+  final Color color, bg;
+  const _Feature(this.title, this.subtitle, this.icon, this.color, this.bg);
 }

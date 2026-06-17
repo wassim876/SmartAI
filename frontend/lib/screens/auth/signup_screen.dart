@@ -8,6 +8,158 @@ import '../../widgets/primary_button.dart';
 import '../../widgets/social_button.dart';
 import '../../providers/auth_provider.dart';
 
+// Define constants for the terms and privacy policy text
+const String _termsAndConditionsText = '''
+1. Acceptance of Terms
+
+Welcome to SmartAI. By creating an account, accessing, or using our services, you agree to be bound by these Terms and Conditions and our Privacy Policy.
+
+If you do not agree with any part of these terms, please do not use SmartAI.
+
+2. Description of Service
+
+SmartAI provides AI-powered tools and services through web and mobile applications.
+
+Features may include:
+
+AI assistance
+Smart recommendations
+User account management
+Data storage and processing
+Other AI-related services
+
+We reserve the right to modify, suspend, or discontinue any feature at any time.
+
+3. User Accounts
+
+When creating an account, you agree to:
+
+Provide accurate information
+Keep your password secure
+Maintain the confidentiality of your account
+Notify us immediately of unauthorized access
+
+You are responsible for all activities performed under your account.
+
+4. Acceptable Use
+
+You agree not to:
+
+Violate any applicable laws
+Upload harmful or malicious content
+Attempt unauthorized access to our systems
+Interfere with the operation of the platform
+Use SmartAI for fraudulent activities
+
+Violation of these rules may result in account suspension or termination.
+
+5. Intellectual Property
+
+All content, branding, logos, software, and design elements of SmartAI are the property of SmartAI or its licensors.
+
+Users may not copy, distribute, or modify platform content without permission.
+
+6. AI Generated Content
+
+SmartAI may generate responses, recommendations, or content using artificial intelligence.
+
+Users acknowledge that:
+
+AI-generated content may contain inaccuracies
+Results should be independently verified when necessary
+SmartAI is not liable for decisions made solely based on AI-generated outputs
+7. Privacy
+
+Your privacy is important to us.
+
+Information collected may include:
+
+Account information
+Usage data
+Device information
+User-generated content
+
+Data is processed according to our Privacy Policy.
+
+8. Limitation of Liability
+
+SmartAI is provided on an "as is" basis.
+
+We are not liable for:
+
+Service interruptions
+Data loss
+Indirect damages
+Business losses resulting from platform use
+
+Use of the service is at your own risk.
+
+9. Termination
+
+We reserve the right to suspend or terminate accounts that violate these Terms and Conditions.
+
+Users may discontinue use of the service at any time.
+
+10. Changes to Terms
+
+We may update these Terms and Conditions periodically.
+
+Continued use of SmartAI after updates constitutes acceptance of the revised terms.
+
+11. Contact Information
+
+For questions regarding these Terms and Conditions, please contact the SmartAI support team.
+''';
+
+const String _privacyPolicyText = '''
+Information We Collect
+
+We may collect:
+
+Name
+Email address
+Profile information
+Device information
+Usage analytics
+How We Use Information
+
+Information may be used to:
+
+Provide and improve services
+Authenticate users
+Enhance security
+Deliver customer support
+Analyze platform performance
+Data Security
+
+We implement reasonable security measures to protect user information.
+
+However, no internet transmission is completely secure.
+
+Third-Party Services
+
+SmartAI may use third-party services for:
+
+Authentication
+Analytics
+Cloud hosting
+
+These providers may process information according to their own privacy policies.
+
+User Rights
+
+Users may request:
+
+Access to personal data
+Correction of inaccurate data
+Deletion of personal data where applicable
+Policy Updates
+
+This Privacy Policy may be updated periodically.
+
+Continued use of SmartAI indicates acceptance of the updated policy.
+''';
+
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
 
@@ -16,7 +168,7 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
-  bool _agreeTerms = true;
+  bool _agreeTerms = false;
   bool _isLoading = false;
 
   final _nameController = TextEditingController();
@@ -128,6 +280,15 @@ class _SignupScreenState extends State<SignupScreen> {
                 ],
               ),
       ),
+    );
+  }
+
+  Future<bool?> _showTermsAndConditionsDialog() async {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false, // User must interact with the dialog
+      builder: (BuildContext dialogContext) =>
+          _TermsAndConditionsDialogContent(),
     );
   }
 
@@ -314,7 +475,21 @@ class _SignupScreenState extends State<SignupScreen> {
                 isPassword: true),
             const SizedBox(height: 20),
             _checkbox('I agree to the Terms of Service and Privacy Policy',
-                _agreeTerms, (v) => setState(() => _agreeTerms = v!)),
+                _agreeTerms, (bool? newValue) async {
+              if (newValue == true) {
+                final bool? accepted = await _showTermsAndConditionsDialog();
+                if (accepted == true) {
+                  setState(() {
+                    _agreeTerms = true;
+                  });
+                }
+                // If not accepted, _agreeTerms remains false, and checkbox won't be checked.
+              } else {
+                setState(() {
+                  _agreeTerms = false;
+                });
+              }
+            }),
             const SizedBox(height: 16),
             PrimaryButton(
                 label: _isLoading ? 'Creating Account...' : 'Sign Up',
@@ -382,5 +557,168 @@ class _SignupScreenState extends State<SignupScreen> {
               style: GoogleFonts.poppins(
                   fontSize: 13, color: AppColors.textGrey))),
     ]);
+  }
+}
+
+// New StatefulWidget for the dialog content
+class _TermsAndConditionsDialogContent extends StatefulWidget {
+  @override
+  __TermsAndConditionsDialogContentState createState() =>
+      __TermsAndConditionsDialogContentState();
+}
+
+class __TermsAndConditionsDialogContentState
+    extends State<_TermsAndConditionsDialogContent> {
+  final ScrollController _scrollController = ScrollController();
+  bool _hasScrolledToEnd = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+    // Check if content is not scrollable (e.g., very short content)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.position.maxScrollExtent == 0) {
+        setState(() {
+          _hasScrolledToEnd = true;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels ==
+            _scrollController.position.maxScrollExtent &&
+        !_hasScrolledToEnd) {
+      setState(() {
+        _hasScrolledToEnd = true;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      titlePadding: const EdgeInsets.all(0),
+      title: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        decoration: const BoxDecoration(
+          color: AppColors.backgroundLight,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        child: Text(
+          'Legal Agreements',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: AppColors.textDark,
+          ),
+        ),
+      ),
+      content: SizedBox(
+        width: MediaQuery.of(context).size.width * 0.9, // Make dialog wider
+        height: MediaQuery.of(context).size.height * 0.6, // Make dialog taller
+        child: Column(
+          children: [
+            const Divider(height: 1),
+            Expanded(
+              child: Scrollbar(
+                controller: _scrollController,
+                thumbVisibility: true,
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _sectionHeader('SmartAI Terms & Conditions'),
+                      const SizedBox(height: 8),
+                      _bodyText(_termsAndConditionsText),
+                      const SizedBox(height: 24),
+                      _sectionHeader('Privacy Policy'),
+                      const SizedBox(height: 8),
+                      _bodyText(_privacyPolicyText),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const Divider(height: 1),
+            if (!_hasScrolledToEnd)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Text(
+                  'Please scroll to the bottom to accept',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false), // User declined
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.textGrey,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          ),
+          child: Text(
+            'Decline',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: _hasScrolledToEnd
+              ? () => Navigator.of(context).pop(true)
+              : null, // Disable until scrolled to end
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            disabledBackgroundColor: AppColors.primary.withOpacity(0.3),
+            disabledForegroundColor: Colors.white.withOpacity(0.6),
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+            elevation: _hasScrolledToEnd ? 2 : 0,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+          child: Text(
+            'Accept',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          ),
+        ),
+      ],
+      actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+    );
+  }
+
+  Widget _sectionHeader(String title) {
+    return Text(
+      title,
+      style: GoogleFonts.poppins(
+        fontWeight: FontWeight.bold,
+        fontSize: 18,
+        color: AppColors.primary,
+      ),
+    );
+  }
+
+  Widget _bodyText(String text) {
+    return Text(
+      text,
+      style: GoogleFonts.poppins(
+          fontSize: 13, color: AppColors.textDark, height: 1.6),
+    );
   }
 }
