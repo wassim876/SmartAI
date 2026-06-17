@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class UsageTracker extends StatelessWidget {
   final int messagesUsed;
@@ -12,19 +13,32 @@ class UsageTracker extends StatelessWidget {
     required this.onUpgradeTap,
   });
 
+  static const _primary = Color(0xFF5B4FE8);
+
   @override
   Widget build(BuildContext context) {
-    final progress = messagesUsed / messagesLimit;
+    final progress = messagesLimit > 0
+        ? (messagesUsed / messagesLimit).clamp(0.0, 1.0)
+        : 0.0;
     final isNearLimit = progress > 0.8;
+    final barColor = isNearLimit ? const Color(0xFFEF4444) : _primary;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isNearLimit ? Colors.orange.shade50 : Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isNearLimit ? Colors.orange.shade200 : Colors.blue.shade200,
+          color:
+              isNearLimit ? const Color(0xFFFECACA) : const Color(0xFFE5E7EB),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -32,63 +46,74 @@ class UsageTracker extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Daily AI Messages',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: isNearLimit
-                      ? Colors.orange.shade800
-                      : Colors.blue.shade800,
+              Row(children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: barColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(9),
+                  ),
+                  child: Icon(
+                    isNearLimit
+                        ? Icons.warning_rounded
+                        : Icons.bar_chart_rounded,
+                    color: barColor,
+                    size: 17,
+                  ),
                 ),
-              ),
-              Text(
-                '$messagesUsed / $messagesLimit',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: isNearLimit
-                      ? Colors.orange.shade800
-                      : Colors.blue.shade800,
+                const SizedBox(width: 10),
+                Text(
+                  'Daily Usage',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: const Color(0xFF1A1A2E),
+                  ),
+                ),
+              ]),
+              GestureDetector(
+                onTap: onUpgradeTap,
+                child: Text(
+                  'Upgrade ↗',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: _primary,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 14),
           ClipRRect(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: Colors.white,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                isNearLimit ? Colors.orange : Colors.blue,
-              ),
               minHeight: 8,
+              backgroundColor: barColor.withOpacity(0.1),
+              valueColor: AlwaysStoppedAnimation<Color>(barColor),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                isNearLimit ? 'Almost at limit!' : 'Resets in 24 hours',
-                style: TextStyle(
+                isNearLimit ? '⚠ Almost at your limit!' : 'Resets in 24 hours',
+                style: GoogleFonts.poppins(
                   fontSize: 12,
                   color: isNearLimit
-                      ? Colors.orange.shade700
-                      : Colors.blue.shade700,
+                      ? const Color(0xFFEF4444)
+                      : const Color(0xFF6B7280),
                 ),
               ),
-              TextButton(
-                onPressed: onUpgradeTap,
-                style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                child: Text(
-                  'Upgrade',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: isNearLimit
-                        ? Colors.orange.shade700
-                        : Colors.blue.shade700,
-                  ),
+              Text(
+                '$messagesUsed / $messagesLimit messages',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF1A1A2E),
                 ),
               ),
             ],

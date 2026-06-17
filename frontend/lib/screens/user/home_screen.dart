@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/feature_card.dart';
+import '../../widgets/usage_tracker.dart';
+import '../../widgets/upgrade_banner.dart';
+import '../../widgets/activity_tile.dart';
 import 'chat_screen.dart';
 import 'translate_screen.dart';
 import 'speech_to_text_screen.dart';
@@ -13,12 +17,23 @@ class HomeScreen extends StatelessWidget {
   static const _primary = Color(0xFF5B4FE8);
   static const _bg = Color(0xFFF5F6FA);
 
+  void _showUpgradeDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        contentPadding: EdgeInsets.zero,
+        content: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: UpgradeBanner(onUpgradeTap: () => Navigator.pop(context)),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthProvider>().currentUser;
-    final used = user?.dailyMessagesUsed ?? 0;
-    final limit = user?.dailyMessagesLimit ?? 50;
-    final progress = limit > 0 ? (used / limit).clamp(0.0, 1.0) : 0.0;
 
     return Scaffold(
       backgroundColor: _bg,
@@ -26,6 +41,7 @@ class HomeScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         titleSpacing: 20,
+        automaticallyImplyLeading: false,
         title: Row(children: [
           Container(
             width: 34,
@@ -49,21 +65,18 @@ class HomeScreen extends StatelessWidget {
         ]),
         actions: [
           IconButton(
-            icon: Navigator.canPop(context)
-                ? const Icon(Icons.history_rounded, color: Color(0xFF374151))
-                : Stack(children: [
-                    const Icon(Icons.notifications_outlined,
-                        color: Color(0xFF374151)),
-                    Positioned(
-                        right: 0,
-                        top: 0,
-                        child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                                color: Colors.red, shape: BoxShape.circle))),
-                  ]),
-            onPressed: () => Navigator.pushNamed(context, '/history'),
+            icon: Stack(children: [
+              Icon(Icons.notifications_outlined, color: Colors.grey[700]),
+              Positioned(
+                  right: 0,
+                  top: 0,
+                  child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                          color: Colors.red, shape: BoxShape.circle))),
+            ]),
+            onPressed: () {},
           ),
           Padding(
             padding: const EdgeInsets.only(right: 16, left: 4),
@@ -83,7 +96,8 @@ class HomeScreen extends StatelessWidget {
                         style: const TextStyle(
                             color: _primary,
                             fontWeight: FontWeight.bold,
-                            fontSize: 15))
+                            fontSize: 15),
+                      )
                     : null,
               ),
             ),
@@ -94,26 +108,29 @@ class HomeScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           // Greeting
-          Text('Hello, ${user?.name ?? 'User'}! 👋',
-              style: GoogleFonts.poppins(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1A1A2E))),
-          Text('What would you like to do today?',
-              style:
-                  GoogleFonts.poppins(fontSize: 13, color: Colors.grey[500])),
+          Text(
+            'Hello, ${user?.name ?? 'User'}! 👋',
+            style: GoogleFonts.poppins(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF1A1A2E)),
+          ),
+          Text(
+            'What would you like to do today?',
+            style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey[500]),
+          ),
           const SizedBox(height: 22),
 
-          // Feature cards 2x2
+          // Feature cards grid — uses FeatureCard widget
           GridView.count(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             crossAxisCount: 2,
             crossAxisSpacing: 14,
             mainAxisSpacing: 14,
-            childAspectRatio: 1.35,
+            childAspectRatio: 0.88,
             children: [
-              _FeatureCard(
+              FeatureCard(
                 title: 'Chat with AI',
                 subtitle: 'Ask anything and get intelligent answers',
                 icon: Icons.chat_bubble_rounded,
@@ -122,7 +139,7 @@ class HomeScreen extends StatelessWidget {
                 onTap: () => Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const ChatScreen())),
               ),
-              _FeatureCard(
+              FeatureCard(
                 title: 'Translate',
                 subtitle: 'Translate text between 100+ languages',
                 icon: Icons.translate_rounded,
@@ -131,7 +148,7 @@ class HomeScreen extends StatelessWidget {
                 onTap: () => Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const TranslateScreen())),
               ),
-              _FeatureCard(
+              FeatureCard(
                 title: 'Image Analysis',
                 subtitle: 'Upload an image and get AI insights',
                 icon: Icons.image_search_rounded,
@@ -142,7 +159,7 @@ class HomeScreen extends StatelessWidget {
                     MaterialPageRoute(
                         builder: (_) => const ImageAnalysisScreen())),
               ),
-              _FeatureCard(
+              FeatureCard(
                 title: 'Speech to Text',
                 subtitle: 'Convert speech to text instantly',
                 icon: Icons.mic_rounded,
@@ -153,12 +170,30 @@ class HomeScreen extends StatelessWidget {
                     MaterialPageRoute(
                         builder: (_) => const SpeechToTextScreen())),
               ),
+              FeatureCard(
+                title: 'Text to Speech',
+                subtitle: 'Convert text to voice',
+                icon: Icons.record_voice_over_rounded,
+                color: const Color(0xFFF59E0B),
+                buttonLabel: 'Convert',
+                isLocked: !(user?.isPremium ?? false),
+                onTap: () => _showUpgradeDialog(context),
+              ),
+              FeatureCard(
+                title: 'Documents',
+                subtitle: 'Analyze your documents with AI',
+                icon: Icons.description_rounded,
+                color: const Color(0xFF06B6D4),
+                buttonLabel: 'Analyze',
+                isLocked: !(user?.isPremium ?? false),
+                onTap: () => _showUpgradeDialog(context),
+              ),
             ],
           ),
 
           const SizedBox(height: 24),
 
-          // Recent Activity
+          // Recent Activity — uses ActivityTile widget
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             Text('Recent Activity',
                 style: GoogleFonts.poppins(
@@ -176,303 +211,62 @@ class HomeScreen extends StatelessWidget {
           ]),
           const SizedBox(height: 12),
 
-          ...[
-            _ActivityRow(
-                icon: Icons.chat_bubble_rounded,
-                color: _primary,
-                title: 'Chat with AI',
-                subtitle: 'Explain quantum computing in simple terms…',
-                time: '2 minutes ago'),
-            _ActivityRow(
-                icon: Icons.image_search_rounded,
-                color: const Color(0xFF3B82F6),
-                title: 'Image Analysis',
-                subtitle: 'Mountains landscape.jpg',
-                time: '15 minutes ago'),
-            _ActivityRow(
-                icon: Icons.translate_rounded,
-                color: const Color(0xFF10B981),
-                title: 'Translate',
-                subtitle: 'Bonjour, comment allez-vous?',
-                time: '1 hour ago'),
-            _ActivityRow(
-                icon: Icons.mic_rounded,
-                color: const Color(0xFF8B5CF6),
-                title: 'Speech to Text',
-                subtitle: 'Meeting notes voice recording',
-                time: '2 hours ago'),
-          ],
+          ActivityTile(
+            icon: Icons.chat_bubble_rounded,
+            color: _primary,
+            title: 'Chat with AI',
+            subtitle: 'Explain quantum computing in simple terms…',
+            time: '2 minutes ago',
+            onTap: () => Navigator.push(
+                context, MaterialPageRoute(builder: (_) => const ChatScreen())),
+          ),
+          ActivityTile(
+            icon: Icons.image_search_rounded,
+            color: const Color(0xFF3B82F6),
+            title: 'Image Analysis',
+            subtitle: 'Mountains landscape.jpg',
+            time: '15 minutes ago',
+            onTap: () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const ImageAnalysisScreen())),
+          ),
+          ActivityTile(
+            icon: Icons.translate_rounded,
+            color: const Color(0xFF10B981),
+            title: 'Translate',
+            subtitle: 'Bonjour, comment allez-vous?',
+            time: '1 hour ago',
+            onTap: () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const TranslateScreen())),
+          ),
+          ActivityTile(
+            icon: Icons.mic_rounded,
+            color: const Color(0xFF8B5CF6),
+            title: 'Speech to Text',
+            subtitle: 'Meeting notes voice recording',
+            time: '2 hours ago',
+            onTap: () => Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const SpeechToTextScreen())),
+          ),
 
           const SizedBox(height: 24),
 
-          // Plan / usage card
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE5E7EB)),
+          // Usage tracker — uses UsageTracker widget (only for free users)
+          if (!(user?.isPremium ?? false)) ...[
+            UsageTracker(
+              messagesUsed: user?.dailyMessagesUsed ?? 0,
+              messagesLimit: user?.dailyMessagesLimit ?? 50,
+              onUpgradeTap: () => _showUpgradeDialog(context),
             ),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                Text('Your Plan',
-                    style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                        color: const Color(0xFF1A1A2E))),
-                const SizedBox(width: 8),
-                if (user?.isPremium == true)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                        color: const Color(0xFFFEF3C7),
-                        borderRadius: BorderRadius.circular(20)),
-                    child: Text('⭐ Premium',
-                        style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFFD97706))),
-                  )
-                else
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                        color: const Color(0xFFEEECFD),
-                        borderRadius: BorderRadius.circular(20)),
-                    child: Text('Free',
-                        style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: _primary)),
-                  ),
-              ]),
-              const SizedBox(height: 14),
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Text('Requests Used',
-                    style: GoogleFonts.poppins(
-                        fontSize: 12, color: Colors.grey[500])),
-                Text('$used / $limit',
-                    style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF1A1A2E))),
-              ]),
-              const SizedBox(height: 8),
-              ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 8,
-                    backgroundColor: const Color(0xFFEEECFD),
-                    valueColor: const AlwaysStoppedAnimation(_primary),
-                  )),
-              const SizedBox(height: 8),
-              Text('Renews on July 15, 2024',
-                  style: GoogleFonts.poppins(
-                      fontSize: 11, color: Colors.grey[400])),
-            ]),
-          ),
+            const SizedBox(height: 20),
+          ],
+
+          // Upgrade banner — uses UpgradeBanner widget (only for free users)
+          if (!(user?.isPremium ?? false))
+            UpgradeBanner(onUpgradeTap: () => _showUpgradeDialog(context)),
 
           const SizedBox(height: 20),
-
-          // Tips
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE5E7EB))),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Tips for you',
-                  style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                      color: const Color(0xFF1A1A2E))),
-              const SizedBox(height: 12),
-              _Tip(
-                  icon: Icons.mic_rounded,
-                  color: const Color(0xFF8B5CF6),
-                  title: 'Try voice commands for faster input',
-                  subtitle: 'Use speech to text feature'),
-              const SizedBox(height: 10),
-              _Tip(
-                  icon: Icons.image_rounded,
-                  color: const Color(0xFF3B82F6),
-                  title: 'Upload clear images for better analysis',
-                  subtitle: 'High quality images give better results'),
-              const SizedBox(height: 10),
-              _Tip(
-                  icon: Icons.bookmark_rounded,
-                  color: _primary,
-                  title: 'Save your favorite conversations',
-                  subtitle: 'Bookmark important chats'),
-            ]),
-          ),
         ]),
       ),
     );
-  }
-}
-
-class _FeatureCard extends StatelessWidget {
-  final String title, subtitle, buttonLabel;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
-  const _FeatureCard(
-      {required this.title,
-      required this.subtitle,
-      required this.icon,
-      required this.color,
-      required this.buttonLabel,
-      required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 8,
-              offset: const Offset(0, 2))
-        ],
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(10)),
-            child: Icon(icon, color: color, size: 20)),
-        const SizedBox(height: 8),
-        Text(title,
-            style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-                color: const Color(0xFF1A1A2E))),
-        const SizedBox(height: 2),
-        Text(subtitle,
-            style: GoogleFonts.poppins(
-                fontSize: 10, color: Colors.grey[500], height: 1.4),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis),
-        const Spacer(),
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-                color: color, borderRadius: BorderRadius.circular(8)),
-            child: Text(buttonLabel,
-                style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600)),
-          ),
-        ),
-      ]),
-    );
-  }
-}
-
-class _ActivityRow extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String title, subtitle, time;
-  const _ActivityRow(
-      {required this.icon,
-      required this.color,
-      required this.title,
-      required this.subtitle,
-      required this.time});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE5E7EB))),
-      child: Row(children: [
-        Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10)),
-            child: Icon(icon, color: color, size: 20)),
-        const SizedBox(width: 12),
-        Expanded(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title,
-              style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                  color: const Color(0xFF1A1A2E))),
-          Text(subtitle,
-              style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey[500]),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis),
-        ])),
-        const SizedBox(width: 8),
-        Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-          Text(time,
-              style:
-                  GoogleFonts.poppins(fontSize: 10, color: Colors.grey[400])),
-          const SizedBox(height: 4),
-          const Icon(Icons.arrow_forward_ios_rounded,
-              size: 12, color: Color(0xFFD1D5DB)),
-        ]),
-      ]),
-    );
-  }
-}
-
-class _Tip extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final String title, subtitle;
-  const _Tip(
-      {required this.icon,
-      required this.color,
-      required this.title,
-      required this.subtitle});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(children: [
-      Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10)),
-          child: Icon(icon, color: color, size: 18)),
-      const SizedBox(width: 12),
-      Expanded(
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title,
-            style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: const Color(0xFF1A1A2E))),
-        Text(subtitle,
-            style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey[500])),
-      ])),
-    ]);
   }
 }
