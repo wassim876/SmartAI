@@ -65,13 +65,15 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         title: Row(children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
                 color: _primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10)),
-            child:
-                const Icon(Icons.smart_toy_rounded, color: _primary, size: 20),
+            child: Padding(
+              padding: EdgeInsets.all(4.0),
+              child: Image.asset('assets/images/smartai.png'),
+            ),
           ),
           const SizedBox(width: 10),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -109,8 +111,9 @@ class _ChatScreenState extends State<ChatScreen> {
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   itemCount: _messages.length + (_isTyping ? 1 : 0),
                   itemBuilder: (context, i) {
-                    if (_isTyping && i == _messages.length)
+                    if (_isTyping && i == _messages.length) {
                       return _buildTypingIndicator();
+                    }
                     final msg = _messages[i];
                     return _buildMessage(msg['role']!, msg['text']!);
                   },
@@ -130,7 +133,10 @@ class _ChatScreenState extends State<ChatScreen> {
         decoration: BoxDecoration(
             color: _primary.withOpacity(0.1),
             borderRadius: BorderRadius.circular(20)),
-        child: const Icon(Icons.smart_toy_rounded, color: _primary, size: 38),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Image.asset('assets/images/bot.png'),
+        ),
       ),
       const SizedBox(height: 16),
       Text('Start a Conversation',
@@ -155,13 +161,15 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           if (!isUser) ...[
             Container(
-              width: 30,
-              height: 30,
+              width: 42,
+              height: 42,
               decoration: BoxDecoration(
                   color: _primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8)),
-              child: const Icon(Icons.smart_toy_rounded,
-                  color: _primary, size: 16),
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Image.asset('assets/images/smartai.png'),
+              ),
             ),
             const SizedBox(width: 8),
           ],
@@ -201,12 +209,15 @@ class _ChatScreenState extends State<ChatScreen> {
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(children: [
         Container(
-          width: 30,
-          height: 30,
+          width: 36,
+          height: 36,
           decoration: BoxDecoration(
               color: _primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8)),
-          child: const Icon(Icons.smart_toy_rounded, color: _primary, size: 16),
+          child: Padding(
+            padding: const EdgeInsets.all(4.0),
+            child: Image.asset('assets/images/smartai.png'),
+          ),
         ),
         const SizedBox(width: 8),
         Container(

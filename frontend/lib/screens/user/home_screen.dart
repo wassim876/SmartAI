@@ -10,6 +10,7 @@ import 'chat_screen.dart';
 import 'translate_screen.dart';
 import 'speech_to_text_screen.dart';
 import 'image_analysis_screen.dart';
+import 'user_settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -76,7 +77,45 @@ class _HomeScreenState extends State<HomeScreen> {
           _Sidebar(
             navItems: _navItems,
             selectedIndex: _selectedIndex,
-            onSelect: (i) => setState(() => _selectedIndex = i),
+            onSelect: (i) {
+              setState(() => _selectedIndex = i);
+              switch (i) {
+                case 0:
+                  break; // Home — already here
+                case 1:
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const ChatScreen()));
+                  break;
+                case 2:
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const ImageAnalysisScreen()));
+                  break;
+                case 3:
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const TranslateScreen()));
+                  break;
+                case 4:
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const SpeechToTextScreen()));
+                  break;
+                case 5:
+                case 6:
+                  _showUpgradeDialog();
+                  break;
+                case 7:
+                  Navigator.pushNamed(context, '/history');
+                  break;
+                case 8:
+                  Navigator.pushNamed(context, '/history');
+                  break;
+              }
+            },
             user: user,
             onUpgrade: _showUpgradeDialog,
           ),
@@ -400,10 +439,26 @@ class _Sidebar extends StatelessWidget {
                 _NavItem(icon: Icons.help_outline_rounded, label: 'Support'),
                 _NavItem(icon: Icons.logout_rounded, label: 'Logout'),
               ],
-              onLogout: () async {
-                await context.read<AuthProvider>().logout();
-                if (context.mounted)
-                  Navigator.pushReplacementNamed(context, '/');
+              onTap: (label) {
+                switch (label) {
+                  case 'Profile':
+                    Navigator.pushNamed(context, '/profile');
+                    break;
+                  case 'Settings':
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const UserSettingsScreen()));
+                    break;
+                  case 'Support':
+                    break;
+                  case 'Logout':
+                    context.read<AuthProvider>().logout().then((_) {
+                      if (context.mounted)
+                        Navigator.pushReplacementNamed(context, '/');
+                    });
+                    break;
+                }
               }),
 
           // Upgrade to Pro card
@@ -419,8 +474,8 @@ class _Sidebar extends StatelessWidget {
 
 class _SidebarFooter extends StatelessWidget {
   final List<_NavItem> navItems;
-  final VoidCallback onLogout;
-  const _SidebarFooter({required this.navItems, required this.onLogout});
+  final ValueChanged<String> onTap;
+  const _SidebarFooter({required this.navItems, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -430,7 +485,7 @@ class _SidebarFooter extends StatelessWidget {
         children: navItems.map((item) {
           final isLogout = item.label == 'Logout';
           return GestureDetector(
-            onTap: isLogout ? onLogout : null,
+            onTap: () => onTap(item.label),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
               child: Row(children: [
