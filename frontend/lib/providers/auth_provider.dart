@@ -287,6 +287,96 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  // lib/providers/auth_provider.dart - ADD THESE METHODS
+
+// Add these variables at the top with the other variables
+List<Map<String, dynamic>> _chatHistory = [];
+List<Map<String, dynamic>> _imageAnalyses = [];
+List<Map<String, dynamic>> _speechTranscriptions = [];
+List<Map<String, dynamic>> _translations = [];
+List<Map<String, dynamic>> _activities = [];
+
+// Add these getters
+List<Map<String, dynamic>> get chatHistory => _chatHistory;
+List<Map<String, dynamic>> get imageAnalyses => _imageAnalyses;
+List<Map<String, dynamic>> get speechTranscriptions => _speechTranscriptions;
+List<Map<String, dynamic>> get translations => _translations;
+List<Map<String, dynamic>> get activities => _activities;
+
+// Add these methods after the fetchUsers() method
+
+// Fetch all user data from MongoDB
+Future<void> fetchAllUserData() async {
+  _isLoading = true;
+  notifyListeners();
+
+  try {
+    // Fetch all data in parallel
+    await Future.wait([
+      fetchChatHistory(),
+      fetchImageAnalyses(),
+      fetchSpeechTranscriptions(),
+      fetchTranslations(),
+      fetchActivities(),
+    ]);
+  } catch (e) {
+    print('Error fetching user data: $e');
+  } finally {
+    _isLoading = false;
+    notifyListeners();
+  }
+}
+
+Future<void> fetchChatHistory() async {
+  try {
+    _chatHistory = await _apiService.getChatHistory();
+    notifyListeners();
+  } catch (e) {
+    print('Error fetching chat history: $e');
+    _chatHistory = [];
+  }
+}
+
+Future<void> fetchImageAnalyses() async {
+  try {
+    _imageAnalyses = await _apiService.getImageAnalyses();
+    notifyListeners();
+  } catch (e) {
+    print('Error fetching image analyses: $e');
+    _imageAnalyses = [];
+  }
+}
+
+Future<void> fetchSpeechTranscriptions() async {
+  try {
+    _speechTranscriptions = await _apiService.getSpeechTranscriptions();
+    notifyListeners();
+  } catch (e) {
+    print('Error fetching speech transcriptions: $e');
+    _speechTranscriptions = [];
+  }
+}
+
+Future<void> fetchTranslations() async {
+  try {
+    _translations = await _apiService.getTranslations();
+    notifyListeners();
+  } catch (e) {
+    print('Error fetching translations: $e');
+    _translations = [];
+  }
+}
+
+Future<void> fetchActivities() async {
+  try {
+    _activities = await _apiService.getUserActivities();
+    notifyListeners();
+  } catch (e) {
+    print('Error fetching activities: $e');
+    _activities = [];
+  }
+}
+
   Future<void> logout() async {
     await _authService.logout();
     _currentUser = null;

@@ -161,4 +161,113 @@ class ApiService {
       throw Exception(e.response?.data['detail'] ?? 'Failed to fetch stats');
     }
   }
+// lib/services/api_service.dart - ADD THESE METHODS
+
+// ==========================================
+// FETCH CHAT HISTORY FROM MONGODB
+// ==========================================
+Future<List<Map<String, dynamic>>> getChatHistory({
+  int limit = 50,
+  int skip = 0,
+}) async {
+  try {
+    final response = await _dio.get(
+      '/chat/history/',
+      queryParameters: {
+        'limit': limit,
+        'skip': skip,
+      },
+    );
+    return List<Map<String, dynamic>>.from(response.data['data']);
+  } on DioException catch (e) {
+    throw Exception(e.response?.data['detail'] ?? 'Failed to get chat history');
+  }
+}
+
+// ==========================================
+// FETCH IMAGE ANALYSES FROM MONGODB
+// ==========================================
+Future<List<Map<String, dynamic>>> getImageAnalyses({
+  int limit = 50,
+  int skip = 0,
+}) async {
+  try {
+    final response = await _dio.get(
+      '/image-analysis/',
+      queryParameters: {
+        'limit': limit,
+        'skip': skip,
+      },
+    );
+    return List<Map<String, dynamic>>.from(response.data['data']);
+  } on DioException catch (e) {
+    throw Exception(e.response?.data['detail'] ?? 'Failed to get image analyses');
+  }
+}
+
+// ==========================================
+// FETCH SPEECH TRANSCRIPTIONS FROM MONGODB
+// ==========================================
+Future<List<Map<String, dynamic>>> getSpeechTranscriptions({
+  int limit = 50,
+  int skip = 0,
+}) async {
+  try {
+    final response = await _dio.get(
+      '/speech/',
+      queryParameters: {
+        'limit': limit,
+        'skip': skip,
+      },
+    );
+    return List<Map<String, dynamic>>.from(response.data['data']);
+  } on DioException catch (e) {
+    throw Exception(e.response?.data['detail'] ?? 'Failed to get speech transcriptions');
+  }
+}
+
+// ==========================================
+// FETCH TRANSLATIONS FROM MONGODB
+// ==========================================
+Future<List<Map<String, dynamic>>> getTranslations({
+  int limit = 50,
+  int skip = 0,
+}) async {
+  try {
+    final response = await _dio.get(
+      '/translation/',
+      queryParameters: {
+        'limit': limit,
+        'skip': skip,
+      },
+    );
+    return List<Map<String, dynamic>>.from(response.data['data']);
+  } on DioException catch (e) {
+    throw Exception(e.response?.data['detail'] ?? 'Failed to get translations');
+  }
+}
+
+// ==========================================
+// FETCH USER ACTIVITIES FROM MONGODB
+// ==========================================
+Future<List<Map<String, dynamic>>> getUserActivities({
+  int limit = 50,
+  int skip = 0,
+}) async {
+  try {
+    final response = await _dio.get(
+      '/activities/',
+      queryParameters: {
+        'limit': limit,
+        'skip': skip,
+      },
+    );
+    return List<Map<String, dynamic>>.from(response.data['data']);
+  } on DioException catch (e) {
+    throw Exception(e.response?.data['detail'] ?? 'Failed to get activities');
+  }
+}
+
+
+
 }

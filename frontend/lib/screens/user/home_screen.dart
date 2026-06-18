@@ -10,12 +10,7 @@ import 'speech_to_text_screen.dart';
 import 'image_analysis_screen.dart';
 import 'about_screen.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
+// ── Constants ─────────────────────────────────────────────────────
 const _primary = Color(0xFF6C63FF);
 const _surface = Colors.white;
 const _bg = Color(0xFFF4F6FB);
@@ -23,10 +18,31 @@ const _text1 = Color(0xFF12112A);
 const _text2 = Color(0xFF7B7A8E);
 const _border = Color(0xFFEAEAF4);
 
+// ── Data Classes ─────────────────────────────────────────────────
+class _NavItem {
+  final IconData icon;
+  final String label;
+  const _NavItem(this.icon, this.label);
+}
+
+class _Feature {
+  final String title, subtitle;
+  final IconData icon;
+  final Color color, bg;
+  const _Feature(this.title, this.subtitle, this.icon, this.color, this.bg);
+}
+
+// ── Main Home Screen ─────────────────────────────────────────────
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  final _features = const [
+  final List<_Feature> _features = const [
     _Feature('AI Chat', 'Ask anything, get intelligent answers',
         Icons.auto_awesome_rounded, Color(0xFF6C63FF), Color(0xFFEEEDFF)),
     _Feature('Translate', 'Translate across 100+ languages',
@@ -41,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Icons.description_rounded, Color(0xFF06B6D4), Color(0xFFCFFAFE)),
   ];
 
-  final _navItems = const [
+  final List<_NavItem> _navItems = const [
     _NavItem(Icons.home_rounded, 'Home'),
     _NavItem(Icons.auto_awesome_rounded, 'AI Chat'),
     _NavItem(Icons.image_search_rounded, 'Image Analysis'),
@@ -52,6 +68,14 @@ class _HomeScreenState extends State<HomeScreen> {
     _NavItem(Icons.history_rounded, 'History'),
     _NavItem(Icons.star_outline_rounded, 'Favorites'),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AuthProvider>().fetchAllUserData();
+    });
+  }
 
   void _navigate(int i) {
     final user = context.read<AuthProvider>().currentUser;
@@ -204,12 +228,13 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: (i) {
           if (i == 4) {
             Navigator.push(context, _route(const UserSettingsScreen()));
-          } else if (i == 1)
+          } else if (i == 1) {
             Navigator.pushNamed(context, '/history');
-          else if (i == 2)
+          } else if (i == 2) {
             Navigator.push(context, _route(const ChatScreen()));
-          else
+          } else {
             setState(() => _selectedIndex = i);
+          }
         },
       ),
     );
@@ -222,7 +247,6 @@ class _HomeScreenState extends State<HomeScreen> {
       automaticallyImplyLeading: false,
       titleSpacing: 18,
       title: Row(children: [
-        // Bigger logo
         ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: Image.asset('assets/images/smartai.png',
@@ -251,7 +275,6 @@ class _HomeScreenState extends State<HomeScreen> {
         _NotifBell(),
         const SizedBox(width: 4),
         GestureDetector(
-          // Avatar tap for mobile
           onTap: () =>
               Navigator.push(context, _route(const UserSettingsScreen())),
           child: Padding(
@@ -266,28 +289,33 @@ class _HomeScreenState extends State<HomeScreen> {
   // ── Main content ─────────────────────────────────────────────────
   Widget _content({required bool wide}) {
     final user = context.watch<AuthProvider>().currentUser;
+    final authProvider = context.watch<AuthProvider>();
+    final chatCount = authProvider.chatHistory.length;
+    final imageCount = authProvider.imageAnalyses.length;
+    final translationCount = authProvider.translations.length;
+    final activityCount = authProvider.activities.length;
+
     final cols = wide ? 3 : 2;
 
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(
           wide ? 32 : 18, wide ? 28 : 20, wide ? 32 : 18, 24),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        // ── Hero greeting ──────────────────────────────────────────
         _HeroGreeting(user: user, wide: wide),
         SizedBox(height: wide ? 32 : 22),
-
-        // ── Quick stats row (web only) ─────────────────────────────
         if (wide) ...[
-          _QuickStats(user: user),
+          _QuickStats(
+            user: user,
+            chatCount: chatCount,
+            imageCount: imageCount,
+            translationCount: translationCount,
+            activityCount: activityCount,
+          ),
           const SizedBox(height: 28),
         ],
-
-        // ── Section label ──────────────────────────────────────────
         _SectionLabel(
             title: 'AI Features', subtitle: 'Choose a tool to get started'),
         const SizedBox(height: 14),
-
-        // ── Feature grid ──────────────────────────────────────────
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -325,7 +353,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               context, _route(const SpeechToTextScreen()));
                           break;
                         default:
-                          // Handle other features or show placeholder
                           ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                   content: Text('Feature coming soon!')));
@@ -335,9 +362,7 @@ class _HomeScreenState extends State<HomeScreen> {
             );
           },
         ),
-
         SizedBox(height: wide ? 32 : 24),
-
         if (wide)
           Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Expanded(flex: 3, child: _ActivitySection()),
@@ -350,7 +375,6 @@ class _HomeScreenState extends State<HomeScreen> {
           if (!(user?.isPremium ?? false))
             _UsageMini(user: user, onUpgrade: _showUpgrade),
         ],
-
         const SizedBox(height: 20),
       ]),
     );
@@ -377,7 +401,7 @@ class _HeroGreeting extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-              color: const Color(0xFF6C63FF).withValues(alpha: 0.3),
+              color: const Color(0xFF6C63FF).withOpacity(0.3),
               blurRadius: 20,
               offset: const Offset(0, 8))
         ],
@@ -420,7 +444,7 @@ class _HeroPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.15),
+          color: Colors.white.withOpacity(0.15),
           borderRadius: BorderRadius.circular(20)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(icon, color: Colors.white, size: 13),
@@ -435,21 +459,47 @@ class _HeroPill extends StatelessWidget {
   }
 }
 
-// ── Quick stats (web) ─────────────────────────────────────────────
+// ── Quick stats ──────────────────────────────────────────────────
 class _QuickStats extends StatelessWidget {
   final dynamic user;
-  const _QuickStats({required this.user});
+  final int chatCount;
+  final int imageCount;
+  final int translationCount;
+  final int activityCount;
+
+  const _QuickStats({
+    required this.user,
+    required this.chatCount,
+    required this.imageCount,
+    required this.translationCount,
+    required this.activityCount,
+  });
 
   @override
   Widget build(BuildContext context) {
     final stats = [
-      ('125', 'AI Chats', Icons.chat_bubble_rounded, const Color(0xFF6C63FF)),
-      ('48', 'Images', Icons.image_rounded, const Color(0xFF3B82F6)),
-      ('32', 'Translations', Icons.translate_rounded, const Color(0xFF10B981)),
       (
-        '18h',
-        'Hours Saved',
-        Icons.access_time_rounded,
+        chatCount.toString(),
+        'AI Chats',
+        Icons.chat_bubble_rounded,
+        const Color(0xFF6C63FF)
+      ),
+      (
+        imageCount.toString(),
+        'Images',
+        Icons.image_rounded,
+        const Color(0xFF3B82F6)
+      ),
+      (
+        translationCount.toString(),
+        'Translations',
+        Icons.translate_rounded,
+        const Color(0xFF10B981)
+      ),
+      (
+        activityCount.toString(),
+        'Activities',
+        Icons.history_rounded,
         const Color(0xFFF59E0B)
       ),
     ];
@@ -471,7 +521,7 @@ class _QuickStats extends StatelessWidget {
                         width: 38,
                         height: 38,
                         decoration: BoxDecoration(
-                            color: s.$4.withValues(alpha: 0.1),
+                            color: s.$4.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(10)),
                         child: Icon(s.$3, color: s.$4, size: 19)),
                     const SizedBox(width: 12),
@@ -547,7 +597,7 @@ class _FeatureCard extends StatelessWidget {
             border: Border.all(color: _border),
             boxShadow: [
               BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
+                  color: Colors.black.withOpacity(0.04),
                   blurRadius: 14,
                   offset: const Offset(0, 4))
             ],
@@ -637,6 +687,11 @@ class _FeatureCard extends StatelessWidget {
 class _ActivitySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final activities = authProvider.activities;
+    final recentActivities =
+        activities.length > 3 ? activities.sublist(0, 3) : activities;
+
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Text('Recent Activity',
@@ -650,43 +705,146 @@ class _ActivitySection extends StatelessWidget {
         ),
       ]),
       const SizedBox(height: 12),
-      ActivityTile(
-          icon: Icons.auto_awesome_rounded,
-          color: _primary,
-          title: 'Chat with AI',
-          subtitle: 'Explain quantum computing in simple terms…',
-          time: '2 min ago',
-          onTap: () => Navigator.push(
-              context, MaterialPageRoute(builder: (_) => const ChatScreen()))),
-      ActivityTile(
-          icon: Icons.image_search_rounded,
-          color: const Color(0xFF3B82F6),
-          title: 'Image Analysis',
-          subtitle: 'Mountains landscape.jpg',
-          time: '15 min ago',
-          onTap: () => Navigator.push(context,
-              MaterialPageRoute(builder: (_) => const ImageAnalysisScreen()))),
-      ActivityTile(
-          icon: Icons.translate_rounded,
-          color: const Color(0xFF10B981),
-          title: 'Translate',
-          subtitle: 'Bonjour, comment allez-vous?',
-          time: '1 hr ago',
-          onTap: () => Navigator.push(context,
-              MaterialPageRoute(builder: (_) => const TranslateScreen()))),
-      ActivityTile(
-          icon: Icons.mic_rounded,
-          color: const Color(0xFF8B5CF6),
-          title: 'Speech to Text',
-          subtitle: 'Meeting notes voice recording',
-          time: '2 hr ago',
-          onTap: () => Navigator.push(context,
-              MaterialPageRoute(builder: (_) => const SpeechToTextScreen()))),
+      if (recentActivities.isEmpty)
+        _buildEmptyActivity()
+      else
+        ...recentActivities
+            .map((activity) => _buildActivityTile(context, activity)),
     ]);
+  }
+
+  Widget _buildEmptyActivity() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _border),
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.inbox_rounded, size: 40, color: Colors.grey[300]),
+          const SizedBox(height: 8),
+          Text(
+            'No activities yet',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              color: Colors.grey[400],
+            ),
+          ),
+          Text(
+            'Start using AI features to see activity here',
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: Colors.grey[300],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActivityTile(
+      BuildContext context, Map<String, dynamic> activity) {
+    final action = activity['action'] ?? 'Unknown';
+    final details = activity['details'] ?? {};
+    final createdAt = activity['created_at'] != null
+        ? DateTime.parse(activity['created_at'])
+        : DateTime.now();
+
+    late IconData icon;
+    late Color color;
+    late String title;
+    late String subtitle;
+
+    switch (action) {
+      case 'chat_message':
+        icon = Icons.auto_awesome_rounded;
+        color = _primary;
+        title = 'Chat with AI';
+        final message = details['message']?.toString() ?? '';
+        subtitle =
+            message.length > 30 ? '${message.substring(0, 30)}...' : message;
+        break;
+      case 'image_analysis':
+        icon = Icons.image_search_rounded;
+        color = const Color(0xFF3B82F6);
+        title = 'Image Analysis';
+        subtitle = details['image_type'] ?? 'Image analyzed';
+        break;
+      case 'speech_to_text':
+        icon = Icons.mic_rounded;
+        color = const Color(0xFF8B5CF6);
+        title = 'Speech to Text';
+        subtitle = 'Voice transcribed';
+        break;
+      case 'translation':
+        icon = Icons.translate_rounded;
+        color = const Color(0xFF10B981);
+        title = 'Translate';
+        subtitle = '${details['source'] ?? ''} → ${details['target'] ?? ''}';
+        break;
+      default:
+        icon = Icons.fiber_manual_record_rounded;
+        color = Colors.grey;
+        title = action.replaceAll('_', ' ').toUpperCase();
+        subtitle = '';
+    }
+
+    return ActivityTile(
+      icon: icon,
+      color: color,
+      title: title,
+      subtitle: subtitle.isNotEmpty ? subtitle : _formatDate(createdAt),
+      time: _formatTime(createdAt),
+      onTap: () {
+        switch (action) {
+          case 'chat_message':
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ChatScreen()),
+            );
+            break;
+          case 'image_analysis':
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ImageAnalysisScreen()),
+            );
+            break;
+          case 'speech_to_text':
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SpeechToTextScreen()),
+            );
+            break;
+          case 'translation':
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const TranslateScreen()),
+            );
+            break;
+        }
+      },
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+    if (difference.inDays > 0) return '${difference.inDays}d ago';
+    if (difference.inHours > 0) return '${difference.inHours}h ago';
+    if (difference.inMinutes > 0) return '${difference.inMinutes}m ago';
+    return 'Just now';
+  }
+
+  String _formatTime(DateTime date) {
+    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 }
 
-// ── Right panel (web) ─────────────────────────────────────────────
+// ── Right panel ──────────────────────────────────────────────────
+// ── Right panel ──────────────────────────────────────────────────
 class _RightPanel extends StatelessWidget {
   final dynamic user;
   const _RightPanel({required this.user});
@@ -698,7 +856,6 @@ class _RightPanel extends StatelessWidget {
     final progress = limit > 0 ? (used / limit).clamp(0.0, 1.0) : 0.0;
 
     return Column(children: [
-      // Profile card
       Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
@@ -739,7 +896,6 @@ class _RightPanel extends StatelessWidget {
           const SizedBox(height: 16),
           const Divider(color: _border),
           const SizedBox(height: 12),
-          // Usage
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             Text('Daily Usage',
                 style: GoogleFonts.poppins(
@@ -766,10 +922,7 @@ class _RightPanel extends StatelessWidget {
                   style: GoogleFonts.poppins(fontSize: 11, color: _text2))),
         ]),
       ),
-
       const SizedBox(height: 14),
-
-      // Tips
       Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
@@ -781,40 +934,42 @@ class _RightPanel extends StatelessWidget {
               style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w700, fontSize: 14, color: _text1)),
           const SizedBox(height: 14),
-          _tip(Icons.mic_rounded, const Color(0xFF8B5CF6), 'Try voice input',
-              'Faster than typing'),
+          _buildTip(Icons.mic_rounded, const Color(0xFF8B5CF6),
+              'Try voice input', 'Faster than typing'),
           const SizedBox(height: 12),
-          _tip(Icons.image_rounded, const Color(0xFF3B82F6),
+          _buildTip(Icons.image_rounded, const Color(0xFF3B82F6),
               'Clear images work best', 'Higher quality = better insights'),
           const SizedBox(height: 12),
-          _tip(Icons.bookmark_rounded, const Color(0xFF6C63FF),
+          _buildTip(Icons.bookmark_rounded, const Color(0xFF6C63FF),
               'Bookmark key chats', 'Save important conversations'),
         ]),
       ),
     ]);
   }
 
-  Widget _tip(IconData icon, Color color, String t, String s) => Row(children: [
-        Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(9)),
-            child: Icon(icon, color: color, size: 17)),
-        const SizedBox(width: 10),
-        Expanded(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(t,
-              style: GoogleFonts.poppins(
-                  fontSize: 12, fontWeight: FontWeight.w600, color: _text1)),
-          Text(s, style: GoogleFonts.poppins(fontSize: 11, color: _text2)),
-        ])),
-      ]);
+  Widget _buildTip(IconData icon, Color color, String title, String subtitle) {
+    return Row(children: [
+      Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(9)),
+          child: Icon(icon, color: color, size: 17)),
+      const SizedBox(width: 10),
+      Expanded(
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(title,
+            style: GoogleFonts.poppins(
+                fontSize: 12, fontWeight: FontWeight.w600, color: _text1)),
+        Text(subtitle, style: GoogleFonts.poppins(fontSize: 11, color: _text2)),
+      ])),
+    ]);
+  }
 }
 
-// ── Mobile usage mini card ────────────────────────────────────────
+// ── Usage mini ──────────────────────────────────────────────────
 class _UsageMini extends StatelessWidget {
   final dynamic user;
   final VoidCallback onUpgrade;
@@ -869,12 +1024,13 @@ class _Sidebar extends StatelessWidget {
   final ValueChanged<int> onTap;
   final dynamic user;
   final VoidCallback onUpgrade;
-  const _Sidebar(
-      {required this.items,
-      required this.selected,
-      required this.onTap,
-      required this.user,
-      required this.onUpgrade});
+  const _Sidebar({
+    required this.items,
+    required this.selected,
+    required this.onTap,
+    required this.user,
+    required this.onUpgrade,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -885,7 +1041,6 @@ class _Sidebar extends StatelessWidget {
         border: Border(right: BorderSide(color: _border)),
       ),
       child: Column(children: [
-        // Logo
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 22, 20, 18),
           child: Row(children: [
@@ -918,8 +1073,6 @@ class _Sidebar extends StatelessWidget {
         ),
         const Divider(height: 1, color: _border),
         const SizedBox(height: 10),
-
-        // Nav items
         Expanded(
             child: ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -937,9 +1090,8 @@ class _Sidebar extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
                   decoration: BoxDecoration(
-                    color: sel
-                        ? _primary.withValues(alpha: 0.09)
-                        : Colors.transparent,
+                    color:
+                        sel ? _primary.withOpacity(0.09) : Colors.transparent,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(children: [
@@ -965,10 +1117,7 @@ class _Sidebar extends StatelessWidget {
             );
           },
         )),
-
         const Divider(height: 1, color: _border),
-
-        // Footer links
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Column(children: [
@@ -1002,7 +1151,6 @@ class _Sidebar extends StatelessWidget {
                     })),
           ]),
         ),
-
         const SizedBox(height: 8),
       ]),
     );
@@ -1042,7 +1190,6 @@ class _TopBar extends StatelessWidget {
           color: Colors.white,
           border: Border(bottom: BorderSide(color: _border))),
       child: Row(children: [
-        // Search
         Expanded(
             child: Container(
           height: 38,
@@ -1144,13 +1291,13 @@ class _TopBar extends StatelessWidget {
   }
 }
 
-// ── Bottom nav (mobile) ───────────────────────────────────────────
+// ── Bottom nav ───────────────────────────────────────────────────
 class _BottomNav extends StatelessWidget {
   final int selected;
   final ValueChanged<int> onTap;
   const _BottomNav({required this.selected, required this.onTap});
 
-  static const _items = [
+  static const List<(IconData, String)> _items = [
     (Icons.home_rounded, 'Home'),
     (Icons.history_rounded, 'History'),
     (Icons.add_rounded, ''),
@@ -1182,7 +1329,7 @@ class _BottomNav extends StatelessWidget {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                              color: _primary.withValues(alpha: 0.35),
+                              color: _primary.withOpacity(0.35),
                               blurRadius: 12,
                               offset: const Offset(0, 4))
                         ]),
@@ -1242,7 +1389,7 @@ class _Avatar extends StatelessWidget {
   Widget build(BuildContext context) {
     return CircleAvatar(
       radius: radius,
-      backgroundColor: const Color(0xFF6C63FF).withValues(alpha: 0.12),
+      backgroundColor: const Color(0xFF6C63FF).withOpacity(0.12),
       backgroundImage:
           user?.avatarUrl != null ? NetworkImage(user!.avatarUrl!) : null,
       child: user?.avatarUrl == null
@@ -1257,18 +1404,4 @@ class _Avatar extends StatelessWidget {
           : null,
     );
   }
-}
-
-// ── Data classes ──────────────────────────────────────────────────
-class _NavItem {
-  final IconData icon;
-  final String label;
-  const _NavItem(this.icon, this.label);
-}
-
-class _Feature {
-  final String title, subtitle;
-  final IconData icon;
-  final Color color, bg;
-  const _Feature(this.title, this.subtitle, this.icon, this.color, this.bg);
 }
