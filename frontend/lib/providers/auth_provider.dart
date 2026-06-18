@@ -1,3 +1,4 @@
+// lib/providers/auth_provider.dart
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
@@ -12,6 +13,14 @@ class AuthProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
+  // Data from MongoDB
+  List<Map<String, dynamic>> _chatHistory = [];
+  List<Map<String, dynamic>> _imageAnalyses = [];
+  List<Map<String, dynamic>> _speechTranscriptions = [];
+  List<Map<String, dynamic>> _translations = [];
+  List<Map<String, dynamic>> _activities = [];
+
+  // Getters
   UserModel? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _currentUser != null;
@@ -19,6 +28,11 @@ class AuthProvider extends ChangeNotifier {
   bool get isPremium => _currentUser?.isPremium ?? false;
   List<UserModel> get users => _users;
   String? get errorMessage => _errorMessage;
+  List<Map<String, dynamic>> get chatHistory => _chatHistory;
+  List<Map<String, dynamic>> get imageAnalyses => _imageAnalyses;
+  List<Map<String, dynamic>> get speechTranscriptions => _speechTranscriptions;
+  List<Map<String, dynamic>> get translations => _translations;
+  List<Map<String, dynamic>> get activities => _activities;
 
   Future<void> login({
     required String email,
@@ -29,14 +43,12 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Step 1: Login and get tokens
       final success = await _authService.login(email, password);
 
       if (!success) {
         throw Exception('Login failed');
       }
 
-      // Step 2: Fetch user profile
       final user = await _authService.getCurrentUser();
 
       if (user == null) {
@@ -48,7 +60,6 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
       _currentUser = null;
-      // Clear tokens without calling the API logout endpoint
       try {
         await _authService.logout();
       } catch (_) {}
@@ -88,15 +99,13 @@ class AuthProvider extends ChangeNotifier {
     }
 
     try {
-      // First update the backend
       await _apiService.incrementUsage('message', amount: 1);
 
-      // Then update local state to reflect UI immediately
       _currentUser = _currentUser!.copyWith(
         dailyMessagesUsed: _currentUser!.dailyMessagesUsed + 1,
       );
     } catch (e) {
-      print('Failed to sync usage: $e');
+      debugPrint('Failed to sync usage: $e');
     }
 
     notifyListeners();
@@ -138,16 +147,13 @@ class AuthProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print('Auth check failed: $e');
+      debugPrint('Auth check failed: $e');
       await logout();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
-
-  // lib/providers/auth_provider.dart
-// Add this method after fetchUsers() and before logout()
 
   Future<void> createUser(Map<String, dynamic> userData) async {
     _isLoading = true;
@@ -156,7 +162,6 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       await _authService.createUser(userData);
-      // Refresh the user list after creating
       await fetchUsers();
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -184,9 +189,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // ========== NEW ADMIN USER MANAGEMENT METHODS ==========
-// Add these after fetchUsers() and before logout()
-
   Future<UserModel> updateUser(int userId, Map<String, dynamic> data) async {
     _isLoading = true;
     _errorMessage = null;
@@ -195,13 +197,11 @@ class AuthProvider extends ChangeNotifier {
     try {
       final updatedUser = await _authService.updateUser(userId, data);
 
-      // Update local user list
       final userIndex = _users.indexWhere((u) => u.id == userId);
       if (userIndex != -1) {
         _users[userIndex] = updatedUser;
       }
 
-      // Update current user if it's the same
       if (_currentUser?.id == userId) {
         _currentUser = updatedUser;
       }
@@ -225,10 +225,8 @@ class AuthProvider extends ChangeNotifier {
     try {
       await _authService.deleteUser(userId);
 
-      // Remove from local list
       _users.removeWhere((u) => u.id == userId);
 
-      // If current user was deleted, logout
       if (_currentUser?.id == userId) {
         await logout();
       }
@@ -247,13 +245,11 @@ class AuthProvider extends ChangeNotifier {
     try {
       await _authService.toggleUserStatus(userId);
 
-      // Update local user list
       final userIndex = _users.indexWhere((u) => u.id == userId);
       if (userIndex != -1) {
         final user = _users[userIndex];
         _users[userIndex] = user.copyWith(isActive: !user.isActive);
 
-        // Update current user if it's the same
         if (_currentUser?.id == userId) {
           _currentUser = _users[userIndex];
         }
@@ -269,13 +265,11 @@ class AuthProvider extends ChangeNotifier {
     try {
       await _authService.toggleUserPremium(userId);
 
-      // Update local user list
       final userIndex = _users.indexWhere((u) => u.id == userId);
       if (userIndex != -1) {
         final user = _users[userIndex];
         _users[userIndex] = user.copyWith(isPremium: !user.isPremium);
 
-        // Update current user if it's the same
         if (_currentUser?.id == userId) {
           _currentUser = _users[userIndex];
         }
@@ -287,100 +281,89 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // lib/providers/auth_provider.dart - ADD THESE METHODS
+  // ============================================
+  // MONGODB DATA FETCHING METHODS
+  // ============================================
 
-// Add these variables at the top with the other variables
-List<Map<String, dynamic>> _chatHistory = [];
-List<Map<String, dynamic>> _imageAnalyses = [];
-List<Map<String, dynamic>> _speechTranscriptions = [];
-List<Map<String, dynamic>> _translations = [];
-List<Map<String, dynamic>> _activities = [];
-
-// Add these getters
-List<Map<String, dynamic>> get chatHistory => _chatHistory;
-List<Map<String, dynamic>> get imageAnalyses => _imageAnalyses;
-List<Map<String, dynamic>> get speechTranscriptions => _speechTranscriptions;
-List<Map<String, dynamic>> get translations => _translations;
-List<Map<String, dynamic>> get activities => _activities;
-
-// Add these methods after the fetchUsers() method
-
-// Fetch all user data from MongoDB
-Future<void> fetchAllUserData() async {
-  _isLoading = true;
-  notifyListeners();
-
-  try {
-    // Fetch all data in parallel
-    await Future.wait([
-      fetchChatHistory(),
-      fetchImageAnalyses(),
-      fetchSpeechTranscriptions(),
-      fetchTranslations(),
-      fetchActivities(),
-    ]);
-  } catch (e) {
-    print('Error fetching user data: $e');
-  } finally {
-    _isLoading = false;
+  Future<void> fetchAllUserData() async {
+    _isLoading = true;
     notifyListeners();
-  }
-}
 
-Future<void> fetchChatHistory() async {
-  try {
-    _chatHistory = await _apiService.getChatHistory();
-    notifyListeners();
-  } catch (e) {
-    print('Error fetching chat history: $e');
-    _chatHistory = [];
+    try {
+      await Future.wait([
+        fetchChatHistory(),
+        fetchImageAnalyses(),
+        fetchSpeechTranscriptions(),
+        fetchTranslations(),
+        fetchActivities(),
+      ]);
+    } catch (e) {
+      debugPrint('Error fetching user data: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
-}
 
-Future<void> fetchImageAnalyses() async {
-  try {
-    _imageAnalyses = await _apiService.getImageAnalyses();
-    notifyListeners();
-  } catch (e) {
-    print('Error fetching image analyses: $e');
-    _imageAnalyses = [];
+  Future<void> fetchChatHistory() async {
+    try {
+      _chatHistory = await _apiService.getChatHistory();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error fetching chat history: $e');
+      _chatHistory = [];
+    }
   }
-}
 
-Future<void> fetchSpeechTranscriptions() async {
-  try {
-    _speechTranscriptions = await _apiService.getSpeechTranscriptions();
-    notifyListeners();
-  } catch (e) {
-    print('Error fetching speech transcriptions: $e');
-    _speechTranscriptions = [];
+  Future<void> fetchImageAnalyses() async {
+    try {
+      _imageAnalyses = await _apiService.getImageAnalyses();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error fetching image analyses: $e');
+      _imageAnalyses = [];
+    }
   }
-}
 
-Future<void> fetchTranslations() async {
-  try {
-    _translations = await _apiService.getTranslations();
-    notifyListeners();
-  } catch (e) {
-    print('Error fetching translations: $e');
-    _translations = [];
+  Future<void> fetchSpeechTranscriptions() async {
+    try {
+      _speechTranscriptions = await _apiService.getSpeechTranscriptions();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error fetching speech transcriptions: $e');
+      _speechTranscriptions = [];
+    }
   }
-}
 
-Future<void> fetchActivities() async {
-  try {
-    _activities = await _apiService.getUserActivities();
-    notifyListeners();
-  } catch (e) {
-    print('Error fetching activities: $e');
-    _activities = [];
+  Future<void> fetchTranslations() async {
+    try {
+      _translations = await _apiService.getTranslations();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error fetching translations: $e');
+      _translations = [];
+    }
   }
-}
+
+  Future<void> fetchActivities() async {
+    try {
+      _activities = await _apiService.getUserActivities();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error fetching activities: $e');
+      _activities = [];
+    }
+  }
 
   Future<void> logout() async {
     await _authService.logout();
     _currentUser = null;
     _errorMessage = null;
+    _chatHistory = [];
+    _imageAnalyses = [];
+    _speechTranscriptions = [];
+    _translations = [];
+    _activities = [];
     notifyListeners();
   }
 
