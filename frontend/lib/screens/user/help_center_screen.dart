@@ -16,7 +16,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
   static const _text1 = AppColors.textDark;
   static const _text2 = AppColors.textGrey;
   static const _border = Color(0xFFEAEAF4);
-  static const _email = 'wassimmessaou7@gmail.com';
+  static const _email = 'smartai_support@openai.com';
 
   int? _openFaq;
 
