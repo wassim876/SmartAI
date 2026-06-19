@@ -1,126 +1,118 @@
+// lib/models/user_model.dart
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 class UserModel {
-  final int id;
+  final String uid;
   final String username;
   final String email;
-  final String name;
-  final String firstName;
-  final String lastName;
-  final bool isActive;
-  final DateTime? dateJoined;
-  final bool isAdmin;
+  final String displayName;
+  final String? photoURL;
   final bool isPremium;
+  final bool isActive;
+  final bool isAdmin;
   final int dailyMessagesUsed;
   final int dailyMessagesLimit;
-  final int monthlySpeechMinutesUsed;
-  final int monthlySpeechMinutesLimit;
-  final int translationCharsUsed;
-  final int translationCharsLimit;
-  final DateTime lastResetDate;
-  final String? avatarUrl;
+  final DateTime createdAt;
+  final DateTime? lastLogin;
 
-  String get displayName => name.isNotEmpty ? name : username;
+  String get name => displayName.isNotEmpty ? displayName : username;
   String get role => isAdmin ? 'Admin' : 'User';
+  String get avatarUrl => photoURL ?? '';
 
   UserModel({
-    required this.id,
+    required this.uid,
     required this.username,
     required this.email,
-    required this.name,
-    required this.firstName,
-    required this.lastName,
-    required this.isActive,
-    this.dateJoined,
-    required this.isAdmin,
+    required this.displayName,
+    this.photoURL,
     required this.isPremium,
+    required this.isActive,
+    required this.isAdmin,
     required this.dailyMessagesUsed,
     required this.dailyMessagesLimit,
-    required this.monthlySpeechMinutesUsed,
-    required this.monthlySpeechMinutesLimit,
-    required this.translationCharsUsed,
-    required this.translationCharsLimit,
-    required this.lastResetDate,
-    this.avatarUrl,
+    required this.createdAt,
+    this.lastLogin,
   });
 
-  factory UserModel.fromJson(Map<String, dynamic> json) {
+  factory UserModel.fromFirebase(User user) {
     return UserModel(
-      id: json['id'],
-      username: json['username'],
-      email: json['email'],
-      name: json['name'] ?? json['username'],
-      firstName: json['first_name'] ?? '',
-      lastName: json['last_name'] ?? '',
-      isActive: json['is_active'] ?? true,
-      dateJoined: json['date_joined'] != null
-          ? DateTime.parse(json['date_joined'])
-          : null,
-      // Maps Django is_staff/is_superuser to isAdmin
-      isAdmin: json['is_staff'] == true || json['is_superuser'] == true,
-      isPremium: json['is_premium'] ?? false,
-      dailyMessagesUsed: json['daily_messages_used'] ?? 0,
-      dailyMessagesLimit: json['daily_messages_limit'] ?? 50,
-      monthlySpeechMinutesUsed: json['monthly_speech_minutes_used'] ?? 0,
-      monthlySpeechMinutesLimit: json['monthly_speech_minutes_limit'] ?? 10,
-      translationCharsUsed: json['translation_chars_used'] ?? 0,
-      translationCharsLimit: json['translation_chars_limit'] ?? 1000,
-      lastResetDate: json['last_reset_date'] != null
-          ? DateTime.parse(json['last_reset_date'])
-          : DateTime.now(),
-      avatarUrl: json['profile_picture'],
+      uid: user.uid,
+      username: user.displayName ?? user.email?.split('@').first ?? 'user',
+      email: user.email ?? '',
+      displayName: user.displayName ?? 'User',
+      photoURL: user.photoURL,
+      isPremium: false,
+      isActive: true,
+      isAdmin: false,
+      dailyMessagesUsed: 0,
+      dailyMessagesLimit: 50,
+      createdAt: DateTime.now(),
+      lastLogin: DateTime.now(),
     );
   }
 
-  Map<String, dynamic> toJson() {
+  factory UserModel.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return UserModel(
+      uid: doc.id,
+      username: data['username'] ?? '',
+      email: data['email'] ?? '',
+      displayName: data['displayName'] ?? '',
+      photoURL: data['photoURL'],
+      isPremium: data['isPremium'] ?? false,
+      isActive: data['isActive'] ?? true,
+      isAdmin: data['isAdmin'] ?? false,
+      dailyMessagesUsed: data['dailyMessagesUsed'] ?? 0,
+      dailyMessagesLimit: data['dailyMessagesLimit'] ?? 50,
+      createdAt: (data['createdAt'] as Timestamp).toDate(),
+      lastLogin: data['lastLogin'] != null
+          ? (data['lastLogin'] as Timestamp).toDate()
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toFirestore() {
     return {
-      'id': id,
       'username': username,
       'email': email,
-      'name': name,
-      'first_name': firstName,
-      'last_name': lastName,
-      'is_active': isActive,
-      'date_joined': dateJoined?.toIso8601String(),
-      'is_staff': isAdmin,
-      'is_superuser': isAdmin,
-      'is_premium': isPremium,
-      'daily_messages_used': dailyMessagesUsed,
-      'daily_messages_limit': dailyMessagesLimit,
-      'monthly_speech_minutes_used': monthlySpeechMinutesUsed,
-      'monthly_speech_minutes_limit': monthlySpeechMinutesLimit,
-      'translation_chars_used': translationCharsUsed,
-      'translation_chars_limit': translationCharsLimit,
-      'last_reset_date': lastResetDate.toIso8601String(),
-      'profile_picture': avatarUrl,
+      'displayName': displayName,
+      'photoURL': photoURL,
+      'isPremium': isPremium,
+      'isActive': isActive,
+      'isAdmin': isAdmin,
+      'dailyMessagesUsed': dailyMessagesUsed,
+      'dailyMessagesLimit': dailyMessagesLimit,
+      'createdAt': FieldValue.serverTimestamp(),
+      'lastLogin': lastLogin != null ? FieldValue.serverTimestamp() : null,
     };
   }
 
   UserModel copyWith({
-    int? dailyMessagesUsed,
-    int? translationCharsUsed,
-    DateTime? lastResetDate,
-    bool? isActive,
+    String? username,
+    String? email,
+    String? displayName,
+    String? photoURL,
     bool? isPremium,
-    String? name,
+    bool? isActive,
+    bool? isAdmin,
+    int? dailyMessagesUsed,
+    int? dailyMessagesLimit,
+    DateTime? lastLogin,
   }) {
     return UserModel(
-      id: id,
-      username: username,
-      email: email,
-      name: name ?? this.name,
-      firstName: firstName,
-      lastName: lastName,
-      isActive: isActive ?? this.isActive,
-      dateJoined: dateJoined,
-      isAdmin: isAdmin,
+      uid: uid,
+      username: username ?? this.username,
+      email: email ?? this.email,
+      displayName: displayName ?? this.displayName,
+      photoURL: photoURL ?? this.photoURL,
       isPremium: isPremium ?? this.isPremium,
+      isActive: isActive ?? this.isActive,
+      isAdmin: isAdmin ?? this.isAdmin,
       dailyMessagesUsed: dailyMessagesUsed ?? this.dailyMessagesUsed,
-      dailyMessagesLimit: dailyMessagesLimit,
-      monthlySpeechMinutesUsed: monthlySpeechMinutesUsed,
-      monthlySpeechMinutesLimit: monthlySpeechMinutesLimit,
-      translationCharsUsed: translationCharsUsed ?? this.translationCharsUsed,
-      translationCharsLimit: translationCharsLimit,
-      lastResetDate: lastResetDate ?? this.lastResetDate,
-      avatarUrl: avatarUrl,
+      dailyMessagesLimit: dailyMessagesLimit ?? this.dailyMessagesLimit,
+      createdAt: createdAt,
+      lastLogin: lastLogin ?? this.lastLogin,
     );
   }
 }

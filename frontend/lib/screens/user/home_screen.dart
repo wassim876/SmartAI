@@ -401,7 +401,7 @@ class _HeroGreeting extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-              color: const Color(0xFF6C63FF).withOpacity(0.3),
+              color: const Color(0xFF6C63FF).withValues(alpha: 0.3),
               blurRadius: 20,
               offset: const Offset(0, 8))
         ],
@@ -444,7 +444,7 @@ class _HeroPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.15),
+          color: Colors.white.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(20)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(icon, color: Colors.white, size: 13),
@@ -521,7 +521,7 @@ class _QuickStats extends StatelessWidget {
                         width: 38,
                         height: 38,
                         decoration: BoxDecoration(
-                            color: s.$4.withOpacity(0.1),
+                            color: s.$4.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(10)),
                         child: Icon(s.$3, color: s.$4, size: 19)),
                     const SizedBox(width: 12),
@@ -597,7 +597,7 @@ class _FeatureCard extends StatelessWidget {
             border: Border.all(color: _border),
             boxShadow: [
               BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
+                  color: Colors.black.withValues(alpha: 0.04),
                   blurRadius: 14,
                   offset: const Offset(0, 4))
             ],
@@ -953,7 +953,7 @@ class _RightPanel extends StatelessWidget {
           width: 34,
           height: 34,
           decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(9)),
           child: Icon(icon, color: color, size: 17)),
       const SizedBox(width: 10),
@@ -1090,8 +1090,9 @@ class _Sidebar extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
                   decoration: BoxDecoration(
-                    color:
-                        sel ? _primary.withOpacity(0.09) : Colors.transparent,
+                    color: sel
+                        ? _primary.withValues(alpha: 0.09)
+                        : Colors.transparent,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(children: [
@@ -1144,7 +1145,7 @@ class _Sidebar extends StatelessWidget {
                 Icons.logout_rounded,
                 'Logout',
                 true,
-                () => context.read<AuthProvider>().logout().then((_) {
+                () => context.read<AuthProvider>().signOut().then((_) {
                       if (context.mounted) {
                         Navigator.pushReplacementNamed(context, '/');
                       }
@@ -1235,7 +1236,7 @@ class _TopBar extends StatelessWidget {
             } else if (val == 'support') {
               Navigator.pushNamed(context, '/help');
             } else if (val == 'logout') {
-              context.read<AuthProvider>().logout().then((_) {
+              context.read<AuthProvider>().signOut().then((_) {
                 if (context.mounted) {
                   Navigator.pushReplacementNamed(context, '/');
                 }
@@ -1329,7 +1330,7 @@ class _BottomNav extends StatelessWidget {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                              color: _primary.withOpacity(0.35),
+                              color: _primary.withValues(alpha: 0.35),
                               blurRadius: 12,
                               offset: const Offset(0, 4))
                         ]),
@@ -1389,7 +1390,7 @@ class _Avatar extends StatelessWidget {
   Widget build(BuildContext context) {
     return CircleAvatar(
       radius: radius,
-      backgroundColor: const Color(0xFF6C63FF).withOpacity(0.12),
+      backgroundColor: const Color(0xFF6C63FF).withValues(alpha: 0.12),
       backgroundImage:
           user?.avatarUrl != null ? NetworkImage(user!.avatarUrl!) : null,
       child: user?.avatarUrl == null

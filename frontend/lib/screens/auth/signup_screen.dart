@@ -171,7 +171,6 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _agreeTerms = false;
   bool _isLoading = false;
 
-  final _nameController = TextEditingController();
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -179,7 +178,6 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   void dispose() {
-    _nameController.dispose();
     _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -213,7 +211,6 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    // Basic username validation
     if (username.contains('@') || username.contains(' ')) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Username cannot contain @ or spaces')),
@@ -239,7 +236,7 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await context.read<AuthProvider>().signup(
+      await context.read<AuthProvider>().signUp(
             username: username,
             email: email,
             password: password,
@@ -248,7 +245,8 @@ class _SignupScreenState extends State<SignupScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Account created successfully! Please log in.'),
+            content: Text(
+                'Account created successfully! Please check your email to verify.'),
             backgroundColor: Colors.green,
           ),
         );
@@ -265,46 +263,12 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final bool isWide = size.width >= 840;
-    final double formPadding = isWide ? 60 : 24;
-
-    return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      body: SafeArea(
-        child: isWide
-            ? Row(
-                children: [
-                  SizedBox(
-                    width: size.width * 0.35,
-                    height: size.height,
-                    child: _headerSection(isWide, size),
-                  ),
-                  Expanded(
-                    child: Center(child: _formSection(isWide, formPadding)),
-                  ),
-                ],
-              )
-            : Column(
-                children: [
-                  _headerSection(isWide, size),
-                  Expanded(
-                    child: Center(child: _formSection(isWide, formPadding)),
-                  ),
-                ],
-              ),
-      ),
-    );
-  }
-
   Future<bool?> _showTermsAndConditionsDialog() async {
     return showDialog<bool>(
       context: context,
-      barrierDismissible: false, // User must interact with the dialog
+      barrierDismissible: false,
       builder: (BuildContext dialogContext) =>
-          _TermsAndConditionsDialogContent(),
+          const _TermsAndConditionsDialogContent(),
     );
   }
 
@@ -414,6 +378,37 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final bool isWide = size.width >= 840;
+    final double formPadding = isWide ? 60 : 24;
+
+    return Scaffold(
+      backgroundColor: AppColors.backgroundLight,
+      body: SafeArea(
+        child: isWide
+            ? Row(
+                children: [
+                  SizedBox(
+                    width: size.width * 0.35,
+                    height: size.height,
+                    child: _headerSection(isWide, size),
+                  ),
+                  Expanded(
+                      child: Center(child: _formSection(isWide, formPadding))),
+                ],
+              )
+            : Column(
+                children: [
+                  Expanded(child: _headerSection(isWide, size)),
+                  Expanded(child: _formSection(isWide, formPadding)),
+                ],
+              ),
+      ),
+    );
+  }
+
   Widget _formSection(bool isWide, double formPadding) {
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: formPadding, vertical: 32),
@@ -499,7 +494,6 @@ class _SignupScreenState extends State<SignupScreen> {
                     _agreeTerms = true;
                   });
                 }
-                // If not accepted, _agreeTerms remains false, and checkbox won't be checked.
               } else {
                 setState(() {
                   _agreeTerms = false;
@@ -576,14 +570,16 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 }
 
-// New StatefulWidget for the dialog content
+// Only ONE definition of this class - remove any duplicates
 class _TermsAndConditionsDialogContent extends StatefulWidget {
+  const _TermsAndConditionsDialogContent();
+
   @override
-  __TermsAndConditionsDialogContentState createState() =>
-      __TermsAndConditionsDialogContentState();
+  State<_TermsAndConditionsDialogContent> createState() =>
+      _TermsAndConditionsDialogContentState();
 }
 
-class __TermsAndConditionsDialogContentState
+class _TermsAndConditionsDialogContentState
     extends State<_TermsAndConditionsDialogContent> {
   final ScrollController _scrollController = ScrollController();
   bool _hasScrolledToEnd = false;
@@ -592,7 +588,6 @@ class __TermsAndConditionsDialogContentState
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    // Check if content is not scrollable (e.g., very short content)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.position.maxScrollExtent == 0) {
         setState(() {
@@ -640,8 +635,8 @@ class __TermsAndConditionsDialogContentState
         ),
       ),
       content: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.9, // Make dialog wider
-        height: MediaQuery.of(context).size.height * 0.6, // Make dialog taller
+        width: MediaQuery.of(context).size.width * 0.9,
+        height: MediaQuery.of(context).size.height * 0.6,
         child: Column(
           children: [
             const Divider(height: 1),
@@ -685,7 +680,7 @@ class __TermsAndConditionsDialogContentState
       ),
       actions: <Widget>[
         TextButton(
-          onPressed: () => Navigator.of(context).pop(false), // User declined
+          onPressed: () => Navigator.of(context).pop(false),
           style: TextButton.styleFrom(
             foregroundColor: AppColors.textGrey,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -696,9 +691,8 @@ class __TermsAndConditionsDialogContentState
           ),
         ),
         ElevatedButton(
-          onPressed: _hasScrolledToEnd
-              ? () => Navigator.of(context).pop(true)
-              : null, // Disable until scrolled to end
+          onPressed:
+              _hasScrolledToEnd ? () => Navigator.of(context).pop(true) : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,

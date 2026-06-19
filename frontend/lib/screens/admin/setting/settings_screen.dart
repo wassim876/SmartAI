@@ -47,7 +47,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _isLoggingOut = true);
 
     // Use AuthProvider to clear global state and notify listeners
-    await context.read<AuthProvider>().logout();
+    await context.read<AuthProvider>().signOut();
 
     if (!mounted) return;
 

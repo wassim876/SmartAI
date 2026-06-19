@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "919783857163",
+    "project_id": "smart-ai-7bb69",
+    "storage_bucket": "smart-ai-7bb69.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:919783857163:android:b79828ea094606b9aabb0e",
+        "android_client_info": {
+          "package_name": "com.example.smartai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "919783857163-ajjqefrjam6trhe316vggdpclhv1fnhq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBPVGpa6riISRug6UOjFGufuejxySjKVcU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "919783857163-ajjqefrjam6trhe316vggdpclhv1fnhq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
