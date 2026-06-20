@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/primary_button.dart';
@@ -26,11 +25,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _isLoading = false;
 
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   Future<void> _handleLogin() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    // Close keyboard
     FocusScope.of(context).unfocus();
 
     if (email.isEmpty || password.isEmpty) {
@@ -65,8 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
     } catch (e) {
-      // Catch any errors during login or navigation setup
-      if (!mounted) return; // Check mounted state before any UI updates
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Login failed: ${e.toString()}'),
@@ -74,18 +78,72 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     } finally {
-      // Always ensure loading state is reset
       if (mounted) {
         setState(() => _isLoading = false);
       }
     }
   }
 
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
+  Future<void> _loginWithGoogle() async {
+    setState(() => _isLoading = true);
+    try {
+      final authProvider = context.read<AuthProvider>();
+      await authProvider.loginWithGoogle();
+      if (mounted) {
+        if (authProvider.isAdmin) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AdminLayout(child: AdminDashboard()),
+            ),
+          );
+        } else {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Google login failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _loginWithGitHub() async {
+    setState(() => _isLoading = true);
+    try {
+      final authProvider = context.read<AuthProvider>();
+      await authProvider.loginWithGitHub();
+      if (mounted) {
+        if (authProvider.isAdmin) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AdminLayout(child: AdminDashboard()),
+            ),
+          );
+        } else {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('GitHub login failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   Widget _headerSection(bool isWide, Size size) {
@@ -169,7 +227,7 @@ class _LoginScreenState extends State<LoginScreen> {
         errorBuilder: (context, error, stackTrace) =>
             const Icon(Icons.account_circle, size: 20),
       ),
-      onPressed: () {},
+      onPressed: _loginWithGoogle,
     );
 
     Widget githubButton = SocialButton(
@@ -181,7 +239,7 @@ class _LoginScreenState extends State<LoginScreen> {
         errorBuilder: (context, error, stackTrace) =>
             const Icon(Icons.code, size: 20),
       ),
-      onPressed: () {},
+      onPressed: _loginWithGitHub,
     );
 
     if (isWide) {
@@ -275,7 +333,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 8),
             const SizedBox(height: 20),
             PrimaryButton(
               label: _isLoading ? 'Logging in...' : 'Login',

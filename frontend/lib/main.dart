@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'theme/app_theme.dart';
 import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/user_provider.dart';
-import 'services/storage_service.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
 import 'screens/user/home_screen.dart';
@@ -23,13 +24,15 @@ import 'screens/user/about_screen.dart';
 import 'screens/user/user_settings_screen.dart';
 import 'screens/user/help_center_screen.dart';
 
-// Define navigatorKey here
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Initialize storage service
-  await StorageService().init();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(
     MultiProvider(
       providers: [
@@ -88,7 +91,6 @@ class SmartAIApp extends StatelessWidget {
   }
 }
 
-// ── Auth Gate — checks token on launch ───────────────────────────
 class _AuthGate extends StatefulWidget {
   const _AuthGate();
   @override
@@ -104,8 +106,9 @@ class _AuthGateState extends State<_AuthGate> {
 
   Future<void> _check() async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
-    await auth.checkAuthStatus();
+    await auth.fetchAllUserData();
     if (!mounted) return;
+
     if (auth.isAuthenticated) {
       Navigator.pushReplacementNamed(
         context,

@@ -152,7 +152,7 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
   Widget _buildLogoutButton(BuildContext ctx) {
     return InkWell(
       onTap: () async {
-        await Provider.of<AuthProvider>(ctx, listen: false).logout();
+        await Provider.of<AuthProvider>(ctx, listen: false).signOut();
         if (mounted) {
           Navigator.pushReplacementNamed(ctx, '/');
         }

@@ -103,7 +103,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               _buildInfoTile(
                   'Status', user.isActive ? 'Active' : 'Inactive', isDark),
               _buildInfoTile('Premium', user.isPremium ? 'Yes' : 'No', isDark),
-              _buildInfoTile('Joined', _formatDate(user.dateJoined), isDark),
+              _buildInfoTile('Joined', _formatDate(user.createdAt), isDark),
               _buildInfoTile(
                   'Daily Usage',
                   '${user.dailyMessagesUsed}/${user.dailyMessagesLimit}',
@@ -310,7 +310,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       setDialogState(() => isSaving = true);
                       try {
                         final authProvider = context.read<AuthProvider>();
-                        await authProvider.updateUser(user.id, {
+                        await authProvider.updateUser(user.uid, {
                           'first_name': nameController.text,
                           'email': emailController.text,
                           'role': selectedRole,
@@ -356,7 +356,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   Future<void> _toggleUserStatus(UserModel user) async {
     try {
       final authProvider = context.read<AuthProvider>();
-      await authProvider.toggleUserStatus(user.id);
+      await authProvider.toggleUserStatus(user.uid);
 
       if (mounted) {
         await _fetchUsers();
@@ -376,7 +376,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   Future<void> _toggleUserPremium(UserModel user) async {
     try {
       final authProvider = context.read<AuthProvider>();
-      await authProvider.toggleUserPremium(user.id);
+      await authProvider.toggleUserPremium(user.uid);
 
       if (mounted) {
         await _fetchUsers();
@@ -418,7 +418,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     if (confirmed == true) {
       try {
         final authProvider = context.read<AuthProvider>();
-        await authProvider.deleteUser(user.id);
+        await authProvider.deleteUser(user.uid);
 
         if (mounted) {
           await _fetchUsers();

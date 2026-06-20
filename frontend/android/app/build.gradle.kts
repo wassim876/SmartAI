@@ -2,11 +2,14 @@ plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services")
+    // ADD THIS FOR FIREBASE (if using Google Services)
+    // id("com.google.gms.google-services") // Uncomment this if you use Google Services
 }
 
 android {
     namespace = "com.example.smartai"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 34  // ← CHANGE: Use specific version
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -15,20 +18,16 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.smartai"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        minSdk = 21  // ← CHANGE: Firebase requires minSdk >= 21
+        targetSdk = 34  // ← CHANGE: Use specific version
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        multiDexEnabled = true  // ← ADD THIS: Required for Firebase
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -42,4 +41,25 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+// ADD THIS FOR FIREBASE (at the bottom)
+dependencies {
+    // Firebase BoM (Bill of Materials)
+    implementation(platform("com.google.firebase:firebase-bom:34.15.0"))
+    
+    // Firebase Auth
+    implementation("com.google.firebase:firebase-auth")
+    
+    // Firebase Firestore
+    implementation("com.google.firebase:firebase-firestore")
+    
+    // Firebase Storage
+    implementation("com.google.firebase:firebase-storage")
+    
+    // Google Sign-In
+    implementation("com.google.android.gms:play-services-auth:21.3.0")
+    
+    // MultiDex support
+    implementation("androidx.multidex:multidex:2.0.1")
 }

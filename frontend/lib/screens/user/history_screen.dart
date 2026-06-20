@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../services/api_service.dart';
-import '../../models/activity_model.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -10,8 +10,7 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
-  final ApiService _apiService = ApiService();
-  List<ActivityModel> _historyItems = [];
+  List<_HistoryItem> _historyItems = [];
   bool _isLoading = true;
 
   static const _primary = Color(0xFF5B4FE8);
@@ -20,22 +19,98 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchHistory();
+    _loadHistory();
   }
 
-  Future<void> _fetchHistory() async {
-    try {
-      final data = await _apiService.getHistory();
-      if (mounted) {
-        setState(() {
-          _historyItems = data;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+  void _loadHistory() {
+    final authProvider = context.read<AuthProvider>();
+    final activities = authProvider.activities;
+
+    if (activities.isNotEmpty) {
+      _historyItems = activities.map((activity) {
+        final action = activity['action'] ?? 'Unknown';
+        final details = activity['details'] ?? {};
+        final createdAt = activity['createdAt'] != null
+            ? DateTime.parse(activity['createdAt'].toString())
+            : DateTime.now();
+
+        late IconData icon;
+        late Color color;
+        late String title;
+        late String subtitle;
+
+        switch (action) {
+          case 'chat_message':
+            icon = Icons.auto_awesome_rounded;
+            color = _primary;
+            title = 'Chat with AI';
+            subtitle = details['message']?.toString() ?? 'New chat';
+            break;
+          case 'image_analysis':
+            icon = Icons.image_search_rounded;
+            color = const Color(0xFF3B82F6);
+            title = 'Image Analysis';
+            subtitle = details['image_type'] ?? 'Image analyzed';
+            break;
+          case 'speech_to_text':
+            icon = Icons.mic_rounded;
+            color = const Color(0xFF8B5CF6);
+            title = 'Speech to Text';
+            subtitle = 'Voice transcribed';
+            break;
+          case 'translation':
+            icon = Icons.translate_rounded;
+            color = const Color(0xFF10B981);
+            title = 'Translate';
+            subtitle = '${details['source'] ?? ''} → ${details['target'] ?? ''}';
+            break;
+          case 'login':
+          case 'google_login':
+          case 'github_login':
+            icon = Icons.login_rounded;
+            color = Colors.green;
+            title = 'Login';
+            subtitle = action.replaceAll('_', ' ').toUpperCase();
+            break;
+          case 'signup':
+            icon = Icons.person_add_rounded;
+            color = Colors.blue;
+            title = 'Account Created';
+            subtitle = 'New user registration';
+            break;
+          default:
+            icon = Icons.fiber_manual_record_rounded;
+            color = Colors.grey;
+            title = action.replaceAll('_', ' ').toUpperCase();
+            subtitle = '';
+        }
+
+        return _HistoryItem(
+          id: activity['id']?.toString() ?? '',
+          title: title,
+          subtitle: subtitle,
+          icon: icon,
+          color: color,
+          timeAgo: _formatTimeAgo(createdAt),
+        );
+      }).toList();
+    }
+
+    setState(() => _isLoading = false);
+  }
+
+  String _formatTimeAgo(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+
+    if (difference.inDays > 0) {
+      return '${difference.inDays}d ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ago';
+    } else {
+      return 'Just now';
     }
   }
 
@@ -205,4 +280,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
       ),
     );
   }
+}
+
+class _HistoryItem {
+  final String id;
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final String timeAgo;
+
+  _HistoryItem({
+    required this.id,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.timeAgo,
+  });
 }
