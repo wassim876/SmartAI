@@ -22,6 +22,10 @@ dependencies:
   dio: ^5.9.2
   flutter_secure_storage: ^10.3.1
   image_picker: ^1.1.2  # Make sure this is only here ONCE
+  firebase_core: ^4.11.0
+  firebase_auth: ^6.5.3
+  cloud_firestore: ^6.6.0
+  firebase_storage: ^13.4.3
 
 dev_dependencies:
   flutter_lints: ^6.0.0
