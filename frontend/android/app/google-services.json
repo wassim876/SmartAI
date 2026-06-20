@@ -29,6 +29,13 @@
             {
               "client_id": "919783857163-ajjqefrjam6trhe316vggdpclhv1fnhq.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "919783857163-e4iot93k1n2u1frgktta6n26lsj7qt9q.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.smartai"
+              }
             }
           ]
         }

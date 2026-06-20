@@ -7,6 +7,8 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/social_button.dart';
 import '../../providers/auth_provider.dart';
+import '../admin/admin_dashboard.dart';
+import '../admin/admin_layout.dart';
 
 // Define constants for the terms and privacy policy text
 const String _termsAndConditionsText = '''
@@ -263,6 +265,70 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
+  // ✅ ADD THIS - Google Sign-Up
+  Future<void> _signUpWithGoogle() async {
+    setState(() => _isLoading = true);
+    try {
+      final authProvider = context.read<AuthProvider>();
+      await authProvider.loginWithGoogle();
+      if (mounted) {
+        if (authProvider.isAdmin) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AdminLayout(child: AdminDashboard()),
+            ),
+          );
+        } else {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Google sign up failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  // ✅ ADD THIS - GitHub Sign-Up
+  Future<void> _signUpWithGitHub() async {
+    setState(() => _isLoading = true);
+    try {
+      final authProvider = context.read<AuthProvider>();
+      await authProvider.loginWithGitHub();
+      if (mounted) {
+        if (authProvider.isAdmin) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AdminLayout(child: AdminDashboard()),
+            ),
+          );
+        } else {
+          Navigator.pushReplacementNamed(context, '/home');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('GitHub sign up failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   Future<bool?> _showTermsAndConditionsDialog() async {
     return showDialog<bool>(
       context: context,
@@ -343,7 +409,7 @@ class _SignupScreenState extends State<SignupScreen> {
         errorBuilder: (context, error, stackTrace) =>
             const Icon(Icons.image, size: 20),
       ),
-      onPressed: () {},
+      onPressed: _signUpWithGoogle, // ✅ Updated
     );
 
     Widget githubButton = SocialButton(
@@ -356,7 +422,7 @@ class _SignupScreenState extends State<SignupScreen> {
         errorBuilder: (context, error, stackTrace) =>
             const Icon(Icons.code, size: 20),
       ),
-      onPressed: () {},
+      onPressed: _signUpWithGitHub, // ✅ Updated
     );
 
     if (isWide) {
@@ -570,7 +636,7 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 }
 
-// Only ONE definition of this class - remove any duplicates
+// Terms and Conditions Dialog
 class _TermsAndConditionsDialogContent extends StatefulWidget {
   const _TermsAndConditionsDialogContent();
 

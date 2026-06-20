@@ -45,8 +45,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '919783857163',
     projectId: 'smart-ai-7bb69',
     storageBucket: 'smart-ai-7bb69.firebasestorage.app',
-    iosClientId:
-        '919783857163-e4iot93k1n2u1frgktta6n26lsj7qt9q.apps.googleusercontent.com',
+    iosClientId: '919783857163-e4iot93k1n2u1frgktta6n26lsj7qt9q.apps.googleusercontent.com',
     iosBundleId: 'com.example.smartai',
   );
   static const FirebaseOptions macos = FirebaseOptions(
@@ -55,8 +54,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '919783857163',
     projectId: 'smart-ai-7bb69',
     storageBucket: 'smart-ai-7bb69.firebasestorage.app',
-    iosClientId:
-        '919783857163-e4iot93k1n2u1frgktta6n26lsj7qt9q.apps.googleusercontent.com',
+    iosClientId: '919783857163-e4iot93k1n2u1frgktta6n26lsj7qt9q.apps.googleusercontent.com',
     iosBundleId: 'com.example.smartai',
   );
 }

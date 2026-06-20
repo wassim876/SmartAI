@@ -11,36 +11,30 @@ dependencies:
     sdk: flutter
   
   # UI
-  google_fonts: ^8.1.0
+  google_fonts: ^6.2.1
   flutter_svg: ^2.0.9
-  cupertino_icons: ^1.0.2
+  cupertino_icons: ^1.0.6
   fl_chart: ^0.69.2
   
   # State Management & Utilities
   provider: ^6.1.1
   intl: ^0.19.0
   flutter_slidable: ^3.1.0
-<<<<<<< HEAD
   dio: ^5.9.2
-  flutter_secure_storage: ^10.3.1
-  image_picker: ^1.1.2  # Make sure this is only here ONCE
-  firebase_core: ^4.11.0
-  firebase_auth: ^6.5.3
-  cloud_firestore: ^6.6.0
-  firebase_storage: ^13.4.3
-=======
+  flutter_secure_storage: ^9.2.2
   image_picker: ^1.1.2
   url_launcher: ^6.3.0
   
-  # Firebase
+  # Firebase - Use LATEST compatible versions
   firebase_core: ^3.12.0
   firebase_auth: ^5.5.0
   cloud_firestore: ^5.6.0
   firebase_storage: ^12.4.0
   google_sign_in: ^6.3.0
->>>>>>> ae1766d90a93f756f9fb46ab880eec53d6bca21b
 
 dev_dependencies:
+  flutter_test:
+    sdk: flutter
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
 
