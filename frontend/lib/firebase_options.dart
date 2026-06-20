@@ -24,37 +24,39 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyA-9i0VJgPDcDBr4R6Wi-gs-UyG3E4-fvE',
-    authDomain: 'smart-ai-7bb69.firebaseapp.com',
-    projectId: 'smart-ai-7bb69',
-    storageBucket: 'smart-ai-7bb69.firebasestorage.app',
-    messagingSenderId: '919783857163',
     appId: '1:919783857163:web:6767ff5abc95e464aabb0e',
+    messagingSenderId: '919783857163',
+    projectId: 'smart-ai-7bb69',
+    authDomain: 'smart-ai-7bb69.firebaseapp.com',
+    storageBucket: 'smart-ai-7bb69.firebasestorage.app',
+    measurementId: 'G-TBSXT04569',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyA-9i0VJgPDcDBr4R6Wi-gs-UyG3E4-fvE',
-    appId: '1:919783857163:android:abcdef1234567890',
+    apiKey: 'AIzaSyBPVGpa6riISRug6UOjFGufuejxySjKVcU',
+    appId: '1:919783857163:android:b79828ea094606b9aabb0e',
     messagingSenderId: '919783857163',
     projectId: 'smart-ai-7bb69',
-    authDomain: 'smart-ai-7bb69.firebaseapp.com',
     storageBucket: 'smart-ai-7bb69.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyA-9i0VJgPDcDBr4R6Wi-gs-UyG3E4-fvE',
-    appId: '1:919783857163:ios:abcdef1234567890',
+    apiKey: 'AIzaSyDxRkh1w9ZCHl5w0kcKl8CWVtZm1SmDr6M',
+    appId: '1:919783857163:ios:817f281862eb606aaabb0e',
     messagingSenderId: '919783857163',
     projectId: 'smart-ai-7bb69',
-    authDomain: 'smart-ai-7bb69.firebaseapp.com',
     storageBucket: 'smart-ai-7bb69.firebasestorage.app',
+    iosClientId:
+        '919783857163-e4iot93k1n2u1frgktta6n26lsj7qt9q.apps.googleusercontent.com',
+    iosBundleId: 'com.example.smartai',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyA-9i0VJgPDcDBr4R6Wi-gs-UyG3E4-fvE',
-    appId: '1:919783857163:macos:abcdef1234567890',
+    apiKey: 'AIzaSyDxRkh1w9ZCHl5w0kcKl8CWVtZm1SmDr6M',
+    appId: '1:919783857163:ios:817f281862eb606aaabb0e',
     messagingSenderId: '919783857163',
     projectId: 'smart-ai-7bb69',
-    authDomain: 'smart-ai-7bb69.firebaseapp.com',
     storageBucket: 'smart-ai-7bb69.firebasestorage.app',
+    iosClientId:
+        '919783857163-e4iot93k1n2u1frgktta6n26lsj7qt9q.apps.googleusercontent.com',
+    iosBundleId: 'com.example.smartai',
   );
 }
