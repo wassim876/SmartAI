@@ -62,7 +62,10 @@ class FirebaseAuthService {
         password: password,
       );
 
-      await _firestore.collection('users').doc(userCredential.user!.uid).update({
+      await _firestore
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .update({
         'lastLogin': FieldValue.serverTimestamp(),
       });
 
@@ -94,7 +97,8 @@ class FirebaseAuthService {
       if (!doc.exists) {
         await _firestore.collection('users').doc(user.uid).set({
           'uid': user.uid,
-          'username': user.displayName ?? user.email?.split('@').first ?? 'user',
+          'username':
+              user.displayName ?? user.email?.split('@').first ?? 'user',
           'email': user.email,
           'displayName': user.displayName ?? 'User',
           'photoURL': user.photoURL,
@@ -128,7 +132,8 @@ class FirebaseAuthService {
       if (!doc.exists) {
         await _firestore.collection('users').doc(user.uid).set({
           'uid': user.uid,
-          'username': user.displayName ?? user.email?.split('@').first ?? 'user',
+          'username':
+              user.displayName ?? user.email?.split('@').first ?? 'user',
           'email': user.email,
           'displayName': user.displayName ?? 'User',
           'photoURL': user.photoURL,
