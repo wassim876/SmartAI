@@ -294,7 +294,7 @@ class _SignupScreenState extends State<SignupScreen> {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Image.asset(
-              'assets/images/icon-ai.png',
+              'assets/images/smartai.png',
               width: 90,
               height: 80,
               fit: BoxFit.contain,

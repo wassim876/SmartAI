@@ -27,8 +27,14 @@ class FirebaseAuthService {
       );
 
       final user = userCredential.user!;
-      await user.updateDisplayName(username);
 
+      // Update display name — don't crash if this fails
+      try {
+        await user.updateDisplayName(username);
+        await user.reload();
+      } catch (_) {}
+
+      // Save full profile to Firestore
       await _firestore.collection('users').doc(user.uid).set({
         'uid': user.uid,
         'username': username,
@@ -44,7 +50,9 @@ class FirebaseAuthService {
         'lastLogin': FieldValue.serverTimestamp(),
       });
 
-      return UserModel.fromFirebase(user);
+      // Return from Firestore so we get the complete data (isAdmin etc)
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+      return UserModel.fromFirestore(doc);
     } on FirebaseAuthException catch (e) {
       throw Exception(_getAuthErrorMessage(e));
     } catch (e) {
@@ -62,13 +70,15 @@ class FirebaseAuthService {
         password: password,
       );
 
-      await _firestore
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .update({
-        'lastLogin': FieldValue.serverTimestamp(),
-      });
+      final uid = userCredential.user!.uid;
 
+      await _firestore.collection('users').doc(uid).set({
+        'lastLogin': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      // Return from Firestore so isAdmin/isPremium are correctly loaded
+      final doc = await _firestore.collection('users').doc(uid).get();
+      if (doc.exists) return UserModel.fromFirestore(doc);
       return UserModel.fromFirebase(userCredential.user!);
     } on FirebaseAuthException catch (e) {
       throw Exception(_getAuthErrorMessage(e));
@@ -175,6 +185,7 @@ class FirebaseAuthService {
   Future<void> updateProfile({
     String? displayName,
     String? photoURL,
+    bool clearPhoto = false,
   }) async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('Not authenticated');
@@ -184,12 +195,20 @@ class FirebaseAuthService {
     }
     if (photoURL != null) {
       await user.updatePhotoURL(photoURL);
+    } else if (clearPhoto) {
+      await user.updatePhotoURL(null);
     }
 
-    await _firestore.collection('users').doc(user.uid).update({
-      'displayName': displayName,
-      'photoURL': photoURL,
-    });
+    final updates = <String, dynamic>{};
+    if (displayName != null) updates['displayName'] = displayName;
+    if (photoURL != null) {
+      updates['photoURL'] = photoURL;
+    } else if (clearPhoto) {
+      updates['photoURL'] = null;
+    }
+    if (updates.isNotEmpty) {
+      await _firestore.collection('users').doc(user.uid).set(updates, SetOptions(merge: true));
+    }
   }
 
   String _getAuthErrorMessage(FirebaseAuthException e) {

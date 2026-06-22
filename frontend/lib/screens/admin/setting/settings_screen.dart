@@ -16,7 +16,6 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _emailNotifications = true;
   bool _pushNotifications = false;
-  bool _twoFactorAuth = true;
   bool _isLoggingOut = false;
   final PhotoPickerService _photoPicker = PhotoPickerService();
 
@@ -44,10 +43,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (confirmed != true) return;
 
+    if (!mounted) return;
+
     setState(() => _isLoggingOut = true);
 
     // Use AuthProvider to clear global state and notify listeners
-    await context.read<AuthProvider>().signOut();
+    final authProvider = context.read<AuthProvider>();
+    await authProvider.signOut();
 
     if (!mounted) return;
 
@@ -105,11 +107,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (choice == null) return;
 
+    if (!mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+
     if (choice == 'gallery') {
       final imageBytes = await _photoPicker.pickImageFromGallery();
       if (imageBytes != null && mounted) {
         userProvider.updateProfileImage(imageBytes);
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           const SnackBar(
             content: Text('Profile photo updated successfully!'),
             backgroundColor: Colors.green,
@@ -118,7 +124,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       }
     } else if (choice == 'remove') {
       userProvider.updateProfileImage(null);
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(
           content: Text('Profile photo removed!'),
           backgroundColor: Colors.orange,
@@ -367,72 +373,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   'Receive real-time alerts on your device',
                   _pushNotifications,
                   (v) => setState(() => _pushNotifications = v),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Security Section
-          _sectionCard(
-            title: 'Security',
-            child: Column(
-              children: [
-                _switchRow(
-                  'Two-Factor Authentication',
-                  'Add an extra layer of security to your account',
-                  _twoFactorAuth,
-                  (v) => setState(() => _twoFactorAuth = v),
-                ),
-                const Divider(height: 32),
-                Wrap(
-                  alignment: WrapAlignment.spaceBetween,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: 16,
-                  runSpacing: 12,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Change Password',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
-                            color: isDark ? Colors.white : null,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Update your account password',
-                          style: TextStyle(
-                            color: isDark
-                                ? Colors.white54
-                                : theme.colorScheme.onSurfaceVariant,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                    MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                      child: OutlinedButton(
-                        onPressed: () {},
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: isDark ? Colors.white : null,
-                          side: BorderSide(
-                            color: isDark ? Colors.white54 : theme.primaryColor,
-                          ),
-                        ),
-                        child: Text(
-                          'Update',
-                          style: TextStyle(
-                            color: isDark ? Colors.white : null,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),

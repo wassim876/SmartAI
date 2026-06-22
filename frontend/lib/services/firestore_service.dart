@@ -16,7 +16,28 @@ class FirestoreService {
     if (user == null) throw Exception('Not authenticated');
 
     final doc = await _firestore.collection('users').doc(user.uid).get();
-    if (!doc.exists) throw Exception('User profile not found');
+    if (!doc.exists) {
+      try {
+        await _firestore.collection('users').doc(user.uid).set({
+          'uid': user.uid,
+          'username': user.displayName ?? user.email?.split('@').first ?? 'user',
+          'email': user.email,
+          'displayName': user.displayName ?? 'User',
+          'photoURL': user.photoURL,
+          'isPremium': false,
+          'isActive': true,
+          'isAdmin': false,
+          'dailyMessagesUsed': 0,
+          'dailyMessagesLimit': 50,
+          'createdAt': FieldValue.serverTimestamp(),
+          'lastLogin': FieldValue.serverTimestamp(),
+        });
+        final newDoc = await _firestore.collection('users').doc(user.uid).get();
+        return UserModel.fromFirestore(newDoc);
+      } catch (_) {
+        return UserModel.fromFirebase(user);
+      }
+    }
 
     return UserModel.fromFirestore(doc);
   }
@@ -25,25 +46,25 @@ class FirestoreService {
     final user = _auth.currentUser;
     if (user == null) throw Exception('Not authenticated');
 
-    await _firestore.collection('users').doc(user.uid).update(data);
+    await _firestore.collection('users').doc(user.uid).set(data, SetOptions(merge: true));
   }
 
   Future<void> incrementDailyMessages() async {
     final user = _auth.currentUser;
     if (user == null) return;
 
-    await _firestore.collection('users').doc(user.uid).update({
+    await _firestore.collection('users').doc(user.uid).set({
       'dailyMessagesUsed': FieldValue.increment(1),
-    });
+    }, SetOptions(merge: true));
   }
 
   Future<void> resetDailyUsage() async {
     final user = _auth.currentUser;
     if (user == null) return;
 
-    await _firestore.collection('users').doc(user.uid).update({
+    await _firestore.collection('users').doc(user.uid).set({
       'dailyMessagesUsed': 0,
-    });
+    }, SetOptions(merge: true));
   }
 
   // ==========================================

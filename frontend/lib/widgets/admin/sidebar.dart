@@ -129,6 +129,13 @@ class Sidebar extends StatelessWidget {
                 ),
                 _buildNavItem(
                   context: context,
+                  icon: Icons.rate_review_outlined,
+                  label: 'Reviews',
+                  route: '/admin/reviews',
+                  currentRoute: currentRoute,
+                ),
+                _buildNavItem(
+                  context: context,
                   icon: Icons.settings_outlined,
                   label: 'Settings',
                   route: '/admin/settings',

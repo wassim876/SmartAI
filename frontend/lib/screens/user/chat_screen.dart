@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/admin_notification_service.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -38,6 +39,10 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
     try {
       await context.read<AuthProvider>().incrementDailyMessages();
+    } catch (_) {}
+    try {
+      final user = context.read<AuthProvider>().currentUser;
+      await AdminNotificationService.onNewChat(user?.displayName ?? 'Unknown');
     } catch (_) {}
     await Future.delayed(const Duration(milliseconds: 1200));
     if (!mounted) return;

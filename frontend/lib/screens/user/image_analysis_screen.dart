@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/admin_notification_service.dart';
 
 class ImageAnalysisScreen extends StatefulWidget {
   const ImageAnalysisScreen({super.key});
@@ -34,6 +35,10 @@ class _ImageAnalysisScreenState extends State<ImageAnalysisScreen> {
     if (_selectedImage == null) return;
     setState(() { _isAnalyzing = true; });
     try { await context.read<AuthProvider>().incrementDailyMessages(); } catch (_) {}
+    try {
+      final user = context.read<AuthProvider>().currentUser;
+      await AdminNotificationService.onImageAnalysis(user?.displayName ?? 'Unknown');
+    } catch (_) {}
     await Future.delayed(const Duration(seconds: 3));
     if (!mounted) return;
     setState(() {

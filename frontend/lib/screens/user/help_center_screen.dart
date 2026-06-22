@@ -27,8 +27,6 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
         'Go to Image Analysis, tap the upload area to pick a photo from your gallery or camera, then tap "Analyze Image". The AI will describe and analyze the content.'),
     _Faq('How many messages can I send per day?',
         'Free users get 50 messages per day. Premium users get unlimited messages. Your usage resets every 24 hours.'),
-    _Faq('How do I translate text?',
-        'Open the Translate screen, select source and target languages, type or paste your text, then tap "Translate Now".'),
     _Faq('How does Speech to Text work?',
         'Open Speech to Text, tap the microphone button and speak clearly. The app will transcribe your voice in real time.'),
     _Faq('How do I upgrade to Premium?',
@@ -149,9 +147,9 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
             const SizedBox(width: 12),
             Expanded(
                 child: _QuickCard(
-                    icon: Icons.translate_rounded,
-                    color: const Color(0xFF10B981),
-                    label: 'Translation',
+                    icon: Icons.mic_rounded,
+                    color: const Color(0xFF8B5CF6),
+                    label: 'Speech to Text',
                     onTap: () => setState(() => _openFaq = 3))),
             const SizedBox(width: 12),
             Expanded(
@@ -315,9 +313,10 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: () async {
+                    final messenger = ScaffoldMessenger.of(context);
                     await Clipboard.setData(const ClipboardData(text: _email));
                     if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
+                      messenger.showSnackBar(
                         SnackBar(
                           content: Text('Email address copied!'),
                           backgroundColor: _primary,

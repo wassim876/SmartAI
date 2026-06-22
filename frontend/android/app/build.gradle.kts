@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.example.smartai"
-    compileSdk = 34  // ← CHANGE: Use specific version
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -19,7 +19,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.smartai"
-        minSdk = 21  // ← CHANGE: Firebase requires minSdk >= 21
+        minSdk = flutter.minSdkVersion  // ← CHANGE: Firebase requires minSdk >= 21
         targetSdk = 34  // ← CHANGE: Use specific version
         versionCode = flutter.versionCode
         versionName = flutter.versionName

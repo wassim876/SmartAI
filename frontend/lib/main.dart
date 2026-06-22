@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -6,6 +7,9 @@ import 'theme/app_theme.dart';
 import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/user_provider.dart';
+import 'providers/language_provider.dart';
+import 'l10n/app_localizations.dart';
+import 'services/notification_service.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
 import 'screens/user/home_screen.dart';
@@ -20,9 +24,11 @@ import 'screens/admin/transactions/transactions_screen.dart';
 import 'screens/admin/reports/reports_screen.dart';
 import 'screens/admin/notifications/notifications_screen.dart';
 import 'screens/admin/setting/settings_screen.dart';
+import 'screens/admin/reviews/reviews_screen.dart';
 import 'screens/user/about_screen.dart';
 import 'screens/user/user_settings_screen.dart';
 import 'screens/user/help_center_screen.dart';
+import 'screens/user/profile_screen.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -33,12 +39,17 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  try {
+    await NotificationService().initialize();
+  } catch (_) {}
+
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => LanguageProvider()),
       ],
       child: const SmartAIApp(),
     ),
@@ -51,6 +62,7 @@ class SmartAIApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
+    final languageProvider = context.watch<LanguageProvider>();
     return MaterialApp(
       title: 'SmartAi',
       debugShowCheckedModeBanner: false,
@@ -58,6 +70,14 @@ class SmartAIApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      locale: languageProvider.locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       initialRoute: '/',
       routes: {
         '/': (context) => const _AuthGate(),
@@ -84,8 +104,11 @@ class SmartAIApp extends StatelessWidget {
             const AdminLayout(child: NotificationsScreen()),
         '/admin/settings': (context) =>
             const AdminLayout(child: SettingsScreen()),
+        '/admin/reviews': (context) =>
+            const AdminLayout(child: ReviewsScreen()),
         '/help': (context) => const HelpCenterScreen(),
         '/login': (context) => const LoginScreen(),
+        '/profile': (context) => const ProfileScreen(),
       },
     );
   }
@@ -106,7 +129,7 @@ class _AuthGateState extends State<_AuthGate> {
 
   Future<void> _check() async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
-    await auth.fetchAllUserData();
+    await auth.resolveUser();
     if (!mounted) return;
 
     if (auth.isAuthenticated) {

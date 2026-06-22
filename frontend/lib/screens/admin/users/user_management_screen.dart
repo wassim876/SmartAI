@@ -310,6 +310,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       setDialogState(() => isSaving = true);
                       try {
                         final authProvider = context.read<AuthProvider>();
+                        final nav = Navigator.of(context);
                         await authProvider.updateUser(user.uid, {
                           'first_name': nameController.text,
                           'email': emailController.text,
@@ -319,7 +320,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         });
 
                         if (mounted) {
-                          Navigator.pop(context);
+                          nav.pop();
                           _showSnackBar(
                               'User updated successfully!', Colors.green);
                           await _fetchUsers();
@@ -416,6 +417,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
 
     if (confirmed == true) {
+      if (!mounted) return;
       try {
         final authProvider = context.read<AuthProvider>();
         await authProvider.deleteUser(user.uid);
@@ -581,6 +583,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       setDialogState(() => isSaving = true);
                       try {
                         final authProvider = context.read<AuthProvider>();
+                        final nav = Navigator.of(context);
                         await authProvider.createUser({
                           'username': usernameController.text,
                           'first_name': nameController.text,
@@ -590,7 +593,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         });
 
                         if (mounted) {
-                          Navigator.pop(context);
+                          nav.pop();
                           _showSnackBar(
                               'User created successfully!', Colors.green);
                           await _fetchUsers();
@@ -858,10 +861,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                           color: isDark
                                               ? Colors.white10
                                               : Colors.grey[200]),
-                                      ..._filteredUsers
-                                          .map((user) =>
-                                              _buildUserRow(user, isDark))
-                                          ,
+                                      ..._filteredUsers.map((user) =>
+                                          _buildUserRow(user, isDark)),
                                     ],
                                   ),
                                 ),

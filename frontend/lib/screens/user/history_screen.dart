@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 
@@ -30,9 +31,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
       _historyItems = activities.map((activity) {
         final action = activity['action'] ?? 'Unknown';
         final details = activity['details'] ?? {};
-        final createdAt = activity['createdAt'] != null
-            ? DateTime.parse(activity['createdAt'].toString())
-            : DateTime.now();
+        final createdAtRaw = activity['createdAt'];
+        DateTime createdAt;
+        if (createdAtRaw is Timestamp) {
+          createdAt = createdAtRaw.toDate();
+        } else if (createdAtRaw is DateTime) {
+          createdAt = createdAtRaw;
+        } else if (createdAtRaw != null) {
+          createdAt = DateTime.tryParse(createdAtRaw.toString()) ?? DateTime.now();
+        } else {
+          createdAt = DateTime.now();
+        }
 
         late IconData icon;
         late Color color;
@@ -57,12 +66,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
             color = const Color(0xFF8B5CF6);
             title = 'Speech to Text';
             subtitle = 'Voice transcribed';
-            break;
-          case 'translation':
-            icon = Icons.translate_rounded;
-            color = const Color(0xFF10B981);
-            title = 'Translate';
-            subtitle = '${details['source'] ?? ''} → ${details['target'] ?? ''}';
             break;
           case 'login':
           case 'google_login':

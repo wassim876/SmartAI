@@ -1,8 +1,11 @@
 // lib/providers/auth_provider.dart
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import '../models/user_model.dart';
 import '../services/firebase_auth_service.dart';
 import '../services/firestore_service.dart';
+import '../services/admin_notification_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final FirebaseAuthService _authService = FirebaseAuthService();
@@ -13,10 +16,11 @@ class AuthProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
+  final List<StreamSubscription<dynamic>> _dataSubscriptions = [];
+
   List<Map<String, dynamic>> _chatHistory = [];
   List<Map<String, dynamic>> _imageAnalyses = [];
   List<Map<String, dynamic>> _speechTranscriptions = [];
-  List<Map<String, dynamic>> _translations = [];
   List<Map<String, dynamic>> _activities = [];
 
   UserModel? get currentUser => _currentUser;
@@ -29,7 +33,6 @@ class AuthProvider extends ChangeNotifier {
   List<Map<String, dynamic>> get chatHistory => _chatHistory;
   List<Map<String, dynamic>> get imageAnalyses => _imageAnalyses;
   List<Map<String, dynamic>> get speechTranscriptions => _speechTranscriptions;
-  List<Map<String, dynamic>> get translations => _translations;
   List<Map<String, dynamic>> get activities => _activities;
 
   AuthProvider() {
@@ -38,7 +41,6 @@ class AuthProvider extends ChangeNotifier {
         try {
           _currentUser = await _firestoreService.getUserProfile();
           _loadUserData();
-          notifyListeners();
         } catch (e) {
           debugPrint('Error loading user: $e');
         }
@@ -48,16 +50,31 @@ class AuthProvider extends ChangeNotifier {
         _chatHistory = [];
         _imageAnalyses = [];
         _speechTranscriptions = [];
-        _translations = [];
         _activities = [];
-        notifyListeners();
       }
+      // Defer notifyListeners until after the current build frame
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        notifyListeners();
+      });
     });
   }
 
   // ==========================================
   // AUTH METHODS
   // ==========================================
+
+  Future<void> resolveUser() async {
+    final firebaseUser = _authService.currentUser;
+    if (firebaseUser == null) return;
+
+    try {
+      _currentUser = await _firestoreService.getUserProfile();
+      _loadUserData();
+    } catch (e) {
+      debugPrint('Error resolving user: $e');
+    }
+    notifyListeners();
+  }
 
   Future<void> signUp({
     required String username,
@@ -75,7 +92,12 @@ class AuthProvider extends ChangeNotifier {
         password: password,
       );
       _currentUser = user;
-      await _firestoreService.logActivity('signup');
+      try {
+        await _firestoreService.logActivity('signup');
+      } catch (_) {}
+      try {
+        await AdminNotificationService.onNewUser(username, email);
+      } catch (_) {}
       notifyListeners();
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -100,8 +122,9 @@ class AuthProvider extends ChangeNotifier {
         password: password,
       );
       _currentUser = user;
-      await _firestoreService.logActivity('login');
-      _loadUserData();
+      try {
+        await _firestoreService.logActivity('login');
+      } catch (_) {}
       notifyListeners();
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -121,8 +144,9 @@ class AuthProvider extends ChangeNotifier {
       final user = await _authService.signInWithGoogle();
       _currentUser = user;
       if (user != null) {
-        await _firestoreService.logActivity('google_login');
-        _loadUserData();
+        try {
+          await _firestoreService.logActivity('google_login');
+        } catch (_) {}
       }
       notifyListeners();
     } catch (e) {
@@ -143,8 +167,9 @@ class AuthProvider extends ChangeNotifier {
       final user = await _authService.signInWithGitHub();
       _currentUser = user;
       if (user != null) {
-        await _firestoreService.logActivity('github_login');
-        _loadUserData();
+        try {
+          await _firestoreService.logActivity('github_login');
+        } catch (_) {}
       }
       notifyListeners();
     } catch (e) {
@@ -157,13 +182,13 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
+    _cancelDataSubscriptions();
     await _authService.signOut();
     _currentUser = null;
     _users = [];
     _chatHistory = [];
     _imageAnalyses = [];
     _speechTranscriptions = [];
-    _translations = [];
     _activities = [];
     _errorMessage = null;
     notifyListeners();
@@ -176,6 +201,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> updateProfile({
     String? displayName,
     String? photoURL,
+    bool clearPhoto = false,
   }) async {
     if (_currentUser == null) throw Exception('Not authenticated');
 
@@ -183,11 +209,28 @@ class AuthProvider extends ChangeNotifier {
       await _authService.updateProfile(
         displayName: displayName,
         photoURL: photoURL,
+        clearPhoto: clearPhoto,
       );
       _currentUser = _currentUser!.copyWith(
         displayName: displayName,
         photoURL: photoURL,
       );
+      if (clearPhoto) {
+        _currentUser = UserModel(
+          uid: _currentUser!.uid,
+          username: _currentUser!.username,
+          email: _currentUser!.email,
+          displayName: _currentUser!.displayName,
+          photoURL: null,
+          isPremium: _currentUser!.isPremium,
+          isActive: _currentUser!.isActive,
+          isAdmin: _currentUser!.isAdmin,
+          dailyMessagesUsed: _currentUser!.dailyMessagesUsed,
+          dailyMessagesLimit: _currentUser!.dailyMessagesLimit,
+          createdAt: _currentUser!.createdAt,
+          lastLogin: _currentUser!.lastLogin,
+        );
+      }
       notifyListeners();
     } catch (e) {
       rethrow;
@@ -200,9 +243,11 @@ class AuthProvider extends ChangeNotifier {
     try {
       await _firestoreService.updateUserProfile(data);
       _currentUser = _currentUser!.copyWith(
-        displayName: data['displayName'],
-        isPremium: data['isPremium'],
-        dailyMessagesLimit: data['dailyMessagesLimit'],
+        displayName: data['displayName'] ?? _currentUser!.displayName,
+        photoURL: data['photoURL'] ?? _currentUser!.photoURL,
+        isPremium: data['isPremium'] ?? _currentUser!.isPremium,
+        dailyMessagesLimit:
+            data['dailyMessagesLimit'] ?? _currentUser!.dailyMessagesLimit,
       );
       notifyListeners();
     } catch (e) {
@@ -248,63 +293,66 @@ class AuthProvider extends ChangeNotifier {
   // DATA LOADING METHODS
   // ==========================================
 
+  // Safe notify — always defers to avoid setState-during-build errors
+  void _safeNotify() {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (_currentUser != null) {
+        notifyListeners();
+      }
+    });
+  }
+
   void _loadUserData() {
     if (_currentUser == null) return;
 
-    _firestoreService.getChatHistory().listen((snapshot) {
-      _chatHistory = snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        return {
-          'id': doc.id,
-          ...data,
-        };
-      }).toList();
-      notifyListeners();
-    });
+    _cancelDataSubscriptions();
 
-    _firestoreService.getImageAnalyses().listen((snapshot) {
-      _imageAnalyses = snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        return {
-          'id': doc.id,
-          ...data,
-        };
-      }).toList();
-      notifyListeners();
-    });
+    _dataSubscriptions.add(
+      _firestoreService.getChatHistory().listen((snapshot) {
+        _chatHistory = snapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return {'id': doc.id, ...data};
+        }).toList();
+        _safeNotify();
+      }),
+    );
 
-    _firestoreService.getSpeechTranscriptions().listen((snapshot) {
-      _speechTranscriptions = snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        return {
-          'id': doc.id,
-          ...data,
-        };
-      }).toList();
-      notifyListeners();
-    });
+    _dataSubscriptions.add(
+      _firestoreService.getImageAnalyses().listen((snapshot) {
+        _imageAnalyses = snapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return {'id': doc.id, ...data};
+        }).toList();
+        _safeNotify();
+      }),
+    );
 
-    _firestoreService.getTranslations().listen((snapshot) {
-      _translations = snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        return {
-          'id': doc.id,
-          ...data,
-        };
-      }).toList();
-      notifyListeners();
-    });
+    _dataSubscriptions.add(
+      _firestoreService.getSpeechTranscriptions().listen((snapshot) {
+        _speechTranscriptions = snapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return {'id': doc.id, ...data};
+        }).toList();
+        _safeNotify();
+      }),
+    );
 
-    _firestoreService.getUserActivities().listen((snapshot) {
-      _activities = snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        return {
-          'id': doc.id,
-          ...data,
-        };
-      }).toList();
-      notifyListeners();
-    });
+    _dataSubscriptions.add(
+      _firestoreService.getUserActivities().listen((snapshot) {
+        _activities = snapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return {'id': doc.id, ...data};
+        }).toList();
+        _safeNotify();
+      }),
+    );
+  }
+
+  void _cancelDataSubscriptions() {
+    for (final sub in _dataSubscriptions) {
+      sub.cancel();
+    }
+    _dataSubscriptions.clear();
   }
 
   Future<void> fetchAllUserData() async {

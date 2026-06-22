@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class ActivityModel {
   final String id;
-  final String type; // 'chat', 'translate', 'speech', 'image'
+  final String type; // 'chat', 'speech', 'image'
   final String title;
   final String subtitle;
   final DateTime timestamp;

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../user/profile_screen.dart';
 
 class UserSettingsScreen extends StatefulWidget {
   const UserSettingsScreen({super.key});
@@ -13,72 +14,25 @@ class UserSettingsScreen extends StatefulWidget {
 
 class _UserSettingsScreenState extends State<UserSettingsScreen> {
   static const _primary = Color(0xFF6C63FF);
-  static const _bg = Color(0xFFF4F6FB);
-  static const _text1 = Color(0xFF12112A);
-  static const _text2 = Color(0xFF7B7A8E);
-  static const _border = Color(0xFFEAEAF4);
 
-  bool _notificationsEnabled = true;
-  String _selectedLanguage = 'English';
-
-  void _showLanguagePicker() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (modalContext) {
-        // StatefulBuilder allows the modal UI to re-render instantly
-        // when a user selects a new language checkmark.
-        return StatefulBuilder(
-          builder: (BuildContext innerContext, StateSetter setModalState) {
-            return Container(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: ListView(
-                shrinkWrap: true,
-                children: ['English', 'French', 'Spanish', 'Arabic', 'German']
-                    .map((lang) => ListTile(
-                          title: Text(lang,
-                              style: GoogleFonts.poppins(
-                                  fontSize: 14, color: _text1)),
-                          trailing: _selectedLanguage == lang
-                              ? const Icon(Icons.check_rounded, color: _primary)
-                              : null,
-                          onTap: () {
-                            // Update parent state
-                            setState(() => _selectedLanguage = lang);
-                            // Update local modal state for the instant visual checkmark change
-                            setModalState(() {});
-
-                            // Give the user a brief visual confirmation before closing
-                            Future.delayed(const Duration(milliseconds: 150),
-                                () {
-                              if (innerContext.mounted)
-                                Navigator.pop(innerContext);
-                            });
-                          },
-                        ))
-                    .toList(),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
+  Color _bg(BuildContext c) => Theme.of(c).brightness == Brightness.dark ? const Color(0xFF0B0B0F) : const Color(0xFFF4F6FB);
+  Color _t1(BuildContext c) => Theme.of(c).brightness == Brightness.dark ? Colors.white : const Color(0xFF12112A);
+  Color _t2(BuildContext c) => Theme.of(c).brightness == Brightness.dark ? const Color(0xFFA0A0B0) : const Color(0xFF7B7A8E);
+  Color _bd(BuildContext c) => Theme.of(c).brightness == Brightness.dark ? const Color(0xFF2A2A3E) : const Color(0xFFEAEAF4);
+  Color _card(BuildContext c) => Theme.of(c).brightness == Brightness.dark ? const Color(0xFF161622) : Colors.white;
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
+    final user = context.watch<AuthProvider>().currentUser;
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: _bg(context),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: _card(context),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: _text1, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: _t1(context), size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -86,7 +40,7 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w700,
-            color: _text1,
+            color: _t1(context),
           ),
         ),
         centerTitle: true,
@@ -94,25 +48,26 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          _buildSectionHeader('Account'),
+          _buildSectionHeader('Profile'),
           _buildSettingCard([
             _buildSettingItem(
-              icon: Icons.lock_outline_rounded,
-              color: Colors.orange,
-              title: 'Security',
-              subtitle: 'Change password and 2FA',
-              onTap: () {},
+              icon: Icons.person_outline_rounded,
+              color: _primary,
+              title: 'Edit Profile',
+              subtitle: user?.displayName ?? 'Update your name and photo',
+              onTap: () => Navigator.push(
+                  context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
             ),
           ]),
           const SizedBox(height: 24),
-          _buildSectionHeader('Preferences'),
+          _buildSectionHeader('App'),
           _buildSettingCard([
             _buildToggleItem(
               icon: Icons.notifications_none_rounded,
               color: Colors.red,
               title: 'Push Notifications',
-              value: _notificationsEnabled,
-              onChanged: (v) => setState(() => _notificationsEnabled = v),
+              value: true,
+              onChanged: (_) {},
             ),
             _buildDivider(),
             _buildToggleItem(
@@ -121,14 +76,6 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
               title: 'Dark Mode',
               value: themeProvider.isDarkMode,
               onChanged: (v) => themeProvider.toggleTheme(v),
-            ),
-            _buildDivider(),
-            _buildSettingItem(
-              icon: Icons.language_rounded,
-              color: Colors.teal,
-              title: 'Language',
-              subtitle: _selectedLanguage,
-              onTap: _showLanguagePicker,
             ),
           ]),
           const SizedBox(height: 24),
@@ -152,24 +99,25 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
   Widget _buildLogoutButton(BuildContext ctx) {
     return InkWell(
       onTap: () async {
-        await Provider.of<AuthProvider>(ctx, listen: false).signOut();
+        final authProvider = Provider.of<AuthProvider>(ctx, listen: false);
+        final navigator = Navigator.of(ctx);
+        await authProvider.signOut();
         if (mounted) {
-          Navigator.pushReplacementNamed(ctx, '/');
+          navigator.pushReplacementNamed('/');
         }
       },
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: _card(context),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: const Color(0xFFFEE2E2)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.logout_rounded,
-                color: Color(0xFFEF4444), size: 20),
+            Icon(Icons.logout_rounded, color: Color(0xFFEF4444), size: 20),
             const SizedBox(width: 10),
             Text(
               'Sign Out',
@@ -193,7 +141,7 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
         style: GoogleFonts.poppins(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: _text2,
+          color: _t2(context),
           letterSpacing: 1.1,
         ),
       ),
@@ -203,9 +151,9 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
   Widget _buildSettingCard(List<Widget> children) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _card(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _border),
+        border: Border.all(color: _bd(context)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
@@ -236,13 +184,13 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
       ),
       title: Text(title,
           style: GoogleFonts.poppins(
-              fontSize: 14, fontWeight: FontWeight.w500, color: _text1)),
+              fontSize: 14, fontWeight: FontWeight.w500, color: _t1(context))),
       subtitle: subtitle != null
           ? Text(subtitle,
-              style: GoogleFonts.poppins(fontSize: 12, color: _text2))
+              style: GoogleFonts.poppins(fontSize: 12, color: _t2(context)))
           : null,
       trailing:
-          const Icon(Icons.chevron_right_rounded, color: _text2, size: 20),
+          Icon(Icons.chevron_right_rounded, color: _t2(context), size: 20),
     );
   }
 
@@ -253,8 +201,6 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
-    // Replaced SwitchListTile with standard ListTile + trailing Switch
-    // to maintain explicit content sizing control inside our custom card container.
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
@@ -265,15 +211,16 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
       ),
       title: Text(title,
           style: GoogleFonts.poppins(
-              fontSize: 14, fontWeight: FontWeight.w500, color: _text1)),
+              fontSize: 14, fontWeight: FontWeight.w500, color: _t1(context))),
       trailing: Switch.adaptive(
         value: value,
         onChanged: onChanged,
-        activeColor: _primary,
+        activeThumbColor: _primary,
+        activeTrackColor: _primary.withValues(alpha: 0.4),
       ),
     );
   }
 
   Widget _buildDivider() =>
-      const Divider(height: 1, indent: 56, color: _border);
+      Divider(height: 1, indent: 56, color: _bd(context));
 }
