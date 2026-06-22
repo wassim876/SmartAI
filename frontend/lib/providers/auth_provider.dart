@@ -23,6 +23,9 @@ class AuthProvider extends ChangeNotifier {
   List<Map<String, dynamic>> _speechTranscriptions = [];
   List<Map<String, dynamic>> _activities = [];
 
+  // ==========================================
+  // GETTERS
+  // ==========================================
   UserModel? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _currentUser != null;
@@ -35,6 +38,9 @@ class AuthProvider extends ChangeNotifier {
   List<Map<String, dynamic>> get speechTranscriptions => _speechTranscriptions;
   List<Map<String, dynamic>> get activities => _activities;
 
+  // ==========================================
+  // CONSTRUCTOR
+  // ==========================================
   AuthProvider() {
     _authService.authStateChanges.listen((user) async {
       if (user != null) {
@@ -195,7 +201,11 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> sendPasswordResetEmail(String email) async {
-    await _authService.sendPasswordResetEmail(email);
+    try {
+      await _authService.sendPasswordResetEmail(email);
+    } catch (e) {
+      throw Exception('Failed to send reset email: ${e.toString()}');
+    }
   }
 
   Future<void> updateProfile({

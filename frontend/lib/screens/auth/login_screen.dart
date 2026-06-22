@@ -85,34 +85,49 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _loginWithGoogle() async {
-    setState(() => _isLoading = true);
-    try {
-      final authProvider = context.read<AuthProvider>();
-      await authProvider.loginWithGoogle();
-      if (mounted) {
-        if (authProvider.isAdmin) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AdminLayout(child: AdminDashboard()),
-            ),
-          );
-        } else {
-          Navigator.pushReplacementNamed(context, '/home');
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Google login failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
+  setState(() => _isLoading = true);
+  try {
+    final authProvider = context.read<AuthProvider>();
+    await authProvider.loginWithGoogle();
+    
+    if (mounted) {
+      if (authProvider.isAdmin) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const AdminLayout(child: AdminDashboard()),
           ),
         );
+      } else {
+        Navigator.pushReplacementNamed(context, '/home');
       }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
     }
+  } catch (e) {
+    if (mounted) {
+      String errorMessage = 'Google login failed';
+      
+      // More specific error messages
+      if (e.toString().contains('canceled')) {
+        errorMessage = 'Google sign-in was cancelled';
+      } else if (e.toString().contains('network')) {
+        errorMessage = 'Network error. Please check your connection';
+      } else if (e.toString().contains('account-exists')) {
+        errorMessage = 'An account already exists with this email';
+      } else {
+        errorMessage = 'Google login failed: ${e.toString()}';
+      }
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  } finally {
+    if (mounted) setState(() => _isLoading = false);
+  }
   }
 
   Future<void> _loginWithGitHub() async {

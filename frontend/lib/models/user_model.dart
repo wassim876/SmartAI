@@ -16,10 +16,17 @@ class UserModel {
   final DateTime createdAt;
   final DateTime? lastLogin;
 
+  // ==========================================
+  // GETTERS
+  // ==========================================
   String get name => displayName.isNotEmpty ? displayName : username;
   String get role => isAdmin ? 'Admin' : 'User';
   String get avatarUrl => photoURL ?? '';
+  bool get isPro => isPremium;
 
+  // ==========================================
+  // CONSTRUCTOR
+  // ==========================================
   UserModel({
     required this.uid,
     required this.username,
@@ -35,6 +42,11 @@ class UserModel {
     this.lastLogin,
   });
 
+  // ==========================================
+  // FACTORY CONSTRUCTORS
+  // ==========================================
+
+  /// Create UserModel from Firebase Auth User
   factory UserModel.fromFirebase(User user) {
     return UserModel(
       uid: user.uid,
@@ -52,6 +64,7 @@ class UserModel {
     );
   }
 
+  /// Create UserModel from Firestore Document
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return UserModel(
@@ -72,8 +85,14 @@ class UserModel {
     );
   }
 
-  Map<String, dynamic> toFirestore() {
+  // ==========================================
+  // TO MAP METHODS
+  // ==========================================
+
+  /// For creating a new user in Firestore
+  Map<String, dynamic> toFirestoreForCreate() {
     return {
+      'uid': uid,
       'username': username,
       'email': email,
       'displayName': displayName,
@@ -84,10 +103,47 @@ class UserModel {
       'dailyMessagesUsed': dailyMessagesUsed,
       'dailyMessagesLimit': dailyMessagesLimit,
       'createdAt': FieldValue.serverTimestamp(),
-      'lastLogin': lastLogin != null ? FieldValue.serverTimestamp() : null,
+      'lastLogin': FieldValue.serverTimestamp(),
     };
   }
 
+  /// For updating an existing user in Firestore
+  Map<String, dynamic> toFirestoreForUpdate() {
+    return {
+      'username': username,
+      'email': email,
+      'displayName': displayName,
+      'photoURL': photoURL,
+      'isPremium': isPremium,
+      'isActive': isActive,
+      'isAdmin': isAdmin,
+      'dailyMessagesUsed': dailyMessagesUsed,
+      'dailyMessagesLimit': dailyMessagesLimit,
+      'lastLogin': FieldValue.serverTimestamp(),
+    };
+  }
+
+  /// For use when you need a complete map (use with caution)
+  Map<String, dynamic> toFirestore() {
+    return {
+      'uid': uid,
+      'username': username,
+      'email': email,
+      'displayName': displayName,
+      'photoURL': photoURL,
+      'isPremium': isPremium,
+      'isActive': isActive,
+      'isAdmin': isAdmin,
+      'dailyMessagesUsed': dailyMessagesUsed,
+      'dailyMessagesLimit': dailyMessagesLimit,
+      'createdAt': createdAt,
+      'lastLogin': lastLogin,
+    };
+  }
+
+  // ==========================================
+  // COPY WITH
+  // ==========================================
   UserModel copyWith({
     String? username,
     String? email,
@@ -115,4 +171,32 @@ class UserModel {
       lastLogin: lastLogin ?? this.lastLogin,
     );
   }
+
+  // ==========================================
+  // HELPER METHODS
+  // ==========================================
+
+  /// Check if user has reached daily message limit
+  bool get hasReachedDailyLimit {
+    return dailyMessagesUsed >= dailyMessagesLimit;
+  }
+
+  /// Get remaining messages for today
+  int get remainingMessages {
+    return dailyMessagesLimit - dailyMessagesUsed;
+  }
+
+  /// Get user's display name or fallback
+  String get displayNameOrUsername {
+    return displayName.isNotEmpty ? displayName : username;
+  }
+
+  /// Check if user is active
+  bool get isActiveUser => isActive;
+
+  /// Check if user is premium
+  bool get isPremiumUser => isPremium;
+
+  /// Check if user is admin
+  bool get isAdminUser => isAdmin;
 }

@@ -1,4 +1,5 @@
 // lib/services/firebase_auth_service.dart
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,6 +16,9 @@ class FirebaseAuthService {
 
   bool get isAuthenticated => _auth.currentUser != null;
 
+  // ==========================================
+  // SIGN UP WITH EMAIL & PASSWORD
+  // ==========================================
   Future<UserModel?> signUp({
     required String username,
     required String email,
@@ -27,32 +31,15 @@ class FirebaseAuthService {
       );
 
       final user = userCredential.user!;
+      await user.updateDisplayName(username);
 
-      // Update display name — don't crash if this fails
-      try {
-        await user.updateDisplayName(username);
-        await user.reload();
-      } catch (_) {}
+      // Create UserModel and save to Firestore
+      final userModel = UserModel.fromFirebase(user);
+      await _firestore.collection('users').doc(user.uid).set(
+            userModel.toFirestoreForCreate(),
+          );
 
-      // Save full profile to Firestore
-      await _firestore.collection('users').doc(user.uid).set({
-        'uid': user.uid,
-        'username': username,
-        'email': email,
-        'displayName': username,
-        'photoURL': null,
-        'isPremium': false,
-        'isActive': true,
-        'isAdmin': false,
-        'dailyMessagesUsed': 0,
-        'dailyMessagesLimit': 50,
-        'createdAt': FieldValue.serverTimestamp(),
-        'lastLogin': FieldValue.serverTimestamp(),
-      });
-
-      // Return from Firestore so we get the complete data (isAdmin etc)
-      final doc = await _firestore.collection('users').doc(user.uid).get();
-      return UserModel.fromFirestore(doc);
+      return userModel;
     } on FirebaseAuthException catch (e) {
       throw Exception(_getAuthErrorMessage(e));
     } catch (e) {
@@ -60,6 +47,9 @@ class FirebaseAuthService {
     }
   }
 
+  // ==========================================
+  // SIGN IN WITH EMAIL & PASSWORD
+  // ==========================================
   Future<UserModel?> signIn({
     required String email,
     required String password,
@@ -70,16 +60,17 @@ class FirebaseAuthService {
         password: password,
       );
 
-      final uid = userCredential.user!.uid;
-
-      await _firestore.collection('users').doc(uid).set({
+      final user = userCredential.user!;
+      
+      // Update last login
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .update({
         'lastLogin': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      });
 
-      // Return from Firestore so isAdmin/isPremium are correctly loaded
-      final doc = await _firestore.collection('users').doc(uid).get();
-      if (doc.exists) return UserModel.fromFirestore(doc);
-      return UserModel.fromFirebase(userCredential.user!);
+      return UserModel.fromFirebase(user);
     } on FirebaseAuthException catch (e) {
       throw Exception(_getAuthErrorMessage(e));
     } catch (e) {
@@ -87,6 +78,9 @@ class FirebaseAuthService {
     }
   }
 
+  // ==========================================
+  // SIGN IN WITH GOOGLE
+  // ==========================================
   Future<UserModel?> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
@@ -103,35 +97,35 @@ class FirebaseAuthService {
       final userCredential = await _auth.signInWithCredential(credential);
       final user = userCredential.user!;
 
+      // Check if user exists in Firestore
       final doc = await _firestore.collection('users').doc(user.uid).get();
+      
       if (!doc.exists) {
-        await _firestore.collection('users').doc(user.uid).set({
-          'uid': user.uid,
-          'username':
-              user.displayName ?? user.email?.split('@').first ?? 'user',
-          'email': user.email,
-          'displayName': user.displayName ?? 'User',
-          'photoURL': user.photoURL,
-          'isPremium': false,
-          'isActive': true,
-          'isAdmin': false,
-          'dailyMessagesUsed': 0,
-          'dailyMessagesLimit': 50,
-          'createdAt': FieldValue.serverTimestamp(),
-          'lastLogin': FieldValue.serverTimestamp(),
-        });
+        // Create new user using UserModel
+        final userModel = UserModel.fromFirebase(user);
+        await _firestore.collection('users').doc(user.uid).set(
+              userModel.toFirestoreForCreate(),
+            );
       } else {
+        // Update last login
         await _firestore.collection('users').doc(user.uid).update({
           'lastLogin': FieldValue.serverTimestamp(),
         });
       }
 
-      return UserModel.fromFirebase(user);
+      // Return fresh user data from Firestore
+      final updatedDoc = await _firestore.collection('users').doc(user.uid).get();
+      return UserModel.fromFirestore(updatedDoc);
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_getAuthErrorMessage(e));
     } catch (e) {
       throw Exception('Google sign in failed: $e');
     }
   }
 
+  // ==========================================
+  // SIGN IN WITH GITHUB
+  // ==========================================
   Future<UserModel?> signInWithGitHub() async {
     try {
       final githubProvider = GithubAuthProvider();
@@ -139,29 +133,23 @@ class FirebaseAuthService {
       final user = userCredential.user!;
 
       final doc = await _firestore.collection('users').doc(user.uid).get();
+      
       if (!doc.exists) {
-        await _firestore.collection('users').doc(user.uid).set({
-          'uid': user.uid,
-          'username':
-              user.displayName ?? user.email?.split('@').first ?? 'user',
-          'email': user.email,
-          'displayName': user.displayName ?? 'User',
-          'photoURL': user.photoURL,
-          'isPremium': false,
-          'isActive': true,
-          'isAdmin': false,
-          'dailyMessagesUsed': 0,
-          'dailyMessagesLimit': 50,
-          'createdAt': FieldValue.serverTimestamp(),
-          'lastLogin': FieldValue.serverTimestamp(),
-        });
+        // Create new user using UserModel
+        final userModel = UserModel.fromFirebase(user);
+        await _firestore.collection('users').doc(user.uid).set(
+              userModel.toFirestoreForCreate(),
+            );
       } else {
+        // Update last login
         await _firestore.collection('users').doc(user.uid).update({
           'lastLogin': FieldValue.serverTimestamp(),
         });
       }
 
-      return UserModel.fromFirebase(user);
+      // Return fresh user data from Firestore
+      final updatedDoc = await _firestore.collection('users').doc(user.uid).get();
+      return UserModel.fromFirestore(updatedDoc);
     } on FirebaseAuthException catch (e) {
       throw Exception(_getAuthErrorMessage(e));
     } catch (e) {
@@ -169,48 +157,231 @@ class FirebaseAuthService {
     }
   }
 
+  // ==========================================
+  // SIGN OUT
+  // ==========================================
   Future<void> signOut() async {
     await _googleSignIn.signOut();
     await _auth.signOut();
   }
 
+  // ==========================================
+  // PASSWORD RESET
+  // ==========================================
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
-      throw Exception(_getAuthErrorMessage(e));
+      if (e.code == 'user-not-found') {
+        throw Exception('No user found with this email address.');
+      } else if (e.code == 'invalid-email') {
+        throw Exception('Please enter a valid email address.');
+      } else if (e.code == 'too-many-requests') {
+        throw Exception('Too many requests. Please try again later.');
+      } else {
+        throw Exception('Failed to send reset email: ${e.message}');
+      }
+    } catch (e) {
+      throw Exception('An error occurred: ${e.toString()}');
     }
   }
 
+  // ==========================================
+  // UPDATE PROFILE
+  // ==========================================
   Future<void> updateProfile({
     String? displayName,
     String? photoURL,
-    bool clearPhoto = false,
   }) async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('Not authenticated');
 
-    if (displayName != null) {
-      await user.updateDisplayName(displayName);
-    }
-    if (photoURL != null) {
-      await user.updatePhotoURL(photoURL);
-    } else if (clearPhoto) {
-      await user.updatePhotoURL(null);
-    }
+    try {
+      if (displayName != null) {
+        await user.updateDisplayName(displayName);
+      }
+      if (photoURL != null) {
+        await user.updatePhotoURL(photoURL);
+      }
 
-    final updates = <String, dynamic>{};
-    if (displayName != null) updates['displayName'] = displayName;
-    if (photoURL != null) {
-      updates['photoURL'] = photoURL;
-    } else if (clearPhoto) {
-      updates['photoURL'] = null;
-    }
-    if (updates.isNotEmpty) {
-      await _firestore.collection('users').doc(user.uid).set(updates, SetOptions(merge: true));
+      // Update Firestore
+      final Map<String, dynamic> updateData = {};
+      if (displayName != null) updateData['displayName'] = displayName;
+      if (photoURL != null) updateData['photoURL'] = photoURL;
+      
+      if (updateData.isNotEmpty) {
+        await _firestore.collection('users').doc(user.uid).update(updateData);
+      }
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_getAuthErrorMessage(e));
+    } catch (e) {
+      throw Exception('Failed to update profile: $e');
     }
   }
 
+  // ==========================================
+  // CHANGE EMAIL
+  // ==========================================
+  Future<void> changeEmail(String newEmail) async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('Not authenticated');
+
+    try {
+      await user.verifyBeforeUpdateEmail(newEmail);
+      await _firestore.collection('users').doc(user.uid).update({
+        'email': newEmail,
+      });
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_getAuthErrorMessage(e));
+    } catch (e) {
+      throw Exception('Failed to change email: $e');
+    }
+  }
+
+  // ==========================================
+  // CHANGE PASSWORD
+  // ==========================================
+  Future<void> changePassword(String currentPassword, String newPassword) async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('Not authenticated');
+
+    try {
+      // Re-authenticate user first
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPassword,
+      );
+      await user.reauthenticateWithCredential(credential);
+      
+      // Then change password
+      await user.updatePassword(newPassword);
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_getAuthErrorMessage(e));
+    } catch (e) {
+      throw Exception('Failed to change password: $e');
+    }
+  }
+
+  // ==========================================
+  // REAUTHENTICATE USER
+  // ==========================================
+  Future<void> reauthenticate(String password) async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('Not authenticated');
+
+    try {
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: password,
+      );
+      await user.reauthenticateWithCredential(credential);
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_getAuthErrorMessage(e));
+    } catch (e) {
+      throw Exception('Reauthentication failed: $e');
+    }
+  }
+
+  // ==========================================
+  // DELETE ACCOUNT
+  // ==========================================
+  Future<void> deleteAccount() async {
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('Not authenticated');
+
+    try {
+      // Delete user from Firestore first
+      await _firestore.collection('users').doc(user.uid).delete();
+      
+      // Delete user data subcollections
+      final subcollections = [
+        'chatHistory',
+        'imageAnalyses',
+        'speechTranscriptions',
+        'translations',
+        'activities',
+      ];
+      
+      for (final subcollection in subcollections) {
+        try {
+          final snapshot = await _firestore
+              .collection('users')
+              .doc(user.uid)
+              .collection(subcollection)
+              .get();
+          
+          if (snapshot.docs.isNotEmpty) {
+            final batch = _firestore.batch();
+            for (final doc in snapshot.docs) {
+              batch.delete(doc.reference);
+            }
+            await batch.commit();
+          }
+        } catch (e) {
+          // Continue with other subcollections
+          debugPrint('Failed to delete subcollection $subcollection: $e');
+        }
+      }
+      
+      // Then delete from Firebase Auth
+      await user.delete();
+    } on FirebaseAuthException catch (e) {
+      // If user needs recent authentication
+      if (e.code == 'requires-recent-login') {
+        throw Exception('Please reauthenticate before deleting your account.');
+      }
+      throw Exception(_getAuthErrorMessage(e));
+    } catch (e) {
+      throw Exception('Failed to delete account: $e');
+    }
+  }
+
+  // ==========================================
+  // GET USER FROM FIRESTORE
+  // ==========================================
+  Future<UserModel?> getUserFromFirestore() async {
+    final user = _auth.currentUser;
+    if (user == null) return null;
+
+    try {
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+      if (!doc.exists) return null;
+      return UserModel.fromFirestore(doc);
+    } catch (e) {
+      throw Exception('Failed to get user data: $e');
+    }
+  }
+
+  // ==========================================
+  // REFRESH USER DATA
+  // ==========================================
+  Future<UserModel?> refreshUserData() async {
+    final user = _auth.currentUser;
+    if (user == null) return null;
+
+    try {
+      await user.reload();
+      final refreshedUser = _auth.currentUser;
+      if (refreshedUser == null) return null;
+      
+      final doc = await _firestore.collection('users').doc(refreshedUser.uid).get();
+      if (!doc.exists) {
+        // If user exists in Auth but not Firestore, create it
+        final userModel = UserModel.fromFirebase(refreshedUser);
+        await _firestore.collection('users').doc(refreshedUser.uid).set(
+              userModel.toFirestoreForCreate(),
+            );
+        return userModel;
+      }
+      return UserModel.fromFirestore(doc);
+    } catch (e) {
+      throw Exception('Failed to refresh user data: $e');
+    }
+  }
+
+  // ==========================================
+  // ERROR HANDLING
+  // ==========================================
   String _getAuthErrorMessage(FirebaseAuthException e) {
     switch (e.code) {
       case 'user-not-found':
@@ -227,6 +398,18 @@ class FirebaseAuthService {
         return 'Too many requests. Try again later.';
       case 'network-request-failed':
         return 'Network error. Check your connection.';
+      case 'user-disabled':
+        return 'This account has been disabled.';
+      case 'operation-not-allowed':
+        return 'This sign-in method is not enabled.';
+      case 'account-exists-with-different-credential':
+        return 'An account already exists with a different sign-in method.';
+      case 'requires-recent-login':
+        return 'Please reauthenticate to perform this action.';
+      case 'credential-already-in-use':
+        return 'This credential is already linked to another account.';
+      case 'invalid-credential':
+        return 'Invalid credentials provided.';
       default:
         return e.message ?? 'Authentication failed.';
     }
