@@ -12,7 +12,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-#UI & Design
+  #UI & Design
   google_fonts: ^6.2.1
   flutter_svg: ^2.0.9
   cupertino_icons: ^1.0.6
