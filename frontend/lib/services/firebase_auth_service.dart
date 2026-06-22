@@ -31,7 +31,12 @@ class FirebaseAuthService {
       );
 
       final user = userCredential.user!;
-      await user.updateDisplayName(username);
+      
+      // Update display name with error handling
+      try {
+        await user.updateDisplayName(username);
+        await user.reload();
+      } catch (_) {}
 
       // Create UserModel and save to Firestore
       final userModel = UserModel.fromFirebase(user);
@@ -39,7 +44,9 @@ class FirebaseAuthService {
             userModel.toFirestoreForCreate(),
           );
 
-      return userModel;
+      // Return from Firestore to get complete data
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+      return UserModel.fromFirestore(doc);
     } on FirebaseAuthException catch (e) {
       throw Exception(_getAuthErrorMessage(e));
     } catch (e) {
@@ -62,15 +69,29 @@ class FirebaseAuthService {
 
       final user = userCredential.user!;
       
+      // Check if user exists in Firestore
+      final doc = await _firestore.collection('users').doc(user.uid).get();
+      
+      if (!doc.exists) {
+        // Create user in Firestore if they don't exist
+        final userModel = UserModel.fromFirebase(user);
+        await _firestore.collection('users').doc(user.uid).set(
+              userModel.toFirestoreForCreate(),
+            );
+        return userModel;
+      }
+      
       // Update last login
       await _firestore
           .collection('users')
           .doc(user.uid)
-          .update({
+          .set({
         'lastLogin': FieldValue.serverTimestamp(),
-      });
+      }, SetOptions(merge: true));
 
-      return UserModel.fromFirebase(user);
+      // Return from Firestore so isAdmin/isPremium are correctly loaded
+      final updatedDoc = await _firestore.collection('users').doc(user.uid).get();
+      return UserModel.fromFirestore(updatedDoc);
     } on FirebaseAuthException catch (e) {
       throw Exception(_getAuthErrorMessage(e));
     } catch (e) {
@@ -108,9 +129,9 @@ class FirebaseAuthService {
             );
       } else {
         // Update last login
-        await _firestore.collection('users').doc(user.uid).update({
+        await _firestore.collection('users').doc(user.uid).set({
           'lastLogin': FieldValue.serverTimestamp(),
-        });
+        }, SetOptions(merge: true));
       }
 
       // Return fresh user data from Firestore
@@ -142,9 +163,9 @@ class FirebaseAuthService {
             );
       } else {
         // Update last login
-        await _firestore.collection('users').doc(user.uid).update({
+        await _firestore.collection('users').doc(user.uid).set({
           'lastLogin': FieldValue.serverTimestamp(),
-        });
+        }, SetOptions(merge: true));
       }
 
       // Return fresh user data from Firestore
@@ -192,6 +213,7 @@ class FirebaseAuthService {
   Future<void> updateProfile({
     String? displayName,
     String? photoURL,
+    bool clearPhoto = false,
   }) async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('Not authenticated');
@@ -202,15 +224,24 @@ class FirebaseAuthService {
       }
       if (photoURL != null) {
         await user.updatePhotoURL(photoURL);
+      } else if (clearPhoto) {
+        await user.updatePhotoURL(null);
       }
 
       // Update Firestore
       final Map<String, dynamic> updateData = {};
       if (displayName != null) updateData['displayName'] = displayName;
-      if (photoURL != null) updateData['photoURL'] = photoURL;
+      if (photoURL != null) {
+        updateData['photoURL'] = photoURL;
+      } else if (clearPhoto) {
+        updateData['photoURL'] = null;
+      }
       
       if (updateData.isNotEmpty) {
-        await _firestore.collection('users').doc(user.uid).update(updateData);
+        await _firestore.collection('users').doc(user.uid).set(
+          updateData, 
+          SetOptions(merge: true)
+        );
       }
     } on FirebaseAuthException catch (e) {
       throw Exception(_getAuthErrorMessage(e));
@@ -228,9 +259,9 @@ class FirebaseAuthService {
 
     try {
       await user.verifyBeforeUpdateEmail(newEmail);
-      await _firestore.collection('users').doc(user.uid).update({
+      await _firestore.collection('users').doc(user.uid).set({
         'email': newEmail,
-      });
+      }, SetOptions(merge: true));
     } on FirebaseAuthException catch (e) {
       throw Exception(_getAuthErrorMessage(e));
     } catch (e) {
