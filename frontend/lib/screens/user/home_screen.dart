@@ -1162,8 +1162,9 @@ class _Sidebar extends StatelessWidget {
                   'Logout',
                   true,
                   () => context.read<AuthProvider>().signOut().then((_) {
-                        if (context.mounted)
+                        if (context.mounted) {
                           Navigator.pushReplacementNamed(context, '/');
+                        }
                       })),
             ])),
         const SizedBox(height: 8),
@@ -1258,8 +1259,9 @@ class _TopBar extends StatelessWidget {
               Navigator.pushNamed(context, '/help');
             } else if (val == 'logout') {
               context.read<AuthProvider>().signOut().then((_) {
-                if (context.mounted)
+                if (context.mounted) {
                   Navigator.pushReplacementNamed(context, '/');
+                }
               });
             }
           },
