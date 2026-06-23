@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../theme/dark_mode_helpers.dart';
 
 class StatCard extends StatelessWidget {
   final IconData icon;
@@ -18,84 +20,50 @@ class StatCard extends StatelessWidget {
   });
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
+    return Container(
+      decoration: BoxDecoration(
+        color: D.card(context),
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey[200]!),
+        border: Border.all(color: D.bd(context), width: 1),
       ),
-      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: iconColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: iconColor, size: 24),
+              child: Icon(icon, color: iconColor, size: 22),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 12,
+                  Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(color: D.t2(context), fontSize: 12, fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 4),
+                  Text(value, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: D.t1(context), letterSpacing: -0.5)),
+                  const SizedBox(height: 4),
+                  Row(children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(children: [
+                        const Icon(Icons.arrow_upward, size: 10, color: Colors.green),
+                        const SizedBox(width: 2),
+                        Text(growth, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(color: Colors.green, fontSize: 11, fontWeight: FontWeight.w600)),
+                      ]),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    value,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[900],
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.arrow_upward,
-                        size: 12,
-                        color: Colors.green,
-                      ),
-                      const SizedBox(width: 2),
-                      Text(
-                        growth,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.green,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          growthType,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: Colors.grey[500],
-                            fontSize: 10,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    const SizedBox(width: 6),
+                    Flexible(child: Text(growthType, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(color: D.t3(context), fontSize: 10))),
+                  ]),
                 ],
               ),
             ),

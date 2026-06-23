@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../theme/dark_mode_helpers.dart';
 
 class AIServicesScreen extends StatelessWidget {
   const AIServicesScreen({super.key});
@@ -10,39 +12,29 @@ class AIServicesScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           LayoutBuilder(
             builder: (context, constraints) {
               final bool isNarrow = constraints.maxWidth < 500;
               final title = Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'AI Services',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[900],
-                    ),
-                  ),
+                  Text('AI Services', style: GoogleFonts.poppins(fontSize: 26, fontWeight: FontWeight.bold, color: D.t1(context), letterSpacing: -0.5)),
                   const SizedBox(height: 4),
-                  Text(
-                    'Manage and monitor all AI-powered services',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                  ),
+                  Text('Manage and monitor all AI-powered services', style: GoogleFonts.poppins(color: D.t2(context), fontSize: 14)),
                 ],
               );
               final button = MouseRegion(
                 cursor: SystemMouseCursors.click,
                 child: ElevatedButton.icon(
                   onPressed: () {},
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Add Service'),
+                  icon: const Icon(Icons.add_rounded, size: 18),
+                  label: Text('Add Service', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF5A4FCF),
+                    backgroundColor: const Color(0xFF6C63FF),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
                   ),
                 ),
               );
@@ -53,10 +45,7 @@ class AIServicesScreen extends StatelessWidget {
                   children: [
                     title,
                     const SizedBox(height: 16),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: button,
-                    ),
+                    Align(alignment: Alignment.centerLeft, child: button),
                   ],
                 );
               }
@@ -73,82 +62,24 @@ class AIServicesScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Service Cards Grid
           LayoutBuilder(
             builder: (context, constraints) {
-              final crossAxisCount = constraints.maxWidth > 1100
-                  ? 3
-                  : constraints.maxWidth > 700
-                      ? 2
-                      : 1;
-              final double childAspectRatio = constraints.maxWidth > 1100
-                  ? 1.4
-                  : constraints.maxWidth > 700
-                      ? 1.2
-                      : 0.85;
+              final crossAxisCount = constraints.maxWidth > 1100 ? 3 : constraints.maxWidth > 700 ? 2 : 1;
+              final double childAspectRatio = constraints.maxWidth > 1100 ? 1.4 : constraints.maxWidth > 700 ? 1.2 : 0.85;
               return GridView.count(
                 crossAxisCount: crossAxisCount,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
+                mainAxisSpacing: 14,
+                crossAxisSpacing: 14,
                 childAspectRatio: childAspectRatio,
                 children: [
-                  _buildServiceCard(
-                    icon: Icons.chat_bubble_outline,
-                    color: Colors.blue,
-                    title: 'Chat Assistant',
-                    description:
-                        'Conversational AI assistant for general queries',
-                    requests: '35,070',
-                    usage: 35.6,
-                    status: 'Active',
-                  ),
-                  _buildServiceCard(
-                    icon: Icons.image_outlined,
-                    color: Colors.green,
-                    title: 'Image Analysis',
-                    description: 'Detect objects, text, and content in images',
-                    requests: '22,418',
-                    usage: 22.8,
-                    status: 'Active',
-                  ),
-                  _buildServiceCard(
-                    icon: Icons.mic_none_outlined,
-                    color: Colors.orange,
-                    title: 'Speech to Text',
-                    description: 'Transcribe audio recordings into text',
-                    requests: '14,996',
-                    usage: 15.3,
-                    status: 'Active',
-                  ),
-                  _buildServiceCard(
-                    icon: Icons.record_voice_over_outlined,
-                    color: Colors.purple,
-                    title: 'Text to Speech',
-                    description: 'Convert written text into natural speech',
-                    requests: '10,520',
-                    usage: 10.7,
-                    status: 'Active',
-                  ),
-                  _buildServiceCard(
-                    icon: Icons.translate_outlined,
-                    color: Colors.teal,
-                    title: 'Translation',
-                    description: 'Translate text between multiple languages',
-                    requests: '8,455',
-                    usage: 8.6,
-                    status: 'Active',
-                  ),
-                  _buildServiceCard(
-                    icon: Icons.apps_outlined,
-                    color: Colors.grey,
-                    title: 'Others',
-                    description: 'Miscellaneous AI utilities and tools',
-                    requests: '5,861',
-                    usage: 6.0,
-                    status: 'Maintenance',
-                  ),
+                  _buildServiceCard(context, icon: Icons.chat_bubble_outline_rounded, color: const Color(0xFF3B82F6), title: 'Chat Assistant', description: 'Conversational AI assistant for general queries', requests: '35,070', usage: 35.6, status: 'Active'),
+                  _buildServiceCard(context, icon: Icons.image_outlined, color: const Color(0xFF10B981), title: 'Image Analysis', description: 'Detect objects, text, and content in images', requests: '22,418', usage: 22.8, status: 'Active'),
+                  _buildServiceCard(context, icon: Icons.mic_none_outlined, color: const Color(0xFFF59E0B), title: 'Speech to Text', description: 'Transcribe audio recordings into text', requests: '14,996', usage: 15.3, status: 'Active'),
+                  _buildServiceCard(context, icon: Icons.record_voice_over_outlined, color: const Color(0xFF8B5CF6), title: 'Text to Speech', description: 'Convert written text into natural speech', requests: '10,520', usage: 10.7, status: 'Active'),
+                  _buildServiceCard(context, icon: Icons.translate_outlined, color: const Color(0xFF14B8A6), title: 'Translation', description: 'Translate text between multiple languages', requests: '8,455', usage: 8.6, status: 'Active'),
+                  _buildServiceCard(context, icon: Icons.apps_outlined, color: const Color(0xFF6B7280), title: 'Others', description: 'Miscellaneous AI utilities and tools', requests: '5,861', usage: 6.0, status: 'Maintenance'),
                 ],
               );
             },
@@ -158,7 +89,7 @@ class AIServicesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildServiceCard({
+  Widget _buildServiceCard(BuildContext context, {
     required IconData icon,
     required Color color,
     required String title,
@@ -172,15 +103,9 @@ class AIServicesScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: D.card(context),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: D.bd(context), width: 1),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -190,70 +115,46 @@ class AIServicesScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
+                  color: color.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: color, size: 26),
+                child: Icon(icon, color: color, size: 24),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isActive
-                      ? Colors.green.withValues(alpha: 0.1)
-                      : Colors.orange.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: isActive ? const Color(0xFF10B981).withValues(alpha: 0.12) : const Color(0xFFF59E0B).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(
-                  status,
-                  style: TextStyle(
-                    color: isActive ? Colors.green : Colors.orange,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+                child: Text(status, style: GoogleFonts.poppins(
+                  color: isActive ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                )),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          Text(title, style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold, color: D.t1(context))),
           const SizedBox(height: 4),
-          Text(
-            description,
-            style: TextStyle(color: Colors.grey[600], fontSize: 12),
-          ),
+          Text(description, style: GoogleFonts.poppins(color: D.t2(context), fontSize: 12), maxLines: 2, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                '$requests requests',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Text(
-                '$usage% of total',
-                style: TextStyle(color: Colors.grey[600], fontSize: 12),
-              ),
+              Text('$requests requests', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: D.t1(context))),
+              Text('$usage% of total', style: GoogleFonts.poppins(color: D.t2(context), fontSize: 12)),
             ],
           ),
           const SizedBox(height: 8),
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: usage / 100,
               minHeight: 6,
-              backgroundColor: Colors.grey[200],
+              backgroundColor: D.hover(context),
               valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
           ),
@@ -267,8 +168,11 @@ class AIServicesScreen extends StatelessWidget {
                     onPressed: () {},
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 10),
+                      side: BorderSide(color: D.bd(context)),
+                      foregroundColor: D.t1(context),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                    child: const Text('Configure'),
+                    child: Text('Configure', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500)),
                   ),
                 ),
               ),
@@ -278,10 +182,10 @@ class AIServicesScreen extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey[300]!),
-                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: D.bd(context)),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.more_vert, size: 18),
+                  child: Icon(Icons.more_vert_rounded, size: 18, color: D.t2(context)),
                 ),
               ),
             ],

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../l10n/app_localizations.dart';
 import '../user/profile_screen.dart';
 
 class UserSettingsScreen extends StatefulWidget {
@@ -25,6 +26,7 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
     final user = context.watch<AuthProvider>().currentUser;
+    final loc = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: _bg(context),
@@ -36,7 +38,7 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Settings',
+          loc.translate('settings'),
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -48,24 +50,24 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          _buildSectionHeader('Profile'),
+          _buildSectionHeader(loc.translate('profile')),
           _buildSettingCard([
             _buildSettingItem(
               icon: Icons.person_outline_rounded,
               color: _primary,
-              title: 'Edit Profile',
-              subtitle: user?.displayName ?? 'Update your name and photo',
+              title: loc.translate('editProfile'),
+              subtitle: user?.displayName ?? loc.translate('editProfile'),
               onTap: () => Navigator.push(
                   context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
             ),
           ]),
           const SizedBox(height: 24),
-          _buildSectionHeader('App'),
+          _buildSectionHeader(loc.translate('appSection')),
           _buildSettingCard([
             _buildToggleItem(
               icon: Icons.notifications_none_rounded,
               color: Colors.red,
-              title: 'Push Notifications',
+              title: loc.translate('pushNotifications'),
               value: true,
               onChanged: (_) {},
             ),
@@ -73,18 +75,18 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
             _buildToggleItem(
               icon: Icons.dark_mode_outlined,
               color: Colors.indigo,
-              title: 'Dark Mode',
+              title: loc.translate('darkMode'),
               value: themeProvider.isDarkMode,
               onChanged: (v) => themeProvider.toggleTheme(v),
             ),
           ]),
           const SizedBox(height: 24),
-          _buildSectionHeader('Support'),
+          _buildSectionHeader(loc.translate('support')),
           _buildSettingCard([
             _buildSettingItem(
               icon: Icons.help_outline_rounded,
               color: Colors.purple,
-              title: 'Help Center',
+              title: loc.translate('helpCenter'),
               onTap: () => Navigator.pushNamed(context, '/help'),
             ),
           ]),
@@ -97,6 +99,7 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
   }
 
   Widget _buildLogoutButton(BuildContext ctx) {
+    final loc = AppLocalizations.of(context);
     return InkWell(
       onTap: () async {
         final authProvider = Provider.of<AuthProvider>(ctx, listen: false);

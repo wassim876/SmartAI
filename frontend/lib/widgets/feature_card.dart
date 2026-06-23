@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../theme/dark_mode_helpers.dart';
 
 class FeatureCard extends StatelessWidget {
   final String title;
@@ -28,9 +29,9 @@ class FeatureCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: D.card(context),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: const Color(0xFFE5E7EB)),
+          border: Border.all(color: D.bd(context)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.04),
@@ -59,11 +60,11 @@ class FeatureCard extends StatelessWidget {
                     width: 26,
                     height: 26,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF5F6FA),
+                      color: D.bg(context),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.lock_rounded,
-                        size: 14, color: Color(0xFF9CA3AF)),
+                    child: Icon(Icons.lock_rounded,
+                        size: 14, color: D.t2(context)),
                   ),
               ],
             ),
@@ -73,14 +74,14 @@ class FeatureCard extends StatelessWidget {
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w700,
                 fontSize: 14,
-                color: const Color(0xFF1A1A2E),
+                color: D.t1(context),
               ),
             ),
             const SizedBox(height: 4),
             Text(
               subtitle,
               style: GoogleFonts.poppins(
-                color: const Color(0xFF6B7280),
+                color: D.t2(context),
                 fontSize: 11,
                 height: 1.4,
               ),
@@ -94,9 +95,9 @@ class FeatureCard extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: onTap,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isLocked ? const Color(0xFFE5E7EB) : color,
+                  backgroundColor: isLocked ? D.bd(context) : color,
                   foregroundColor:
-                      isLocked ? const Color(0xFF9CA3AF) : Colors.white,
+                      isLocked ? D.t2(context) : Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 9),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -107,11 +108,11 @@ class FeatureCard extends StatelessWidget {
                     ? Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.lock_rounded, size: 13),
+                          Icon(Icons.lock_rounded, size: 13, color: D.t2(context)),
                           const SizedBox(width: 5),
                           Text('Upgrade',
                               style: GoogleFonts.poppins(
-                                  fontSize: 12, fontWeight: FontWeight.w600)),
+                                  fontSize: 12, fontWeight: FontWeight.w600, color: D.t2(context))),
                         ],
                       )
                     : Text(buttonLabel,

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import '../../../theme/dark_mode_helpers.dart';
 
 class ChatLogsScreen extends StatelessWidget {
   const ChatLogsScreen({super.key});
@@ -8,24 +10,14 @@ class ChatLogsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Chat Logs',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[900],
-            ),
-          ),
+          Text('Chat Logs', style: GoogleFonts.poppins(fontSize: 26, fontWeight: FontWeight.bold, color: D.t1(context), letterSpacing: -0.5)),
           const SizedBox(height: 4),
-          Text(
-            'Review conversations between users and AI services',
-            style: TextStyle(color: Colors.grey[600], fontSize: 14),
-          ),
-          const SizedBox(height: 20),
+          Text('Review conversations between users and AI services', style: GoogleFonts.poppins(color: D.t2(context), fontSize: 14)),
+          const SizedBox(height: 24),
           StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
                 .collection('chat_messages')
@@ -44,22 +36,17 @@ class ChatLogsScreen extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(48),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
+                    color: D.card(context),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: D.bd(context)),
                   ),
                   child: Column(
                     children: [
-                      Icon(Icons.chat_bubble_outline_rounded,
-                          size: 64, color: Colors.grey[300]),
+                      Icon(Icons.chat_bubble_outline_rounded, size: 56, color: D.t3(context)),
                       const SizedBox(height: 16),
-                      Text('No chat logs yet',
-                          style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[800])),
+                      Text('No chat logs yet', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: D.t1(context))),
                       const SizedBox(height: 8),
-                      Text('User conversations will appear here',
-                          style: TextStyle(fontSize: 14, color: Colors.grey[500])),
+                      Text('User conversations will appear here', style: GoogleFonts.poppins(fontSize: 14, color: D.t2(context))),
                     ],
                   ),
                 );
@@ -67,55 +54,38 @@ class ChatLogsScreen extends StatelessWidget {
 
               return Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+                  color: D.card(context),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: D.bd(context)),
                 ),
                 child: Column(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[50],
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.grey[300]!),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.search,
-                                      color: Colors.grey[400], size: 20),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      '${docs.length} conversations',
-                                      style: TextStyle(
-                                          fontSize: 13, color: Colors.grey[500]),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                      padding: const EdgeInsets.all(14),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: D.inputFill(context),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: D.bd(context)),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.search_rounded, color: D.t3(context), size: 20),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text('${docs.length} conversations', style: GoogleFonts.poppins(fontSize: 13, color: D.t2(context))),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                    const Divider(height: 1),
+                    Divider(height: 1, color: D.divider(context)),
                     LayoutBuilder(builder: (context, constraints) {
                       if (constraints.maxWidth > 650) {
-                        return _buildTable(docs);
+                        return _buildTable(context, docs);
                       } else {
-                        return _buildCardList(docs);
+                        return _buildCardList(context, docs);
                       }
                     }),
                   ],
@@ -128,38 +98,36 @@ class ChatLogsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTable(List<QueryDocumentSnapshot> docs) {
+  Widget _buildTable(BuildContext context, List<QueryDocumentSnapshot> docs) {
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Row(
             children: [
-              Expanded(flex: 3, child: _hCell('USER')),
-              Expanded(flex: 2, child: _hCell('MODEL')),
-              Expanded(flex: 4, child: _hCell('MESSAGE')),
-              Expanded(flex: 2, child: _hCell('DATE')),
+              Expanded(flex: 3, child: _hCell(context, 'USER')),
+              Expanded(flex: 2, child: _hCell(context, 'MODEL')),
+              Expanded(flex: 4, child: _hCell(context, 'MESSAGE')),
+              Expanded(flex: 2, child: _hCell(context, 'DATE')),
               const SizedBox(width: 40),
             ],
           ),
         ),
-        const Divider(height: 1),
+        Divider(height: 1, color: D.divider(context)),
         ...docs.map((doc) {
           final data = doc.data() as Map<String, dynamic>;
           final userId = data['userId'] ?? 'Unknown';
           final model = data['model'] ?? 'AI';
           final message = data['message'] ?? '';
           final createdAt = data['createdAt'] as Timestamp?;
-          final dateStr = createdAt != null
-              ? DateFormat('MMM d, yyyy').format(createdAt.toDate())
-              : '';
-          return _buildTableRow(userId, model, message, dateStr);
+          final dateStr = createdAt != null ? DateFormat('MMM d, yyyy').format(createdAt.toDate()) : '';
+          return _buildTableRow(context, userId, model, message, dateStr);
         }),
       ],
     );
   }
 
-  Widget _buildTableRow(String user, String model, String message, String date) {
+  Widget _buildTableRow(BuildContext context, String user, String model, String message, String date) {
     return Column(
       children: [
         Padding(
@@ -172,22 +140,15 @@ class ChatLogsScreen extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 14,
-                      backgroundColor: const Color(0xFF5A4FCF).withValues(alpha: 0.1),
+                      backgroundColor: const Color(0xFF6C63FF).withValues(alpha: 0.12),
                       child: Text(
                         user.length >= 2 ? user.substring(0, 2).toUpperCase() : user.toUpperCase(),
-                        style: const TextStyle(
-                          color: Color(0xFF5A4FCF),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 10,
-                        ),
+                        style: GoogleFonts.poppins(color: const Color(0xFF6C63FF), fontWeight: FontWeight.bold, fontSize: 10),
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(user,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w500, fontSize: 13),
-                          overflow: TextOverflow.ellipsis),
+                      child: Text(user, style: GoogleFonts.poppins(fontWeight: FontWeight.w500, fontSize: 13, color: D.t1(context)), overflow: TextOverflow.ellipsis),
                     ),
                   ],
                 ),
@@ -197,32 +158,24 @@ class ChatLogsScreen extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF5A4FCF).withValues(alpha: 0.08),
+                    color: const Color(0xFF6C63FF).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: Text(model,
-                      style: const TextStyle(
-                          color: Color(0xFF5A4FCF),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500),
-                      overflow: TextOverflow.ellipsis),
+                  child: Text(model, style: GoogleFonts.poppins(color: const Color(0xFF6C63FF), fontSize: 11, fontWeight: FontWeight.w500), overflow: TextOverflow.ellipsis),
                 ),
               ),
               Expanded(
                 flex: 4,
-                child: Text(message,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                child: Text(message, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(color: D.t2(context), fontSize: 13)),
               ),
               Expanded(
                 flex: 2,
-                child: Text(date,
-                    style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                child: Text(date, style: GoogleFonts.poppins(color: D.t2(context), fontSize: 13)),
               ),
               SizedBox(
                 width: 40,
                 child: IconButton(
-                  icon: const Icon(Icons.visibility, size: 18, color: Colors.grey),
+                  icon: Icon(Icons.visibility_outlined, size: 18, color: D.t3(context)),
                   onPressed: () {},
                   padding: EdgeInsets.zero,
                 ),
@@ -230,12 +183,12 @@ class ChatLogsScreen extends StatelessWidget {
             ],
           ),
         ),
-        const Divider(height: 1),
+        Divider(height: 1, color: D.divider(context)),
       ],
     );
   }
 
-  Widget _buildCardList(List<QueryDocumentSnapshot> docs) {
+  Widget _buildCardList(BuildContext context, List<QueryDocumentSnapshot> docs) {
     return Column(
       children: docs.map((doc) {
         final data = doc.data() as Map<String, dynamic>;
@@ -243,9 +196,7 @@ class ChatLogsScreen extends StatelessWidget {
         final model = data['model'] ?? 'AI';
         final message = data['message'] ?? '';
         final createdAt = data['createdAt'] as Timestamp?;
-        final dateStr = createdAt != null
-            ? DateFormat('MMM d, yyyy').format(createdAt.toDate())
-            : '';
+        final dateStr = createdAt != null ? DateFormat('MMM d, yyyy').format(createdAt.toDate()) : '';
 
         return Column(
           children: [
@@ -256,14 +207,10 @@ class ChatLogsScreen extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 18,
-                    backgroundColor: const Color(0xFF5A4FCF).withValues(alpha: 0.12),
+                    backgroundColor: const Color(0xFF6C63FF).withValues(alpha: 0.12),
                     child: Text(
                       userId.length >= 2 ? userId.substring(0, 2).toUpperCase() : userId.toUpperCase(),
-                      style: const TextStyle(
-                        color: Color(0xFF5A4FCF),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
+                      style: GoogleFonts.poppins(color: const Color(0xFF6C63FF), fontWeight: FontWeight.bold, fontSize: 12),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -273,49 +220,33 @@ class ChatLogsScreen extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            Expanded(
-                              child: Text(userId,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w600, fontSize: 14)),
-                            ),
+                            Expanded(child: Text(userId, style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14, color: D.t1(context)))),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF5A4FCF).withValues(alpha: 0.08),
+                                color: const Color(0xFF6C63FF).withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: Text(model,
-                                  style: const TextStyle(
-                                      color: Color(0xFF5A4FCF),
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w500)),
+                              child: Text(model, style: GoogleFonts.poppins(color: const Color(0xFF6C63FF), fontSize: 11, fontWeight: FontWeight.w500)),
                             ),
                           ],
                         ),
                         const SizedBox(height: 6),
-                        Text(message,
-                            style: TextStyle(color: Colors.grey[700], fontSize: 13),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis),
+                        Text(message, style: GoogleFonts.poppins(color: D.t2(context), fontSize: 13), maxLines: 2, overflow: TextOverflow.ellipsis),
                         const SizedBox(height: 6),
-                        Text(dateStr,
-                            style: TextStyle(color: Colors.grey[400], fontSize: 11)),
+                        Text(dateStr, style: GoogleFonts.poppins(color: D.t3(context), fontSize: 11)),
                       ],
                     ),
                   ),
                 ],
               ),
             ),
-            const Divider(height: 1),
+            Divider(height: 1, color: D.divider(context)),
           ],
         );
       }).toList(),
     );
   }
 
-  Widget _hCell(String text) => Text(
-        text,
-        style: TextStyle(
-            fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey[600]),
-      );
+  Widget _hCell(BuildContext context, String text) => Text(text, style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.bold, color: D.t2(context), letterSpacing: 0.5));
 }

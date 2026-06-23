@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../theme/dark_mode_helpers.dart';
 
 class ActivityTile extends StatelessWidget {
   final String title;
@@ -28,8 +30,9 @@ class ActivityTile extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: D.card(context),
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: D.bd(context)),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.04),
@@ -40,64 +43,49 @@ class ActivityTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Icon Container
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 20,
-              ),
+              child: Icon(icon, color: color, size: 20),
             ),
             const SizedBox(width: 12),
-
-            // Title and Subtitle
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Colors.black87,
-                    ),
-                  ),
+                  Text(title,
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: D.t1(context),
+                      )),
                   const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: 12,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text(subtitle,
+                      style: GoogleFonts.poppins(
+                        color: D.t2(context),
+                        fontSize: 12,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),
-
-            // Time and Trailing Icon
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  time,
-                  style: TextStyle(
-                    color: Colors.grey.shade500,
-                    fontSize: 11,
-                  ),
-                ),
+                Text(time,
+                    style: GoogleFonts.poppins(
+                      color: D.t2(context),
+                      fontSize: 11,
+                    )),
                 const SizedBox(height: 4),
                 Icon(
                   isLocked ? Icons.lock : Icons.chevron_right,
                   size: 18,
-                  color: isLocked ? Colors.grey.shade400 : Colors.grey.shade400,
+                  color: D.t2(context),
                 ),
               ],
             ),

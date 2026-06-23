@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../theme/app_colors.dart';
+import '../../theme/dark_mode_helpers.dart';
 
 class HelpCenterScreen extends StatefulWidget {
   const HelpCenterScreen({super.key});
@@ -11,11 +11,7 @@ class HelpCenterScreen extends StatefulWidget {
 }
 
 class _HelpCenterScreenState extends State<HelpCenterScreen> {
-  static const _primary = AppColors.primary;
-  static const _bg = Color(0xFFF4F6FB);
-  static const _text1 = AppColors.textDark;
-  static const _text2 = AppColors.textGrey;
-  static const _border = Color(0xFFEAEAF4);
+  static const _primary = Color(0xFF5B4FE8);
   static const _email = 'smartai_support@openai.com';
 
   int? _openFaq;
@@ -24,11 +20,11 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     _Faq('How do I start a chat with AI?',
         'Tap "AI Chat" from the home screen or sidebar. Type your message and press send. The AI will respond instantly.'),
     _Faq('How does Image Analysis work?',
-        'Go to Image Analysis, tap the upload area to pick a photo from your gallery or camera, then tap "Analyze Image". The AI will describe and analyze the content.'),
+        'Use the + button in chat to attach a photo. The AI will describe and analyze the content automatically.'),
     _Faq('How many messages can I send per day?',
         'Free users get 50 messages per day. Premium users get unlimited messages. Your usage resets every 24 hours.'),
     _Faq('How does Speech to Text work?',
-        'Open Speech to Text, tap the microphone button and speak clearly. The app will transcribe your voice in real time.'),
+        'Tap the microphone button in the chat input bar and speak clearly. The app will transcribe your voice.'),
     _Faq('How do I upgrade to Premium?',
         'Tap "Upgrade" on any locked feature or check your Settings to see subscription options. Premium gives you unlimited access to all features.'),
     _Faq('Can I use SmartAI offline?',
@@ -71,24 +67,23 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: D.bg(context),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: D.appBar(context),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              size: 18, color: _text1),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              size: 18, color: D.t1(context)),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text('Help Center',
             style: GoogleFonts.poppins(
-                fontSize: 17, fontWeight: FontWeight.w600, color: _text1)),
+                fontSize: 17, fontWeight: FontWeight.w600, color: D.t1(context))),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          // ── Hero ──────────────────────────────────────────────────
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(24),
@@ -132,10 +127,9 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
 
           const SizedBox(height: 24),
 
-          // ── Quick links ───────────────────────────────────────────
           Text('Quick Help',
               style: GoogleFonts.poppins(
-                  fontSize: 15, fontWeight: FontWeight.w700, color: _text1)),
+                  fontSize: 15, fontWeight: FontWeight.w700, color: D.t1(context))),
           const SizedBox(height: 12),
           Row(children: [
             Expanded(
@@ -162,17 +156,16 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
 
           const SizedBox(height: 28),
 
-          // ── FAQ ───────────────────────────────────────────────────
           Text('Frequently Asked Questions',
               style: GoogleFonts.poppins(
-                  fontSize: 15, fontWeight: FontWeight.w700, color: _text1)),
+                  fontSize: 15, fontWeight: FontWeight.w700, color: D.t1(context))),
           const SizedBox(height: 12),
 
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: D.card(context),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: _border),
+              border: Border.all(color: D.bd(context)),
             ),
             child: Column(
               children: _faqs.asMap().entries.map((e) {
@@ -192,13 +185,13 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                           width: 28,
                           height: 28,
                           decoration: BoxDecoration(
-                            color: isOpen ? _primary : _bg,
+                            color: isOpen ? _primary : D.bg(context),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(
                             isOpen ? Icons.remove_rounded : Icons.add_rounded,
                             size: 16,
-                            color: isOpen ? Colors.white : _text2,
+                            color: isOpen ? Colors.white : D.t2(context),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -209,7 +202,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                                   fontWeight: isOpen
                                       ? FontWeight.w600
                                       : FontWeight.w500,
-                                  color: isOpen ? _primary : _text1,
+                                  color: isOpen ? _primary : D.t1(context),
                                 ))),
                       ]),
                     ),
@@ -229,14 +222,14 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                       ),
                       child: Text(faq.a,
                           style: GoogleFonts.poppins(
-                              fontSize: 12, color: _text2, height: 1.6)),
+                              fontSize: 12, color: D.t2(context), height: 1.6)),
                     ),
                     crossFadeState: isOpen
                         ? CrossFadeState.showSecond
                         : CrossFadeState.showFirst,
                     duration: const Duration(milliseconds: 200),
                   ),
-                  if (!isLast) const Divider(height: 1, color: _border),
+                  if (!isLast) Divider(height: 1, color: D.bd(context)),
                 ]);
               }).toList(),
             ),
@@ -244,21 +237,19 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
 
           const SizedBox(height: 28),
 
-          // ── Contact support ───────────────────────────────────────
           Text('Still need help?',
               style: GoogleFonts.poppins(
-                  fontSize: 15, fontWeight: FontWeight.w700, color: _text1)),
+                  fontSize: 15, fontWeight: FontWeight.w700, color: D.t1(context))),
           const SizedBox(height: 12),
 
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: D.card(context),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: _border),
+              border: Border.all(color: D.bd(context)),
             ),
             child: Column(children: [
-              // Email card
               InkWell(
                 onTap: _launchEmail,
                 borderRadius: BorderRadius.circular(12),
@@ -288,7 +279,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                               style: GoogleFonts.poppins(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 14,
-                                  color: _text1)),
+                                  color: D.t1(context))),
                           const SizedBox(height: 3),
                           Text(_email,
                               style: GoogleFonts.poppins(
@@ -298,17 +289,16 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                           const SizedBox(height: 2),
                           Text('We reply within 24 hours',
                               style: GoogleFonts.poppins(
-                                  fontSize: 11, color: _text2)),
+                                  fontSize: 11, color: D.t2(context))),
                         ])),
-                    const Icon(Icons.arrow_forward_ios_rounded,
-                        size: 14, color: _text2),
+                    Icon(Icons.arrow_forward_ios_rounded,
+                        size: 14, color: D.t2(context)),
                   ]),
                 ),
               ),
 
               const SizedBox(height: 14),
 
-              // Copy email button
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
@@ -333,7 +323,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                           fontWeight: FontWeight.w600, fontSize: 13)),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: _primary,
-                    side: const BorderSide(color: _border),
+                    side: BorderSide(color: D.bd(context)),
                     padding: const EdgeInsets.symmetric(vertical: 13),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
@@ -342,7 +332,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               ),
 
               const SizedBox(height: 16),
-              const Divider(height: 1, color: _border),
+              Divider(height: 1, color: D.bd(context)),
               const SizedBox(height: 18),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -364,8 +354,8 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
   Widget _infoItem(String label, String value) => Column(children: [
         Text(value,
             style: GoogleFonts.poppins(
-                fontSize: 14, fontWeight: FontWeight.w700, color: _text1)),
-        Text(label, style: GoogleFonts.poppins(fontSize: 11, color: _text2)),
+                fontSize: 14, fontWeight: FontWeight.w700, color: D.t1(context))),
+        Text(label, style: GoogleFonts.poppins(fontSize: 11, color: D.t2(context))),
       ]);
 }
 
@@ -389,9 +379,9 @@ class _QuickCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 10),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: D.card(context),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFEAEAF4)),
+            border: Border.all(color: D.bd(context)),
             boxShadow: [
               BoxShadow(
                   color: Colors.black.withValues(alpha: 0.03),
@@ -413,7 +403,7 @@ class _QuickCard extends StatelessWidget {
                 style: GoogleFonts.poppins(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF12112A)),
+                    color: D.t1(context)),
                 textAlign: TextAlign.center),
           ]),
         ),

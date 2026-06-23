@@ -20,7 +20,6 @@ import 'screens/admin/users/user_management_screen.dart';
 import 'screens/admin/ai_services/ai_services_screen.dart';
 import 'screens/admin/analystic/analytics_screen.dart';
 import 'screens/admin/chat_logs/chat_logs_screen.dart';
-import 'screens/admin/transactions/transactions_screen.dart';
 import 'screens/admin/reports/reports_screen.dart';
 import 'screens/admin/notifications/notifications_screen.dart';
 import 'screens/admin/setting/settings_screen.dart';
@@ -96,8 +95,6 @@ class SmartAIApp extends StatelessWidget {
             const AdminLayout(child: AnalyticsScreen()),
         '/admin/chat-logs': (context) =>
             const AdminLayout(child: ChatLogsScreen()),
-        '/admin/transactions': (context) =>
-            const AdminLayout(child: TransactionsScreen()),
         '/admin/reports': (context) =>
             const AdminLayout(child: ReportsScreen()),
         '/admin/notifications': (context) =>
@@ -144,8 +141,7 @@ class _AuthGateState extends State<_AuthGate> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color(0xFFF4F6FB),
+    return Scaffold(
       body: Center(
         child: CircularProgressIndicator(color: Color(0xFF6C63FF)),
       ),

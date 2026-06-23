@@ -1,10 +1,11 @@
-// lib/screens/admin/setting/settings_screen.dart
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../providers/user_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../services/photo_picker_service.dart';
+import '../../../theme/dark_mode_helpers.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -23,38 +24,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Log out everywhere?'),
-        content: const Text(
-          'This will sign you out from all active sessions on every device.',
-        ),
+        backgroundColor: D.card(context),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Log out everywhere?', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: D.t1(context))),
+        content: Text('This will sign you out from all active sessions on every device.', style: GoogleFonts.poppins(color: D.t2(context))),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text('Cancel', style: GoogleFonts.poppins(color: D.t2(context))),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Log out'),
+            style: TextButton.styleFrom(foregroundColor: const Color(0xFFEF4444)),
+            child: Text('Log out', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
           ),
         ],
       ),
     );
 
     if (confirmed != true) return;
-
     if (!mounted) return;
 
     setState(() => _isLoggingOut = true);
-
-    // Use AuthProvider to clear global state and notify listeners
     final authProvider = context.read<AuthProvider>();
     await authProvider.signOut();
-
     if (!mounted) return;
-
     setState(() => _isLoggingOut = false);
-
     Navigator.pushReplacementNamed(context, '/');
   }
 
@@ -63,6 +58,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     final choice = await showModalBottomSheet<String>(
       context: context,
+      backgroundColor: D.card(context),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -72,30 +68,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Choose Photo',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: D.t3(context),
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
+              const SizedBox(height: 16),
+              Text('Choose Photo', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: D.t1(context))),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildPhotoOption(
-                    icon: Icons.photo_library,
-                    label: 'Gallery',
-                    onTap: () => Navigator.pop(context, 'gallery'),
-                  ),
-                  _buildPhotoOption(
-                    icon: Icons.delete_outline,
-                    label: 'Remove',
-                    onTap: () {
-                      Navigator.pop(context, 'remove');
-                    },
-                    color: Colors.red,
-                  ),
+                  _buildPhotoOption(icon: Icons.photo_library_rounded, label: 'Gallery', onTap: () => Navigator.pop(context, 'gallery')),
+                  _buildPhotoOption(icon: Icons.delete_outline_rounded, label: 'Remove', onTap: () => Navigator.pop(context, 'remove'), color: const Color(0xFFEF4444)),
                 ],
               ),
               const SizedBox(height: 8),
@@ -106,7 +94,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
 
     if (choice == null) return;
-
     if (!mounted) return;
 
     final messenger = ScaffoldMessenger.of(context);
@@ -115,53 +102,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final imageBytes = await _photoPicker.pickImageFromGallery();
       if (imageBytes != null && mounted) {
         userProvider.updateProfileImage(imageBytes);
-        messenger.showSnackBar(
-          const SnackBar(
-            content: Text('Profile photo updated successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        messenger.showSnackBar(SnackBar(
+          content: Text('Profile photo updated successfully!', style: GoogleFonts.poppins()),
+          backgroundColor: const Color(0xFF10B981),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ));
       }
     } else if (choice == 'remove') {
       userProvider.updateProfileImage(null);
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Profile photo removed!'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      messenger.showSnackBar(SnackBar(
+        content: Text('Profile photo removed!', style: GoogleFonts.poppins()),
+        backgroundColor: const Color(0xFFF59E0B),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ));
     }
   }
 
-  Widget _buildPhotoOption({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    Color? color,
-  }) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
+  Widget _buildPhotoOption({required IconData icon, required String label, required VoidCallback onTap, Color? color}) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         child: Column(
           children: [
-            Icon(
-              icon,
-              size: 32,
-              color: color ?? (isDark ? Colors.white : theme.primaryColor),
-            ),
+            Icon(icon, size: 32, color: color ?? const Color(0xFF6C63FF)),
             const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: color ?? (isDark ? Colors.white70 : theme.primaryColor),
-              ),
-            ),
+            Text(label, style: GoogleFonts.poppins(fontSize: 12, color: color ?? const Color(0xFF6C63FF))),
           ],
         ),
       ),
@@ -173,65 +142,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final themeProvider = context.watch<ThemeProvider>();
     final userProvider = context.watch<UserProvider>();
     final authProvider = context.watch<AuthProvider>();
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Settings',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.onSurface,
-            ),
-          ),
+          Text('Settings', style: GoogleFonts.poppins(fontSize: 26, fontWeight: FontWeight.bold, color: D.t1(context), letterSpacing: -0.5)),
           const SizedBox(height: 4),
-          Text(
-            'Manage your account and platform preferences',
-            style: TextStyle(
-              color: theme.colorScheme.onSurfaceVariant,
-              fontSize: 14,
-            ),
-          ),
+          Text('Manage your account and platform preferences', style: GoogleFonts.poppins(color: D.t2(context), fontSize: 14)),
           const SizedBox(height: 24),
 
-          // Profile Section
           _sectionCard(
             title: 'Profile Information',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                Wrap(
+                  spacing: 16,
+                  runSpacing: 12,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    // Profile Image with edit button
                     Stack(
                       children: [
                         Container(
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(
-                              color: theme.colorScheme.primary,
-                              width: 2,
-                            ),
+                            gradient: LinearGradient(colors: [const Color(0xFF6C63FF), const Color(0xFF5B4FE8)]),
+                            border: Border.all(color: D.bd(context), width: 3),
                           ),
+                          padding: const EdgeInsets.all(2),
                           child: CircleAvatar(
                             radius: 36,
-                            backgroundColor: theme.colorScheme.primary,
-                            backgroundImage: userProvider.profileImageBytes !=
-                                    null
-                                ? MemoryImage(userProvider.profileImageBytes!)
-                                : null,
-                            child: userProvider.profileImageBytes == null
-                                ? Icon(
-                                    Icons.person,
-                                    color: Colors.white,
-                                    size: 36,
-                                  )
-                                : null,
+                            backgroundColor: D.card(context),
+                            backgroundImage: userProvider.profileImageBytes != null ? MemoryImage(userProvider.profileImageBytes!) : null,
+                            child: userProvider.profileImageBytes == null ? Icon(Icons.person_rounded, color: D.t2(context), size: 36) : null,
                           ),
                         ),
                         Positioned(
@@ -242,42 +187,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             child: InkWell(
                               onTap: _changeProfilePhoto,
                               child: Container(
-                                padding: const EdgeInsets.all(4),
+                                padding: const EdgeInsets.all(5),
                                 decoration: BoxDecoration(
-                                  color: theme.colorScheme.primary,
+                                  color: const Color(0xFF6C63FF),
                                   shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: theme.scaffoldBackgroundColor,
-                                    width: 2,
-                                  ),
+                                  border: Border.all(color: D.card(context), width: 2),
                                 ),
-                                child: Icon(
-                                  Icons.camera_alt,
-                                  color: Colors.white,
-                                  size: 16,
-                                ),
+                                child: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 14),
                               ),
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(width: 16),
                     MouseRegion(
                       cursor: SystemMouseCursors.click,
-                      child: OutlinedButton(
+                      child: OutlinedButton.icon(
                         onPressed: _changeProfilePhoto,
+                        icon: const Icon(Icons.edit_rounded, size: 16),
+                        label: Text('Change Photo', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: isDark ? Colors.white : null,
-                          side: BorderSide(
-                            color: isDark ? Colors.white54 : theme.primaryColor,
-                          ),
-                        ),
-                        child: Text(
-                          'Change Photo',
-                          style: TextStyle(
-                            color: isDark ? Colors.white : null,
-                          ),
+                          foregroundColor: D.t1(context),
+                          side: BorderSide(color: D.bd(context)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         ),
                       ),
                     ),
@@ -288,46 +221,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   builder: (context, constraints) {
                     final isWide = constraints.maxWidth > 600;
                     final fields = [
-                      _textField(
-                        'Full Name',
-                        userProvider.userName,
-                        onChanged: (value) =>
-                            context.read<UserProvider>().updateUserName(value),
-                      ),
-                      _textField(
-                        'Email Address',
-                        authProvider.currentUser?.email ?? 'Not available',
-                        enabled: false,
-                      ),
-                      _textField(
-                        'Role',
-                        userProvider.userRole,
-                        enabled: false,
-                      ),
+                      _textField('Full Name', userProvider.userName, onChanged: (value) => context.read<UserProvider>().updateUserName(value)),
+                      _textField('Email Address', authProvider.currentUser?.email ?? 'Not available', enabled: false),
+                      _textField('Role', userProvider.userRole, enabled: false),
                     ];
                     if (isWide) {
-                      return Column(
-                        children: [
-                          Row(children: [
-                            Expanded(child: fields[0]),
-                            const SizedBox(width: 16),
-                            Expanded(child: fields[1])
-                          ]),
-                          const SizedBox(height: 16),
-                          // Role field takes the full width of the second row
-                          fields[2],
-                        ],
-                      );
-                    }
-                    return Column(
-                      children: [
-                        fields[0],
-                        const SizedBox(height: 16),
-                        fields[1],
+                      return Column(children: [
+                        Row(children: [Expanded(child: fields[0]), const SizedBox(width: 16), Expanded(child: fields[1])]),
                         const SizedBox(height: 16),
                         fields[2],
-                      ],
-                    );
+                      ]);
+                    }
+                    return Column(children: [fields[0], const SizedBox(height: 16), fields[1], const SizedBox(height: 16), fields[2]]);
                   },
                 ),
                 const SizedBox(height: 20),
@@ -335,20 +240,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   cursor: SystemMouseCursors.click,
                   child: ElevatedButton(
                     onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Profile updated successfully!'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text('Profile updated successfully!', style: GoogleFonts.poppins()),
+                        backgroundColor: const Color(0xFF10B981),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ));
                     },
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
+                      backgroundColor: const Color(0xFF6C63FF),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 0,
                     ),
-                    child: const Text('Save Changes'),
+                    child: Text('Save Changes', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
                   ),
                 ),
               ],
@@ -356,45 +262,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 20),
 
-          // Notifications Section
           _sectionCard(
             title: 'Notification Preferences',
             child: Column(
               children: [
-                _switchRow(
-                  'Email Notifications',
-                  'Receive updates and alerts via email',
-                  _emailNotifications,
-                  (v) => setState(() => _emailNotifications = v),
-                ),
-                const Divider(height: 32),
-                _switchRow(
-                  'Push Notifications',
-                  'Receive real-time alerts on your device',
-                  _pushNotifications,
-                  (v) => setState(() => _pushNotifications = v),
-                ),
+                _switchRow('Email Notifications', 'Receive updates and alerts via email', _emailNotifications, (v) => setState(() => _emailNotifications = v)),
+                Divider(color: D.divider(context), height: 32),
+                _switchRow('Push Notifications', 'Receive real-time alerts on your device', _pushNotifications, (v) => setState(() => _pushNotifications = v)),
               ],
             ),
           ),
           const SizedBox(height: 20),
 
-          // Appearance
           _sectionCard(
             title: 'Appearance',
-            child: _switchRow(
-              'Dark Mode',
-              'Switch the admin panel to a dark theme',
-              themeProvider.isDarkMode,
-              (v) => context.read<ThemeProvider>().toggleTheme(v),
-            ),
+            child: _switchRow('Dark Mode', 'Switch the admin panel to a dark theme', themeProvider.isDarkMode, (v) => context.read<ThemeProvider>().toggleTheme(v)),
           ),
           const SizedBox(height: 20),
 
-          // Danger Zone
           _sectionCard(
             title: 'Danger Zone',
-            titleColor: Colors.red,
+            titleColor: const Color(0xFFEF4444),
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final isNarrow = constraints.maxWidth < 450;
@@ -407,45 +295,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Log out of all devices',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
-                            color: isDark ? Colors.white : null,
-                          ),
-                        ),
+                        Text('Log out of all devices', style: GoogleFonts.poppins(fontWeight: FontWeight.w500, fontSize: 14, color: D.t1(context))),
                         const SizedBox(height: 4),
-                        Text(
-                          'Sign out from all active sessions',
-                          style: TextStyle(
-                            color: isDark
-                                ? Colors.white54
-                                : theme.colorScheme.onSurfaceVariant,
-                            fontSize: 12,
-                          ),
-                        ),
+                        Text('Sign out from all active sessions', style: GoogleFonts.poppins(color: D.t2(context), fontSize: 12)),
                       ],
                     ),
                     SizedBox(
                       width: isNarrow ? double.infinity : null,
                       child: OutlinedButton(
-                        onPressed:
-                            _isLoggingOut ? null : _handleLogoutEverywhere,
+                        onPressed: _isLoggingOut ? null : _handleLogoutEverywhere,
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.red,
-                          side: const BorderSide(color: Colors.red),
+                          foregroundColor: const Color(0xFFEF4444),
+                          side: const BorderSide(color: Color(0xFFEF4444)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         ),
                         child: _isLoggingOut
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.red,
-                                ),
-                              )
-                            : const Text('Log out everywhere'),
+                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFEF4444)))
+                            : Text('Log out everywhere', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
                       ),
                     ),
                   ],
@@ -458,43 +325,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _sectionCard({
-    required String title,
-    required Widget child,
-    Color? titleColor,
-  }) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
+  Widget _sectionCard({required String title, required Widget child, Color? titleColor}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF161622) : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: isDark ? Border.all(color: Colors.white10) : null,
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.4)
-                : Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: D.card(context),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: D.bd(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: titleColor ??
-                  (isDark ? Colors.white : theme.colorScheme.onSurface),
-            ),
-          ),
+          Text(title, style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold, color: titleColor ?? D.t1(context))),
           const SizedBox(height: 16),
           child,
         ],
@@ -502,82 +345,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _textField(
-    String label,
-    String value, {
-    bool enabled = true,
-    ValueChanged<String>? onChanged,
-  }) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
+  Widget _textField(String label, String value, {bool enabled = true, ValueChanged<String>? onChanged}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: isDark ? Colors.white70 : theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
+        Text(label, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w500, color: D.t2(context))),
         const SizedBox(height: 6),
         TextField(
           enabled: enabled,
           controller: enabled ? null : TextEditingController(text: value),
           onChanged: onChanged,
-          style: TextStyle(
-            color: isDark ? Colors.white : Colors.black87,
-          ),
+          style: GoogleFonts.poppins(color: D.t1(context)),
           decoration: InputDecoration(
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: isDark ? Colors.white24 : Colors.grey.shade300,
-              ),
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: D.bd(context)),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: isDark ? Colors.white24 : Colors.grey.shade300,
-              ),
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: D.bd(context)),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: isDark ? theme.primaryColor : theme.primaryColor,
-                width: 1.5,
-              ),
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 1.5),
             ),
             disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: isDark ? Colors.white12 : Colors.grey.shade200,
-              ),
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(color: D.bd(context)),
             ),
             filled: true,
-            fillColor: isDark
-                ? (enabled ? const Color(0xFF1C1C2D) : const Color(0xFF2A2A3E))
-                : (enabled ? Colors.grey.shade50 : Colors.grey.shade100),
-            hintStyle: TextStyle(
-              color: isDark ? Colors.white38 : Colors.grey.shade400,
-            ),
+            fillColor: enabled ? D.inputFill(context) : D.hover(context),
+            hintStyle: GoogleFonts.poppins(color: D.t3(context)),
           ),
         ),
       ],
     );
   }
 
-  Widget _switchRow(
-    String title,
-    String subtitle,
-    bool value,
-    ValueChanged<bool> onChanged,
-  ) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
+  Widget _switchRow(String title, String subtitle, bool value, ValueChanged<bool> onChanged) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -585,24 +390,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14,
-                  color: isDark ? Colors.white : null,
-                ),
-              ),
+              Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.w500, fontSize: 14, color: D.t1(context))),
               const SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  color: isDark
-                      ? Colors.white54
-                      : theme.colorScheme.onSurfaceVariant,
-                  fontSize: 12,
-                ),
-              ),
+              Text(subtitle, style: GoogleFonts.poppins(color: D.t2(context), fontSize: 12)),
             ],
           ),
         ),
@@ -610,9 +400,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           cursor: SystemMouseCursors.click,
           child: Switch(
             value: value,
-            activeThumbColor: theme.colorScheme.primary,
-            activeTrackColor:
-                isDark ? theme.primaryColor.withValues(alpha: 0.5) : null,
+            activeThumbColor: const Color(0xFF6C63FF),
+            activeTrackColor: const Color(0xFF6C63FF).withValues(alpha: 0.3),
             onChanged: onChanged,
           ),
         ),

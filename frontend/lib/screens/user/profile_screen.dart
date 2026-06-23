@@ -636,51 +636,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final stats = [
       (authProvider.chatHistory.length.toString(), 'AI Chats',
           Icons.chat_bubble_rounded, const Color(0xFF6C63FF)),
-      (authProvider.imageAnalyses.length.toString(), 'Images Analyzed',
+      (authProvider.imageAnalyses.length.toString(), 'Images',
           Icons.image_rounded, const Color(0xFF3B82F6)),
-      (authProvider.speechTranscriptions.length.toString(), 'Voice Notes',
+      (authProvider.speechTranscriptions.length.toString(), 'Voice',
           Icons.mic_rounded, const Color(0xFF8B5CF6)),
     ];
 
     return _buildSettingCard([
       Padding(
-        padding: const EdgeInsets.all(16),
-        child: GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.8,
-          ),
-          itemCount: stats.length,
-          itemBuilder: (_, i) {
-            final s = stats[i];
-            return Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: s.$4.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(s.$3, color: s.$4, size: 18),
-                  const SizedBox(height: 6),
-                  Text(s.$1,
-                      style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: _t1(context))),
-                  Text(s.$2,
-                      style: GoogleFonts.poppins(
-                          fontSize: 11, color: _t2(context))),
-                ],
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        child: Row(
+          children: stats.asMap().entries.map((entry) {
+            final i = entry.key;
+            final s = entry.value;
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(left: i > 0 ? 8 : 0, right: i < stats.length - 1 ? 8 : 0),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: s.$4.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: s.$4.withValues(alpha: 0.12)),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: s.$4.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(s.$3, color: s.$4, size: 20),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(s.$1,
+                          style: GoogleFonts.poppins(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: _t1(context),
+                              letterSpacing: -0.5)),
+                      const SizedBox(height: 2),
+                      Text(s.$2,
+                          style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              color: _t2(context),
+                              fontWeight: FontWeight.w500)),
+                    ],
+                  ),
+                ),
               ),
             );
-          },
+          }).toList(),
         ),
       ),
     ]);

@@ -43,11 +43,11 @@ class AppTheme {
       colorScheme: const ColorScheme.dark(
         primary: AppColors.primary,
         secondary: AppColors.primaryDark,
-        surface: Color(0xFF161622),
-        onSurface: Colors.white,
-        onSurfaceVariant: Colors.white70,
+        surface: Color(0xFF1E1E2E),
+        onSurface: Color(0xFFF0F0F5),
+        onSurfaceVariant: Color(0xFFD1D1D6),
       ),
-      cardColor: const Color(0xFF161622),
+      cardColor: const Color(0xFF1E1E2E),
       dividerColor: Colors.white10,
       // Modern buttons should follow the primary color
       elevatedButtonTheme: ElevatedButtonThemeData(

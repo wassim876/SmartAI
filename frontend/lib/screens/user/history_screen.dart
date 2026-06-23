@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../theme/dark_mode_helpers.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -15,7 +16,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
   bool _isLoading = true;
 
   static const _primary = Color(0xFF5B4FE8);
-  static const _bg = Color(0xFFF5F6FA);
 
   @override
   void initState() {
@@ -121,15 +121,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
+        backgroundColor: D.card(context),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text('Clear History',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w700)),
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w700, color: D.t1(context))),
         content: Text('Delete all activity history? This cannot be undone.',
-            style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600])),
+            style: GoogleFonts.poppins(fontSize: 14, color: D.t2(context))),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Cancel', style: GoogleFonts.poppins())),
+              child: Text('Cancel', style: GoogleFonts.poppins(color: D.t2(context)))),
           ElevatedButton(
             onPressed: () {
               setState(() => _historyItems.clear());
@@ -151,28 +152,27 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     final canPop = Navigator.canPop(context);
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: D.bg(context),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: D.appBar(context),
         elevation: 0,
         centerTitle: true,
         leading: !canPop
             ? null
             : IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                    size: 18, color: Color(0xFF1A1A2E)),
+                icon: Icon(Icons.arrow_back_ios_new_rounded,
+                    size: 18, color: D.t1(context)),
                 onPressed: () => Navigator.pop(context),
               ),
         title: Text('Activity History',
             style: GoogleFonts.poppins(
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF1A1A2E))),
+                color: D.t1(context))),
         actions: [
           if (_historyItems.isNotEmpty)
             IconButton(
-                icon:
-                    Icon(Icons.delete_outline_rounded, color: Colors.grey[600]),
+                icon: Icon(Icons.delete_outline_rounded, color: D.t2(context)),
                 onPressed: _showClearDialog),
         ],
       ),
@@ -196,18 +196,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
           width: 72,
           height: 72,
           decoration: BoxDecoration(
-              color: Colors.grey[100], borderRadius: BorderRadius.circular(20)),
+              color: D.bd(context), borderRadius: BorderRadius.circular(20)),
           child:
-              Icon(Icons.history_rounded, size: 36, color: Colors.grey[300])),
+              Icon(Icons.history_rounded, size: 36, color: D.t2(context))),
       const SizedBox(height: 16),
       Text('No history yet',
           style: GoogleFonts.poppins(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF1A1A2E))),
+              color: D.t1(context))),
       const SizedBox(height: 6),
       Text('Your recent activities will appear here',
-          style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey[400])),
+          style: GoogleFonts.poppins(fontSize: 13, color: D.t2(context))),
     ]));
   }
 
@@ -234,9 +234,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: D.card(context),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE5E7EB)),
+          border: Border.all(color: D.bd(context)),
           boxShadow: [
             BoxShadow(
                 color: Colors.black.withValues(alpha: 0.03),
@@ -262,11 +262,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
-                        color: const Color(0xFF1A1A2E))),
+                        color: D.t1(context))),
                 const SizedBox(height: 2),
                 Text(item.subtitle,
                     style: GoogleFonts.poppins(
-                        fontSize: 12, color: Colors.grey[500]),
+                        fontSize: 12, color: D.t2(context)),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),
               ])),
@@ -274,10 +274,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
           Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
             Text(item.timeAgo,
                 style:
-                    GoogleFonts.poppins(fontSize: 11, color: Colors.grey[400])),
+                    GoogleFonts.poppins(fontSize: 11, color: D.t2(context))),
             const SizedBox(height: 4),
             Icon(Icons.chevron_right_rounded,
-                color: Colors.grey[300], size: 18),
+                color: D.t2(context), size: 18),
           ]),
         ]),
       ),

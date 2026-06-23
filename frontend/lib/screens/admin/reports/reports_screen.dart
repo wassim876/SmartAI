@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../theme/dark_mode_helpers.dart';
 
 class ReportsScreen extends StatelessWidget {
   const ReportsScreen({super.key});
@@ -6,11 +8,10 @@ class ReportsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // FIX 1: Header — wrap title in Expanded, stack vertically on narrow screens
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -18,44 +19,32 @@ class ReportsScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Reports',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[900],
-                      ),
-                    ),
+                    Text('Reports', style: GoogleFonts.poppins(fontSize: 26, fontWeight: FontWeight.bold, color: D.t1(context), letterSpacing: -0.5)),
                     const SizedBox(height: 4),
-                    Text(
-                      'Generate and download platform reports',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                    ),
+                    Text('Generate and download platform reports', style: GoogleFonts.poppins(color: D.t2(context), fontSize: 14)),
                   ],
                 ),
               ),
               const SizedBox(width: 12),
               ElevatedButton.icon(
                 onPressed: () {},
-                icon: const Icon(Icons.add, size: 16),
-                label: const Text('Generate', style: TextStyle(fontSize: 13)),
+                icon: const Icon(Icons.add_rounded, size: 16),
+                label: Text('Generate', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF5A4FCF),
+                  backgroundColor: const Color(0xFF6C63FF),
                   foregroundColor: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 0,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
-          // FIX 2: Report type cards — always 2 columns on mobile, fix aspect ratio
           LayoutBuilder(
             builder: (context, constraints) {
               final crossAxisCount = constraints.maxWidth > 700 ? 4 : 2;
-              // FIX 3: Larger aspect ratio so content fits without overflow
               final aspectRatio = constraints.maxWidth > 700 ? 1.3 : 1.1;
               return GridView.count(
                 crossAxisCount: crossAxisCount,
@@ -65,54 +54,35 @@ class ReportsScreen extends StatelessWidget {
                 crossAxisSpacing: 12,
                 childAspectRatio: aspectRatio,
                 children: [
-                  _reportTypeCard(Icons.people_outline, Colors.blue,
-                      'User Activity', 'User growth, engagement & retention'),
-                  _reportTypeCard(Icons.attach_money, Colors.green, 'Revenue',
-                      'Income, subscriptions & refunds'),
-                  _reportTypeCard(Icons.smart_toy_outlined, Colors.purple,
-                      'AI Usage', 'Service usage by type & volume'),
-                  _reportTypeCard(Icons.security_outlined, Colors.orange,
-                      'System Health', 'Uptime, errors & performance'),
+                  _reportTypeCard(context, Icons.people_outline_rounded, const Color(0xFF3B82F6), 'User Activity', 'User growth, engagement & retention'),
+                  _reportTypeCard(context, Icons.attach_money_rounded, const Color(0xFF10B981), 'Revenue', 'Income, subscriptions & refunds'),
+                  _reportTypeCard(context, Icons.smart_toy_outlined, const Color(0xFF8B5CF6), 'AI Usage', 'Service usage by type & volume'),
+                  _reportTypeCard(context, Icons.security_outlined, const Color(0xFFF59E0B), 'System Health', 'Uptime, errors & performance'),
                 ],
               );
             },
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
-          // Recent Reports — FIX 4: use a card-list layout on mobile instead of a table
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              color: D.card(context),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: D.bd(context)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-                  child: Text(
-                    'Recent Reports',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[900],
-                    ),
-                  ),
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+                  child: Text('Recent Reports', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold, color: D.t1(context))),
                 ),
-                const Divider(height: 1),
+                Divider(height: 1, color: D.divider(context)),
                 LayoutBuilder(builder: (context, constraints) {
-                  // Wide: use table layout; narrow: use card list
                   if (constraints.maxWidth > 600) {
-                    return _buildTable();
+                    return _buildTable(context);
                   } else {
-                    return _buildCardList();
+                    return _buildCardList(context);
                   }
                 }),
               ],
@@ -123,47 +93,36 @@ class ReportsScreen extends StatelessWidget {
     );
   }
 
-  // Table layout for wide screens
-  Widget _buildTable() {
+  Widget _buildTable(BuildContext context) {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Row(
             children: [
-              Expanded(flex: 3, child: _headerCell('REPORT NAME')),
-              Expanded(flex: 2, child: _headerCell('TYPE')),
-              Expanded(flex: 2, child: _headerCell('GENERATED')),
-              Expanded(flex: 1, child: _headerCell('FORMAT')),
-              Expanded(flex: 1, child: _headerCell('ACTIONS')),
+              Expanded(flex: 3, child: _headerCell(context, 'REPORT NAME')),
+              Expanded(flex: 2, child: _headerCell(context, 'TYPE')),
+              Expanded(flex: 2, child: _headerCell(context, 'GENERATED')),
+              Expanded(flex: 1, child: _headerCell(context, 'FORMAT')),
+              Expanded(flex: 1, child: _headerCell(context, 'ACTIONS')),
             ],
           ),
         ),
-        const Divider(height: 1),
-        _buildReportRow('Monthly User Growth - May 2024', 'User Activity',
-            'Jun 1, 2024', 'PDF'),
-        _buildReportRow(
-            'Revenue Summary - Q2 2024', 'Revenue', 'Jun 5, 2024', 'XLSX'),
-        _buildReportRow(
-            'AI Services Usage - May 2024', 'AI Usage', 'Jun 2, 2024', 'CSV'),
-        _buildReportRow('System Uptime Report - May 2024', 'System Health',
-            'Jun 1, 2024', 'PDF'),
+        Divider(height: 1, color: D.divider(context)),
+        _buildReportRow(context, 'Monthly User Growth - May 2024', 'User Activity', 'Jun 1, 2024', 'PDF'),
+        _buildReportRow(context, 'Revenue Summary - Q2 2024', 'Revenue', 'Jun 5, 2024', 'XLSX'),
+        _buildReportRow(context, 'AI Services Usage - May 2024', 'AI Usage', 'Jun 2, 2024', 'CSV'),
+        _buildReportRow(context, 'System Uptime Report - May 2024', 'System Health', 'Jun 1, 2024', 'PDF'),
       ],
     );
   }
 
-  // FIX 5: Card-based list for mobile — no cramped table columns
-  Widget _buildCardList() {
+  Widget _buildCardList(BuildContext context) {
     final reports = [
       ('Monthly User Growth - May 2024', 'User Activity', 'Jun 1, 2024', 'PDF'),
       ('Revenue Summary - Q2 2024', 'Revenue', 'Jun 5, 2024', 'XLSX'),
       ('AI Services Usage - May 2024', 'AI Usage', 'Jun 2, 2024', 'CSV'),
-      (
-        'System Uptime Report - May 2024',
-        'System Health',
-        'Jun 1, 2024',
-        'PDF'
-      ),
+      ('System Uptime Report - May 2024', 'System Health', 'Jun 1, 2024', 'PDF'),
     ];
 
     return Column(
@@ -180,24 +139,13 @@ class ReportsScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                        ),
+                        Text(name, style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13, color: D.t1(context))),
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            Text(type,
-                                style: TextStyle(
-                                    color: Colors.grey[600], fontSize: 12)),
-                            Text(' · ',
-                                style: TextStyle(color: Colors.grey[400])),
-                            Text(date,
-                                style: TextStyle(
-                                    color: Colors.grey[600], fontSize: 12)),
+                            Flexible(child: Text(type, style: GoogleFonts.poppins(color: D.t2(context), fontSize: 12), overflow: TextOverflow.ellipsis)),
+                            Text(' · ', style: TextStyle(color: D.t3(context))),
+                            Flexible(child: Text(date, style: GoogleFonts.poppins(color: D.t2(context), fontSize: 12), overflow: TextOverflow.ellipsis)),
                           ],
                         ),
                       ],
@@ -205,140 +153,83 @@ class ReportsScreen extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: 0.1),
+                      color: D.hover(context),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(
-                      format,
-                      style: TextStyle(
-                        color: Colors.grey[700],
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    child: Text(format, style: GoogleFonts.poppins(color: D.t1(context), fontSize: 11, fontWeight: FontWeight.w600)),
                   ),
                   const SizedBox(width: 4),
                   IconButton(
-                    icon: const Icon(Icons.download_outlined,
-                        size: 18, color: Colors.grey),
+                    icon: Icon(Icons.download_outlined, size: 18, color: D.t3(context)),
                     onPressed: () {},
                     padding: EdgeInsets.zero,
-                    constraints:
-                        const BoxConstraints(minWidth: 36, minHeight: 36),
+                    constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                   ),
                 ],
               ),
             ),
-            const Divider(height: 1),
+            Divider(height: 1, color: D.divider(context)),
           ],
         );
       }).toList(),
     );
   }
 
-  Widget _headerCell(String text) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.bold,
-        color: Colors.grey[600],
-      ),
-    );
+  Widget _headerCell(BuildContext context, String text) {
+    return Text(text, style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.bold, color: D.t2(context), letterSpacing: 0.5));
   }
 
-  Widget _reportTypeCard(
-      IconData icon, Color color, String title, String description) {
+  Widget _reportTypeCard(BuildContext context, IconData icon, Color color, String title, String description) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: D.card(context),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: D.bd(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min, // FIX 6: don't force-expand column
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: color, size: 22),
           ),
-          const SizedBox(height: 10),
-          Text(
-            title,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-          ),
+          const SizedBox(height: 12),
+          Text(title, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.bold, color: D.t1(context))),
           const SizedBox(height: 3),
-          // FIX 7: clamp to 2 lines so it never overflows the card
-          Text(
-            description,
-            style: TextStyle(color: Colors.grey[600], fontSize: 11),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
+          Text(description, style: GoogleFonts.poppins(color: D.t2(context), fontSize: 11), maxLines: 2, overflow: TextOverflow.ellipsis),
         ],
       ),
     );
   }
 
-  Widget _buildReportRow(String name, String type, String date, String format) {
+  Widget _buildReportRow(BuildContext context, String name, String type, String date, String format) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
         children: [
-          Expanded(
-            flex: 3,
-            child: Text(name,
-                style:
-                    const TextStyle(fontWeight: FontWeight.w500, fontSize: 13)),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(type,
-                style: TextStyle(color: Colors.grey[600], fontSize: 13)),
-          ),
-          Expanded(
-            flex: 2,
-            child: Text(date,
-                style: TextStyle(color: Colors.grey[600], fontSize: 13)),
-          ),
+          Expanded(flex: 3, child: Text(name, style: GoogleFonts.poppins(fontWeight: FontWeight.w500, fontSize: 13, color: D.t1(context)))),
+          Expanded(flex: 2, child: Text(type, style: GoogleFonts.poppins(color: D.t2(context), fontSize: 13))),
+          Expanded(flex: 2, child: Text(date, style: GoogleFonts.poppins(color: D.t2(context), fontSize: 13))),
           Expanded(
             flex: 1,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                format,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    color: Colors.grey[700],
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500),
-              ),
+              decoration: BoxDecoration(color: D.hover(context), borderRadius: BorderRadius.circular(8)),
+              child: Text(format, textAlign: TextAlign.center, style: GoogleFonts.poppins(color: D.t1(context), fontSize: 11, fontWeight: FontWeight.w500)),
             ),
           ),
           Expanded(
             flex: 1,
             child: IconButton(
-              icon: const Icon(Icons.download_outlined,
-                  size: 18, color: Colors.grey),
+              icon: Icon(Icons.download_outlined, size: 18, color: D.t3(context)),
               onPressed: () {},
             ),
           ),

@@ -1,8 +1,9 @@
-// lib/screens/admin/users/user_management_screen.dart
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../models/user_model.dart';
+import '../../../theme/dark_mode_helpers.dart';
 
 class UserManagementScreen extends StatefulWidget {
   const UserManagementScreen({super.key});
@@ -31,14 +32,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     try {
       final authProvider = context.read<AuthProvider>();
       await authProvider.fetchUsers();
-
-      if (mounted) {
-        _updateFilteredUsers();
-      }
+      if (mounted) _updateFilteredUsers();
     } catch (e) {
-      if (mounted) {
-        _showSnackBar('Error loading users: ${e.toString()}', Colors.red);
-      }
+      if (mounted) _showSnackBar('Error loading users: ${e.toString()}', const Color(0xFFEF4444));
     }
   }
 
@@ -63,33 +59,20 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     _updateFilteredUsers();
   }
 
-  // ============ VIEW USER DETAILS ============
   void _showUserDetails(UserModel user) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: isDark ? const Color(0xFF1E1E3F) : Colors.white,
+        backgroundColor: D.card(context),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
             CircleAvatar(
-              backgroundColor: user.isAdmin ? Colors.purple : Colors.blue,
-              child: Text(
-                user.username[0].toUpperCase(),
-                style: const TextStyle(color: Colors.white),
-              ),
+              backgroundColor: user.isAdmin ? const Color(0xFF8B5CF6) : const Color(0xFF3B82F6),
+              child: Text(user.username[0].toUpperCase(), style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
             const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                user.username,
-                style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
-              ),
-            ),
+            Expanded(child: Text(user.username, style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: D.t1(context)))),
           ],
         ),
         content: SingleChildScrollView(
@@ -97,40 +80,30 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildInfoTile('Username', user.username, isDark),
-              _buildInfoTile('Email', user.email, isDark),
-              _buildInfoTile('Role', user.role, isDark),
-              _buildInfoTile(
-                  'Status', user.isActive ? 'Active' : 'Inactive', isDark),
-              _buildInfoTile('Premium', user.isPremium ? 'Yes' : 'No', isDark),
-              _buildInfoTile('Joined', _formatDate(user.createdAt), isDark),
-              _buildInfoTile(
-                  'Daily Usage',
-                  '${user.dailyMessagesUsed}/${user.dailyMessagesLimit}',
-                  isDark),
+              _buildInfoTile('Username', user.username),
+              _buildInfoTile('Email', user.email),
+              _buildInfoTile('Role', user.role),
+              _buildInfoTile('Status', user.isActive ? 'Active' : 'Inactive'),
+              _buildInfoTile('Premium', user.isPremium ? 'Yes' : 'No'),
+              _buildInfoTile('Joined', _formatDate(user.createdAt)),
+              _buildInfoTile('Daily Usage', '${user.dailyMessagesUsed}/${user.dailyMessagesLimit}'),
             ],
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Close',
-              style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.grey[600],
-              ),
-            ),
+            child: Text('Close', style: GoogleFonts.poppins(color: D.t2(context))),
           ),
           ElevatedButton.icon(
-            onPressed: () {
-              Navigator.pop(context);
-              _showEditUserDialog(user);
-            },
-            icon: const Icon(Icons.edit, size: 18),
-            label: const Text('Edit User'),
+            onPressed: () { Navigator.pop(context); _showEditUserDialog(user); },
+            icon: const Icon(Icons.edit_rounded, size: 16),
+            label: Text('Edit User', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF5A4FCF),
+              backgroundColor: const Color(0xFF6C63FF),
               foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 0,
             ),
           ),
         ],
@@ -138,29 +111,15 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  Widget _buildInfoTile(String label, String value, bool isDark) {
+  Widget _buildInfoTile(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: isDark ? Colors.white54 : Colors.grey[600],
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: isDark ? Colors.white : Colors.black87,
-            ),
-          ),
-          const Divider(height: 12),
+          Text(label, style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w500, color: D.t3(context))),
+          Text(value, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500, color: D.t1(context))),
+          Divider(color: D.divider(context), height: 12),
         ],
       ),
     );
@@ -171,14 +130,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     return '${date.day}/${date.month}/${date.year}';
   }
 
-  // ============ EDIT USER ============
   void _showEditUserDialog(UserModel user) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final TextEditingController nameController =
-        TextEditingController(text: user.displayName);
-    final TextEditingController emailController =
-        TextEditingController(text: user.email);
+    final TextEditingController nameController = TextEditingController(text: user.displayName);
+    final TextEditingController emailController = TextEditingController(text: user.email);
     String selectedRole = user.role;
     bool isActive = user.isActive;
     bool isPremium = user.isPremium;
@@ -188,164 +142,64 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: isDark ? const Color(0xFF1E1E3F) : Colors.white,
-          title: Text(
-            'Edit User',
-            style: TextStyle(
-              color: isDark ? Colors.white : Colors.black87,
-            ),
-          ),
+          backgroundColor: D.card(context),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text('Edit User', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: D.t1(context))),
           content: SizedBox(
             width: 400,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    labelText: 'Name',
-                    labelStyle: TextStyle(
-                      color: isDark ? Colors.white70 : Colors.grey[600],
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  style: TextStyle(
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
+                _dialogTextField(nameController, 'Name'),
                 const SizedBox(height: 12),
-                TextField(
-                  controller: emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    labelStyle: TextStyle(
-                      color: isDark ? Colors.white70 : Colors.grey[600],
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  style: TextStyle(
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
+                _dialogTextField(emailController, 'Email'),
                 const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: selectedRole,
-                  dropdownColor:
-                      isDark ? const Color(0xFF1E1E3F) : Colors.white,
-                  items: const [
-                    DropdownMenuItem(value: 'User', child: Text('User')),
-                    DropdownMenuItem(value: 'Staff', child: Text('Staff')),
-                    DropdownMenuItem(value: 'Admin', child: Text('Admin')),
-                  ],
-                  onChanged: (value) {
-                    setDialogState(() {
-                      selectedRole = value!;
-                    });
-                  },
-                  decoration: InputDecoration(
-                    labelText: 'Role',
-                    labelStyle: TextStyle(
-                      color: isDark ? Colors.white70 : Colors.grey[600],
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  style: TextStyle(
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                SwitchListTile(
-                  title: Text(
-                    'Active',
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
-                  value: isActive,
-                  onChanged: (value) {
-                    setDialogState(() {
-                      isActive = value;
-                    });
-                  },
-                  activeThumbColor: const Color(0xFF5A4FCF),
-                ),
-                SwitchListTile(
-                  title: Text(
-                    'Premium',
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
-                  value: isPremium,
-                  onChanged: (value) {
-                    setDialogState(() {
-                      isPremium = value;
-                    });
-                  },
-                  activeThumbColor: const Color(0xFF5A4FCF),
-                ),
+                _dialogDropdown(selectedRole, (v) => setDialogState(() => selectedRole = v!)),
+                const SizedBox(height: 8),
+                _dialogSwitch('Active', isActive, (v) => setDialogState(() => isActive = v)),
+                _dialogSwitch('Premium', isPremium, (v) => setDialogState(() => isPremium = v)),
               ],
             ),
           ),
           actions: [
             TextButton(
               onPressed: isSaving ? null : () => Navigator.pop(context),
-              child: Text(
-                'Cancel',
-                style: TextStyle(
-                  color: isDark ? Colors.white70 : Colors.grey[600],
-                ),
-              ),
+              child: Text('Cancel', style: GoogleFonts.poppins(color: D.t2(context))),
             ),
             ElevatedButton(
-              onPressed: isSaving
-                  ? null
-                  : () async {
-                      setDialogState(() => isSaving = true);
-                      try {
-                        final authProvider = context.read<AuthProvider>();
-                        final nav = Navigator.of(context);
-                        await authProvider.updateUser(user.uid, {
-                          'first_name': nameController.text,
-                          'email': emailController.text,
-                          'role': selectedRole,
-                          'is_active': isActive,
-                          'is_premium': isPremium,
-                        });
-
-                        if (mounted) {
-                          nav.pop();
-                          _showSnackBar(
-                              'User updated successfully!', Colors.green);
-                          await _fetchUsers();
-                        }
-                      } catch (e) {
-                        if (mounted) {
-                          setDialogState(() => isSaving = false);
-                          _showSnackBar('Error: ${e.toString()}', Colors.red);
-                        }
-                      }
-                    },
+              onPressed: isSaving ? null : () async {
+                setDialogState(() => isSaving = true);
+                try {
+                  final authProvider = context.read<AuthProvider>();
+                  final nav = Navigator.of(context);
+                  await authProvider.updateUser(user.uid, {
+                    'first_name': nameController.text,
+                    'email': emailController.text,
+                    'role': selectedRole,
+                    'is_active': isActive,
+                    'is_premium': isPremium,
+                  });
+                  if (mounted) {
+                    nav.pop();
+                    _showSnackBar('User updated successfully!', const Color(0xFF10B981));
+                    await _fetchUsers();
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    setDialogState(() => isSaving = false);
+                    _showSnackBar('Error: ${e.toString()}', const Color(0xFFEF4444));
+                  }
+                }
+              },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF5A4FCF),
+                backgroundColor: const Color(0xFF6C63FF),
                 foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                elevation: 0,
               ),
               child: isSaving
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text('Save'),
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : Text('Save', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
             ),
           ],
         ),
@@ -353,64 +207,94 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  // ============ TOGGLE STATUS ============
+  Widget _dialogTextField(TextEditingController controller, String label) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: GoogleFonts.poppins(color: D.t2(context)),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: D.bd(context))),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: D.bd(context))),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 1.5)),
+        filled: true,
+        fillColor: D.inputFill(context),
+      ),
+      style: GoogleFonts.poppins(color: D.t1(context)),
+    );
+  }
+
+  Widget _dialogDropdown(String value, ValueChanged<String?> onChanged) {
+    return DropdownButtonFormField<String>(
+      initialValue: value,
+      dropdownColor: D.card(context),
+      items: [
+        DropdownMenuItem(value: 'User', child: Text('User', style: GoogleFonts.poppins(color: D.t1(context)))),
+        DropdownMenuItem(value: 'Staff', child: Text('Staff', style: GoogleFonts.poppins(color: D.t1(context)))),
+        DropdownMenuItem(value: 'Admin', child: Text('Admin', style: GoogleFonts.poppins(color: D.t1(context)))),
+      ],
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        labelText: 'Role',
+        labelStyle: GoogleFonts.poppins(color: D.t2(context)),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: D.bd(context))),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: D.bd(context))),
+        filled: true,
+        fillColor: D.inputFill(context),
+      ),
+      style: GoogleFonts.poppins(color: D.t1(context)),
+    );
+  }
+
+  Widget _dialogSwitch(String label, bool value, ValueChanged<bool> onChanged) {
+    return SwitchListTile(
+      title: Text(label, style: GoogleFonts.poppins(color: D.t1(context), fontSize: 14)),
+      value: value,
+      onChanged: onChanged,
+      activeThumbColor: const Color(0xFF6C63FF),
+      contentPadding: EdgeInsets.zero,
+    );
+  }
+
   Future<void> _toggleUserStatus(UserModel user) async {
     try {
       final authProvider = context.read<AuthProvider>();
       await authProvider.toggleUserStatus(user.uid);
-
       if (mounted) {
         await _fetchUsers();
-        _showSnackBar(
-          'User ${user.isActive ? 'deactivated' : 'activated'} successfully!',
-          Colors.orange,
-        );
+        _showSnackBar('User ${user.isActive ? 'deactivated' : 'activated'} successfully!', const Color(0xFFF59E0B));
       }
     } catch (e) {
-      if (mounted) {
-        _showSnackBar('Error: ${e.toString()}', Colors.red);
-      }
+      if (mounted) _showSnackBar('Error: ${e.toString()}', const Color(0xFFEF4444));
     }
   }
 
-  // ============ TOGGLE PREMIUM ============
   Future<void> _toggleUserPremium(UserModel user) async {
     try {
       final authProvider = context.read<AuthProvider>();
       await authProvider.toggleUserPremium(user.uid);
-
       if (mounted) {
         await _fetchUsers();
-        _showSnackBar(
-          'Premium ${user.isPremium ? 'disabled' : 'enabled'} for ${user.username}!',
-          Colors.green,
-        );
+        _showSnackBar('Premium ${user.isPremium ? 'disabled' : 'enabled'} for ${user.username}!', const Color(0xFF10B981));
       }
     } catch (e) {
-      if (mounted) {
-        _showSnackBar('Error: ${e.toString()}', Colors.red);
-      }
+      if (mounted) _showSnackBar('Error: ${e.toString()}', const Color(0xFFEF4444));
     }
   }
 
-  // ============ DELETE USER ============
   Future<void> _deleteUser(UserModel user) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete User'),
-        content: Text(
-          'Are you sure you want to delete "${user.displayName}"?\n\nThis action cannot be undone.',
-        ),
+        backgroundColor: D.card(context),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Delete User', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: D.t1(context))),
+        content: Text('Are you sure you want to delete "${user.displayName}"?\n\nThis action cannot be undone.', style: GoogleFonts.poppins(color: D.t2(context))),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel', style: GoogleFonts.poppins(color: D.t2(context)))),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            style: TextButton.styleFrom(foregroundColor: const Color(0xFFEF4444)),
+            child: Text('Delete', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -421,23 +305,17 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       try {
         final authProvider = context.read<AuthProvider>();
         await authProvider.deleteUser(user.uid);
-
         if (mounted) {
           await _fetchUsers();
-          _showSnackBar('User deleted successfully!', Colors.green);
+          _showSnackBar('User deleted successfully!', const Color(0xFF10B981));
         }
       } catch (e) {
-        if (mounted) {
-          _showSnackBar('Error: ${e.toString()}', Colors.red);
-        }
+        if (mounted) _showSnackBar('Error: ${e.toString()}', const Color(0xFFEF4444));
       }
     }
   }
 
-  // ============ ADD NEW USER ============
   void _showAddUserDialog() {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final TextEditingController nameController = TextEditingController();
     final TextEditingController emailController = TextEditingController();
     final TextEditingController usernameController = TextEditingController();
@@ -449,111 +327,24 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          backgroundColor: isDark ? const Color(0xFF1E1E3F) : Colors.white,
-          title: Text(
-            'Add New User',
-            style: TextStyle(
-              color: isDark ? Colors.white : Colors.black87,
-            ),
-          ),
+          backgroundColor: D.card(context),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text('Add New User', style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: D.t1(context))),
           content: SizedBox(
             width: 400,
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextField(
-                    controller: usernameController,
-                    decoration: InputDecoration(
-                      labelText: 'Username',
-                      labelStyle: TextStyle(
-                        color: isDark ? Colors.white70 : Colors.grey[600],
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
+                  _dialogTextField(usernameController, 'Username'),
                   const SizedBox(height: 12),
-                  TextField(
-                    controller: nameController,
-                    decoration: InputDecoration(
-                      labelText: 'Full Name',
-                      labelStyle: TextStyle(
-                        color: isDark ? Colors.white70 : Colors.grey[600],
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
+                  _dialogTextField(nameController, 'Full Name'),
                   const SizedBox(height: 12),
-                  TextField(
-                    controller: emailController,
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      labelStyle: TextStyle(
-                        color: isDark ? Colors.white70 : Colors.grey[600],
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
+                  _dialogTextField(emailController, 'Email'),
                   const SizedBox(height: 12),
-                  TextField(
-                    controller: passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      labelStyle: TextStyle(
-                        color: isDark ? Colors.white70 : Colors.grey[600],
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
+                  _dialogTextField(passwordController, 'Password'),
                   const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    initialValue: selectedRole,
-                    dropdownColor:
-                        isDark ? const Color(0xFF1E1E3F) : Colors.white,
-                    items: const [
-                      DropdownMenuItem(value: 'User', child: Text('User')),
-                      DropdownMenuItem(value: 'Staff', child: Text('Staff')),
-                      DropdownMenuItem(value: 'Admin', child: Text('Admin')),
-                    ],
-                    onChanged: (value) {
-                      setDialogState(() {
-                        selectedRole = value!;
-                      });
-                    },
-                    decoration: InputDecoration(
-                      labelText: 'Role',
-                      labelStyle: TextStyle(
-                        color: isDark ? Colors.white70 : Colors.grey[600],
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
+                  _dialogDropdown(selectedRole, (v) => setDialogState(() => selectedRole = v!)),
                 ],
               ),
             ),
@@ -561,64 +352,46 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           actions: [
             TextButton(
               onPressed: isSaving ? null : () => Navigator.pop(context),
-              child: Text(
-                'Cancel',
-                style: TextStyle(
-                  color: isDark ? Colors.white70 : Colors.grey[600],
-                ),
-              ),
+              child: Text('Cancel', style: GoogleFonts.poppins(color: D.t2(context))),
             ),
             ElevatedButton(
-              onPressed: isSaving
-                  ? null
-                  : () async {
-                      if (usernameController.text.isEmpty ||
-                          emailController.text.isEmpty ||
-                          passwordController.text.isEmpty) {
-                        _showSnackBar(
-                            'Please fill all required fields', Colors.orange);
-                        return;
-                      }
-
-                      setDialogState(() => isSaving = true);
-                      try {
-                        final authProvider = context.read<AuthProvider>();
-                        final nav = Navigator.of(context);
-                        await authProvider.createUser({
-                          'username': usernameController.text,
-                          'first_name': nameController.text,
-                          'email': emailController.text,
-                          'password': passwordController.text,
-                          'role': selectedRole,
-                        });
-
-                        if (mounted) {
-                          nav.pop();
-                          _showSnackBar(
-                              'User created successfully!', Colors.green);
-                          await _fetchUsers();
-                        }
-                      } catch (e) {
-                        if (mounted) {
-                          setDialogState(() => isSaving = false);
-                          _showSnackBar('Error: ${e.toString()}', Colors.red);
-                        }
-                      }
-                    },
+              onPressed: isSaving ? null : () async {
+                if (usernameController.text.isEmpty || emailController.text.isEmpty || passwordController.text.isEmpty) {
+                  _showSnackBar('Please fill all required fields', const Color(0xFFF59E0B));
+                  return;
+                }
+                setDialogState(() => isSaving = true);
+                try {
+                  final authProvider = context.read<AuthProvider>();
+                  final nav = Navigator.of(context);
+                  await authProvider.createUser({
+                    'username': usernameController.text,
+                    'first_name': nameController.text,
+                    'email': emailController.text,
+                    'password': passwordController.text,
+                    'role': selectedRole,
+                  });
+                  if (mounted) {
+                    nav.pop();
+                    _showSnackBar('User created successfully!', const Color(0xFF10B981));
+                    await _fetchUsers();
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    setDialogState(() => isSaving = false);
+                    _showSnackBar('Error: ${e.toString()}', const Color(0xFFEF4444));
+                  }
+                }
+              },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF5A4FCF),
+                backgroundColor: const Color(0xFF6C63FF),
                 foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                elevation: 0,
               ),
               child: isSaving
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text('Create'),
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : Text('Create', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
             ),
           ],
         ),
@@ -626,30 +399,23 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  // ============ SNACKBAR HELPER ============
   void _showSnackBar(String message, Color color) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: color,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 3),
-      ),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message, style: GoogleFonts.poppins()),
+      backgroundColor: color,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      duration: const Duration(seconds: 3),
+    ));
   }
 
-  // ============ BUILD ============
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final authProvider = context.watch<AuthProvider>();
 
     if (authProvider.isLoading && _filteredUsers.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (authProvider.errorMessage != null && _filteredUsers.isEmpty) {
@@ -657,35 +423,21 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red.withValues(alpha: 0.5),
-            ),
+            Icon(Icons.error_outline_rounded, size: 56, color: const Color(0xFFEF4444).withValues(alpha: 0.5)),
             const SizedBox(height: 16),
-            Text(
-              'Failed to load users',
-              style: TextStyle(
-                fontSize: 18,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-            ),
+            Text('Failed to load users', style: GoogleFonts.poppins(fontSize: 18, color: D.t1(context))),
             const SizedBox(height: 8),
-            Text(
-              authProvider.errorMessage!,
-              style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.grey[600],
-              ),
-              textAlign: TextAlign.center,
-            ),
+            Text(authProvider.errorMessage!, style: GoogleFonts.poppins(color: D.t2(context)), textAlign: TextAlign.center),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: _fetchUsers,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+              icon: const Icon(Icons.refresh_rounded),
+              label: Text('Retry', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF5A4FCF),
+                backgroundColor: const Color(0xFF6C63FF),
                 foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
               ),
             ),
           ],
@@ -698,7 +450,6 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Wrap(
             alignment: WrapAlignment.spaceBetween,
             crossAxisAlignment: WrapCrossAlignment.center,
@@ -708,37 +459,23 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'User Management',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
+                  Text('User Management', style: GoogleFonts.poppins(fontSize: 26, fontWeight: FontWeight.bold, color: D.t1(context), letterSpacing: -0.5)),
                   const SizedBox(height: 4),
-                  Text(
-                    'Manage all registered users on the platform',
-                    style: TextStyle(
-                      color: isDark ? Colors.white70 : Colors.grey[600],
-                      fontSize: 14,
-                    ),
-                  ),
+                  Text('Manage all registered users on the platform', style: GoogleFonts.poppins(color: D.t2(context), fontSize: 14)),
                 ],
               ),
               MouseRegion(
                 cursor: SystemMouseCursors.click,
                 child: ElevatedButton.icon(
                   onPressed: _showAddUserDialog,
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Add New User'),
+                  icon: const Icon(Icons.add_rounded, size: 18),
+                  label: Text('Add New User', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF5A4FCF),
+                    backgroundColor: const Color(0xFF6C63FF),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
                   ),
                 ),
               ),
@@ -746,126 +483,67 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           ),
           const SizedBox(height: 24),
 
-          // Users Table
           Container(
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF161622) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: isDark
-                      ? Colors.black.withValues(alpha: 0.2)
-                      : Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              color: D.card(context),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: D.bd(context)),
             ),
             child: Column(
               children: [
-                // Search Bar
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(16),
                   child: TextField(
                     onChanged: _filterUsers,
                     decoration: InputDecoration(
                       hintText: 'Search users by name or email...',
-                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
-                      ),
+                      prefixIcon: Icon(Icons.search_rounded, color: D.t3(context)),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: D.bd(context))),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: D.bd(context))),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 1.5)),
                       filled: true,
-                      fillColor:
-                          isDark ? const Color(0xFF2A2A3E) : Colors.grey[50],
-                      hintStyle: TextStyle(
-                        color: isDark ? Colors.white54 : Colors.grey,
-                      ),
+                      fillColor: D.inputFill(context),
+                      hintStyle: GoogleFonts.poppins(color: D.t3(context)),
                       suffixIcon: _searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear),
-                              onPressed: () {
-                                _searchQuery = '';
-                                _updateFilteredUsers();
-                              },
-                            )
+                          ? IconButton(icon: Icon(Icons.clear_rounded, color: D.t3(context)), onPressed: () { _searchQuery = ''; _updateFilteredUsers(); })
                           : null,
                     ),
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
+                    style: GoogleFonts.poppins(color: D.t1(context)),
                   ),
                 ),
-                Divider(
-                  height: 1,
-                  color: isDark ? Colors.white10 : Colors.grey[200],
-                ),
-
-                // Scrollable Table Content
+                Divider(height: 1, color: D.divider(context)),
                 authProvider.isLoading
-                    ? const Padding(
-                        padding: EdgeInsets.all(20.0),
-                        child: CircularProgressIndicator(),
-                      )
+                    ? const Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator())
                     : authProvider.errorMessage != null
-                        ? Padding(
-                            padding: const EdgeInsets.all(20.0),
-                            child: Text(
-                              authProvider.errorMessage!,
-                              style: const TextStyle(color: Colors.red),
-                            ),
-                          )
+                        ? Padding(padding: const EdgeInsets.all(20), child: Text(authProvider.errorMessage!, style: GoogleFonts.poppins(color: const Color(0xFFEF4444))))
                         : _filteredUsers.isEmpty
-                            ? const Padding(
-                                padding: EdgeInsets.all(20.0),
-                                child: Text('No users found.'),
-                              )
-                            : SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: SizedBox(
-                                  width:
-                                      1000, // Fixed width prevents layout crash with Expanded widgets
+                            ? Padding(padding: const EdgeInsets.all(20), child: Text('No users found.', style: GoogleFonts.poppins(color: D.t2(context))))
+                            : LayoutBuilder(
+                                builder: (context, tableConstraints) {
+                                  final tableWidth = tableConstraints.maxWidth < 900 ? 900.0 : tableConstraints.maxWidth;
+                                  return SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: SizedBox(
+                                      width: tableWidth,
                                   child: Column(
                                     children: [
-                                      // Table Header
                                       Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 16, vertical: 12),
-                                        child: Row(
-                                          children: [
-                                            Expanded(
-                                                flex: 3,
-                                                child: _buildTableHeader(
-                                                    'USERNAME', isDark)),
-                                            Expanded(
-                                                flex: 3,
-                                                child: _buildTableHeader(
-                                                    'DISPLAY NAME', isDark)),
-                                            Expanded(
-                                                flex: 2,
-                                                child: _buildTableHeader(
-                                                    'JOINED DATE', isDark)),
-                                            Expanded(
-                                                flex: 1,
-                                                child: _buildTableHeader(
-                                                    'STATUS', isDark)),
-                                            Expanded(
-                                                flex: 1,
-                                                child: _buildTableHeader(
-                                                    'ACTIONS', isDark)),
-                                          ],
-                                        ),
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                        child: Row(children: [
+                                          Expanded(flex: 3, child: _buildTableHeader('USERNAME')),
+                                          Expanded(flex: 2, child: _buildTableHeader('DISPLAY NAME')),
+                                          Expanded(flex: 2, child: _buildTableHeader('JOINED DATE')),
+                                          Expanded(flex: 1, child: _buildTableHeader('STATUS')),
+                                          Expanded(flex: 1, child: _buildTableHeader('ACTIONS')),
+                                        ]),
                                       ),
-                                      Divider(
-                                          height: 1,
-                                          color: isDark
-                                              ? Colors.white10
-                                              : Colors.grey[200]),
-                                      ..._filteredUsers.map((user) =>
-                                          _buildUserRow(user, isDark)),
+                                      Divider(height: 1, color: D.divider(context)),
+                                      ..._filteredUsers.map((user) => _buildUserRow(user)),
                                     ],
                                   ),
                                 ),
+                              );
+                            },
                               ),
               ],
             ),
@@ -875,226 +553,123 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  Widget _buildTableHeader(String text, bool isDark) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.bold,
-        color: isDark ? Colors.white70 : Colors.grey[600],
-      ),
-    );
+  Widget _buildTableHeader(String text) {
+    return Text(text, style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.bold, color: D.t2(context), letterSpacing: 0.5));
   }
 
-  Widget _buildUserRow(UserModel user, bool isDark) {
+  Widget _buildUserRow(UserModel user) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         children: [
-          // USERNAME
           Expanded(
             flex: 3,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Text(
-                  user.username,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: const Color(0xFF6C63FF).withValues(alpha: 0.12),
+                  child: Text(user.username[0].toUpperCase(), style: GoogleFonts.poppins(color: const Color(0xFF6C63FF), fontWeight: FontWeight.bold, fontSize: 12)),
                 ),
+                const SizedBox(width: 10),
+                Expanded(child: Text(user.username, style: GoogleFonts.poppins(fontWeight: FontWeight.w500, color: D.t1(context), fontSize: 13))),
               ],
             ),
           ),
-          // DISPLAY NAME
           Expanded(
             flex: 2,
-            child: Text(
-              user.displayName,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.grey[600],
-                fontSize: 13,
-              ),
-            ),
+            child: Text(user.displayName, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(color: D.t2(context), fontSize: 13)),
           ),
-          // ROLE
+          Expanded(
+            flex: 2,
+            child: Text(_formatDate(user.createdAt), style: GoogleFonts.poppins(color: D.t2(context), fontSize: 13)),
+          ),
           Expanded(
             flex: 1,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: user.role == 'Admin'
-                    ? Colors.purple.withValues(alpha: 0.15)
-                    : user.role == 'Staff'
-                        ? Colors.blue.withValues(alpha: 0.15)
-                        : Colors.grey.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                user.role,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: user.role == 'Admin'
-                      ? Colors.purple
-                      : user.role == 'Staff'
-                          ? Colors.blue
-                          : isDark
-                              ? Colors.white70
-                              : Colors.grey[600],
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
-          // STATUS
-          Expanded(
-            flex: 1,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: user.isActive
-                    ? Colors.green.withValues(alpha: 0.1)
-                    : Colors.red.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: user.isActive ? const Color(0xFF10B981).withValues(alpha: 0.12) : const Color(0xFFEF4444).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 user.isActive ? 'Active' : 'Inactive',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: user.isActive ? Colors.green : Colors.red,
+                style: GoogleFonts.poppins(
+                  color: user.isActive ? const Color(0xFF10B981) : const Color(0xFFEF4444),
                   fontSize: 12,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
           ),
-          // ACTIONS
           Expanded(
             flex: 1,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // View Button
                 MouseRegion(
                   cursor: SystemMouseCursors.click,
                   child: IconButton(
-                    icon: Icon(
-                      Icons.visibility,
-                      size: 20,
-                      color: isDark ? Colors.white70 : Colors.grey[600],
-                    ),
+                    icon: Icon(Icons.visibility_outlined, size: 20, color: D.t3(context)),
                     onPressed: () => _showUserDetails(user),
                     tooltip: 'View User Details',
                   ),
                 ),
-                // More Menu Button
                 MouseRegion(
                   cursor: SystemMouseCursors.click,
                   child: IconButton(
-                    icon: Icon(
-                      Icons.more_vert,
-                      size: 20,
-                      color: isDark ? Colors.white70 : Colors.grey[600],
-                    ),
+                    icon: Icon(Icons.more_vert_rounded, size: 20, color: D.t3(context)),
                     onPressed: () {
-                      final RenderBox renderBox =
-                          context.findRenderObject() as RenderBox;
-                      final Offset offset =
-                          renderBox.localToGlobal(Offset.zero);
-
+                      final RenderBox renderBox = context.findRenderObject() as RenderBox;
+                      final Offset offset = renderBox.localToGlobal(Offset.zero);
                       showMenu<String>(
                         context: context,
-                        position: RelativeRect.fromLTRB(
-                          offset.dx + 100,
-                          offset.dy + 100,
-                          offset.dx + 100,
-                          offset.dy + 100,
-                        ),
+                        position: RelativeRect.fromLTRB(offset.dx + 100, offset.dy + 100, offset.dx + 100, offset.dy + 100),
+                        color: D.card(context),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: D.bd(context))),
                         items: [
-                          const PopupMenuItem<String>(
+                          PopupMenuItem<String>(
                             value: 'edit',
-                            child: Row(
-                              children: [
-                                Icon(Icons.edit, size: 20),
-                                SizedBox(width: 12),
-                                Text('Edit User'),
-                              ],
-                            ),
+                            child: Row(children: [
+                              Icon(Icons.edit_rounded, size: 18, color: D.t1(context)),
+                              const SizedBox(width: 12),
+                              Text('Edit User', style: GoogleFonts.poppins(color: D.t1(context))),
+                            ]),
                           ),
                           PopupMenuItem<String>(
                             value: 'toggle_status',
-                            child: Row(
-                              children: [
-                                Icon(
-                                  user.isActive
-                                      ? Icons.block
-                                      : Icons.check_circle,
-                                  size: 20,
-                                  color: user.isActive
-                                      ? Colors.orange
-                                      : Colors.green,
-                                ),
-                                const SizedBox(width: 12),
-                                Text(user.isActive ? 'Deactivate' : 'Activate'),
-                              ],
-                            ),
+                            child: Row(children: [
+                              Icon(user.isActive ? Icons.block_rounded : Icons.check_circle_rounded, size: 18, color: user.isActive ? const Color(0xFFF59E0B) : const Color(0xFF10B981)),
+                              const SizedBox(width: 12),
+                              Text(user.isActive ? 'Deactivate' : 'Activate', style: GoogleFonts.poppins(color: D.t1(context))),
+                            ]),
                           ),
                           PopupMenuItem<String>(
                             value: 'toggle_premium',
-                            child: Row(
-                              children: [
-                                Icon(
-                                  user.isPremium
-                                      ? Icons.star_border
-                                      : Icons.star,
-                                  size: 20,
-                                  color: user.isPremium
-                                      ? Colors.orange
-                                      : Colors.amber,
-                                ),
-                                const SizedBox(width: 12),
-                                Text(user.isPremium
-                                    ? 'Remove Premium'
-                                    : 'Make Premium'),
-                              ],
-                            ),
+                            child: Row(children: [
+                              Icon(user.isPremium ? Icons.star_border_rounded : Icons.star_rounded, size: 18, color: const Color(0xFFF59E0B)),
+                              const SizedBox(width: 12),
+                              Text(user.isPremium ? 'Remove Premium' : 'Make Premium', style: GoogleFonts.poppins(color: D.t1(context))),
+                            ]),
                           ),
-                          const PopupMenuDivider(),
-                          const PopupMenuItem<String>(
+                          PopupMenuDivider(color: D.divider(context)),
+                          PopupMenuItem<String>(
                             value: 'delete',
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete_outline,
-                                    size: 20, color: Colors.red),
-                                SizedBox(width: 12),
-                                Text('Delete User',
-                                    style: TextStyle(color: Colors.red)),
-                              ],
-                            ),
+                            child: Row(children: [
+                              const Icon(Icons.delete_outline_rounded, size: 18, color: Color(0xFFEF4444)),
+                              const SizedBox(width: 12),
+                              Text('Delete User', style: GoogleFonts.poppins(color: const Color(0xFFEF4444))),
+                            ]),
                           ),
                         ],
-                        elevation: 8,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
                       ).then((value) {
                         if (value != null) {
                           switch (value) {
-                            case 'edit':
-                              _showEditUserDialog(user);
-                              break;
-                            case 'toggle_status':
-                              _toggleUserStatus(user);
-                              break;
-                            case 'toggle_premium':
-                              _toggleUserPremium(user);
-                              break;
-                            case 'delete':
-                              _deleteUser(user);
-                              break;
+                            case 'edit': _showEditUserDialog(user); break;
+                            case 'toggle_status': _toggleUserStatus(user); break;
+                            case 'toggle_premium': _toggleUserPremium(user); break;
+                            case 'delete': _deleteUser(user); break;
                           }
                         }
                       });
