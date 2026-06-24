@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../theme/dark_mode_helpers.dart';
+import '../../l10n/app_localizations.dart'; // ✅ Add this import
 
 class HelpCenterScreen extends StatefulWidget {
   const HelpCenterScreen({super.key});
@@ -16,26 +17,8 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
 
   int? _openFaq;
 
-  final _faqs = const [
-    _Faq('How do I start a chat with AI?',
-        'Tap "AI Chat" from the home screen or sidebar. Type your message and press send. The AI will respond instantly.'),
-    _Faq('How does Image Analysis work?',
-        'Use the + button in chat to attach a photo. The AI will describe and analyze the content automatically.'),
-    _Faq('How many messages can I send per day?',
-        'Free users get 50 messages per day. Premium users get unlimited messages. Your usage resets every 24 hours.'),
-    _Faq('How does Speech to Text work?',
-        'Tap the microphone button in the chat input bar and speak clearly. The app will transcribe your voice.'),
-    _Faq('How do I upgrade to Premium?',
-        'Tap "Upgrade" on any locked feature or check your Settings to see subscription options. Premium gives you unlimited access to all features.'),
-    _Faq('Can I use SmartAI offline?',
-        'No, SmartAI requires an internet connection to process AI requests. Make sure you have a stable connection.'),
-    _Faq('How do I reset my password?',
-        'On the login screen, tap "Forgot password?" and enter your email. You will receive a reset link shortly.'),
-    _Faq('Is my data secure?',
-        'Yes. All data is encrypted in transit using HTTPS. We never sell your personal data to third parties.'),
-    _Faq('How do I delete my account?',
-        'Contact our support team at $_email and we will process your account deletion within 48 hours.'),
-  ];
+  // ✅ Remove hardcoded FAQ - we'll use translations
+  // _faqs will be built dynamically in build method
 
   Future<void> _launchEmail() async {
     final uri = Uri(
@@ -53,11 +36,10 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Email copied: $_email'),
+            content: Text(AppLocalizations.of(context)!.translate('emailCopied') + ': $_email'), // ✅
             backgroundColor: _primary,
             behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           ),
         );
       }
@@ -66,6 +48,48 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!; // ✅ Get localization
+    
+    // ✅ Build FAQ list with translations
+    final faqs = [
+      _Faq(
+        loc.translate('howToStartChat'),
+        loc.translate('howToStartChatAnswer'),
+      ),
+      _Faq(
+        loc.translate('howImageAnalysisWorks'),
+        loc.translate('howImageAnalysisWorksAnswer'),
+      ),
+      _Faq(
+        loc.translate('howManyMessages'),
+        loc.translate('howManyMessagesAnswer'),
+      ),
+      _Faq(
+        loc.translate('howSpeechToTextWorks'),
+        loc.translate('howSpeechToTextWorksAnswer'),
+      ),
+      _Faq(
+        loc.translate('howToUpgrade'),
+        loc.translate('howToUpgradeAnswer'),
+      ),
+      _Faq(
+        loc.translate('canUseOffline'),
+        loc.translate('canUseOfflineAnswer'),
+      ),
+      _Faq(
+        loc.translate('howToResetPassword'),
+        loc.translate('howToResetPasswordAnswer'),
+      ),
+      _Faq(
+        loc.translate('isDataSecure'),
+        loc.translate('isDataSecureAnswer'),
+      ),
+      _Faq(
+        loc.translate('howToDeleteAccount'),
+        loc.translate('howToDeleteAccountAnswer'),
+      ),
+    ];
+
     return Scaffold(
       backgroundColor: D.bg(context),
       appBar: AppBar(
@@ -76,9 +100,11 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               size: 18, color: D.t1(context)),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Help Center',
-            style: GoogleFonts.poppins(
-                fontSize: 17, fontWeight: FontWeight.w600, color: D.t1(context))),
+        title: Text(
+          loc.translate('helpCenter'), // ✅
+          style: GoogleFonts.poppins(
+              fontSize: 17, fontWeight: FontWeight.w600, color: D.t1(context)),
+        ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -112,53 +138,60 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                     color: Colors.white, size: 32),
               ),
               const SizedBox(height: 14),
-              Text('How can we help you?',
-                  style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white)),
+              Text(
+                loc.translate('howCanWeHelp'), // ✅
+                style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white),
+              ),
               const SizedBox(height: 6),
-              Text('Find answers or contact our support team',
-                  style:
-                      GoogleFonts.poppins(fontSize: 13, color: Colors.white70),
-                  textAlign: TextAlign.center),
+              Text(
+                loc.translate('findAnswers'), // ✅
+                style: GoogleFonts.poppins(fontSize: 13, color: Colors.white70),
+                textAlign: TextAlign.center,
+              ),
             ]),
           ),
 
           const SizedBox(height: 24),
 
-          Text('Quick Help',
-              style: GoogleFonts.poppins(
-                  fontSize: 15, fontWeight: FontWeight.w700, color: D.t1(context))),
+          Text(
+            loc.translate('quickHelp'), // ✅
+            style: GoogleFonts.poppins(
+                fontSize: 15, fontWeight: FontWeight.w700, color: D.t1(context)),
+          ),
           const SizedBox(height: 12),
           Row(children: [
             Expanded(
                 child: _QuickCard(
                     icon: Icons.chat_bubble_rounded,
                     color: _primary,
-                    label: 'AI Chat Help',
+                    label: loc.translate('aiChatHelp'), // ✅
                     onTap: () => setState(() => _openFaq = 0))),
             const SizedBox(width: 12),
             Expanded(
                 child: _QuickCard(
                     icon: Icons.mic_rounded,
                     color: const Color(0xFF8B5CF6),
-                    label: 'Speech to Text',
+                    label: loc.translate('speechToText'), // ✅
                     onTap: () => setState(() => _openFaq = 3))),
             const SizedBox(width: 12),
             Expanded(
                 child: _QuickCard(
                     icon: Icons.workspace_premium_rounded,
                     color: const Color(0xFFF59E0B),
-                    label: 'Premium',
+                    label: loc.translate('premium'), // ✅
                     onTap: () => setState(() => _openFaq = 5))),
           ]),
 
           const SizedBox(height: 28),
 
-          Text('Frequently Asked Questions',
-              style: GoogleFonts.poppins(
-                  fontSize: 15, fontWeight: FontWeight.w700, color: D.t1(context))),
+          Text(
+            loc.translate('frequentlyAsked'), // ✅
+            style: GoogleFonts.poppins(
+                fontSize: 15, fontWeight: FontWeight.w700, color: D.t1(context)),
+          ),
           const SizedBox(height: 12),
 
           Container(
@@ -168,11 +201,11 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               border: Border.all(color: D.bd(context)),
             ),
             child: Column(
-              children: _faqs.asMap().entries.map((e) {
+              children: faqs.asMap().entries.map((e) {
                 final i = e.key;
                 final faq = e.value;
                 final isOpen = _openFaq == i;
-                final isLast = i == _faqs.length - 1;
+                final isLast = i == faqs.length - 1;
                 return Column(children: [
                   InkWell(
                     onTap: () => setState(() => _openFaq = isOpen ? null : i),
@@ -237,9 +270,11 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
 
           const SizedBox(height: 28),
 
-          Text('Still need help?',
-              style: GoogleFonts.poppins(
-                  fontSize: 15, fontWeight: FontWeight.w700, color: D.t1(context))),
+          Text(
+            loc.translate('stillNeedHelp'), // ✅
+            style: GoogleFonts.poppins(
+                fontSize: 15, fontWeight: FontWeight.w700, color: D.t1(context)),
+          ),
           const SizedBox(height: 12),
 
           Container(
@@ -275,11 +310,13 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                          Text('Email Support',
-                              style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 14,
-                                  color: D.t1(context))),
+                          Text(
+                            loc.translate('emailSupport'), // ✅
+                            style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                                color: D.t1(context)),
+                          ),
                           const SizedBox(height: 3),
                           Text(_email,
                               style: GoogleFonts.poppins(
@@ -287,9 +324,11 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                                   color: _primary,
                                   fontWeight: FontWeight.w500)),
                           const SizedBox(height: 2),
-                          Text('We reply within 24 hours',
-                              style: GoogleFonts.poppins(
-                                  fontSize: 11, color: D.t2(context))),
+                          Text(
+                            loc.translate('weReply'), // ✅
+                            style: GoogleFonts.poppins(
+                                fontSize: 11, color: D.t2(context)),
+                          ),
                         ])),
                     Icon(Icons.arrow_forward_ios_rounded,
                         size: 14, color: D.t2(context)),
@@ -308,7 +347,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                     if (mounted) {
                       messenger.showSnackBar(
                         SnackBar(
-                          content: Text('Email address copied!'),
+                          content: Text(loc.translate('emailCopied')), // ✅
                           backgroundColor: _primary,
                           behavior: SnackBarBehavior.floating,
                           shape: RoundedRectangleBorder(
@@ -318,9 +357,11 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                     }
                   },
                   icon: const Icon(Icons.copy_rounded, size: 16),
-                  label: Text('Copy Email Address',
-                      style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600, fontSize: 13)),
+                  label: Text(
+                    loc.translate('copyEmailAddress'), // ✅
+                    style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600, fontSize: 13),
+                  ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: _primary,
                     side: BorderSide(color: D.bd(context)),
@@ -337,9 +378,21 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _infoItem('Response', '< 24h'),
-                  _infoItem('Support', '24/7'),
-                  _infoItem('Reliability', '100%'),
+                  _infoItem(
+                    loc.translate('response'), // ✅
+                    '< 24h',
+                    context,
+                  ),
+                  _infoItem(
+                    loc.translate('support'), // ✅
+                    '24/7',
+                    context,
+                  ),
+                  _infoItem(
+                    loc.translate('reliability'), // ✅
+                    '100%',
+                    context,
+                  ),
                 ],
               ),
             ]),
@@ -351,12 +404,12 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     );
   }
 
-  Widget _infoItem(String label, String value) => Column(children: [
-        Text(value,
-            style: GoogleFonts.poppins(
-                fontSize: 14, fontWeight: FontWeight.w700, color: D.t1(context))),
-        Text(label, style: GoogleFonts.poppins(fontSize: 11, color: D.t2(context))),
-      ]);
+  Widget _infoItem(String label, String value, BuildContext context) => Column(children: [
+    Text(value,
+        style: GoogleFonts.poppins(
+            fontSize: 14, fontWeight: FontWeight.w700, color: D.t1(context))),
+    Text(label, style: GoogleFonts.poppins(fontSize: 11, color: D.t2(context))),
+  ]);
 }
 
 class _QuickCard extends StatelessWidget {

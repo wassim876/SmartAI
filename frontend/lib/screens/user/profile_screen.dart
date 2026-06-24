@@ -7,6 +7,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../models/user_model.dart';
+import '../../l10n/app_localizations.dart'; // ✅ Add this import
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -42,7 +43,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
-  Future<void> _pickAndUploadImage() async {
+  Future<void> _pickAndUploadImage(AppLocalizations loc) async {
     final result = await showModalBottomSheet<String>(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -64,7 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               Text(
-                'Change Profile Photo',
+                loc.translate('changeProfilePhoto'), // ✅
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -81,7 +82,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: const Icon(Icons.camera_alt_rounded, color: _primary),
                 ),
-                title: Text('Take Photo',
+                title: Text(loc.translate('takePhoto'), // ✅
                     style: GoogleFonts.poppins(fontSize: 14, color: _t1(context))),
                 onTap: () => Navigator.pop(ctx, 'camera'),
               ),
@@ -95,7 +96,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: const Icon(Icons.photo_library_rounded,
                       color: Colors.green),
                 ),
-                title: Text('Choose from Gallery',
+                title: Text(loc.translate('chooseFromGallery'), // ✅
                     style: GoogleFonts.poppins(fontSize: 14, color: _t1(context))),
                 onTap: () => Navigator.pop(ctx, 'gallery'),
               ),
@@ -110,7 +111,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: const Icon(Icons.delete_outline_rounded,
                         color: Colors.red),
                   ),
-                  title: Text('Remove Photo',
+                  title: Text(loc.translate('removePhoto'), // ✅
                       style: GoogleFonts.poppins(fontSize: 14, color: Colors.red)),
                   onTap: () => Navigator.pop(ctx, 'remove'),
                 ),
@@ -132,9 +133,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Profile photo removed'),
-              backgroundColor: Color(0xFF10B981),
+            SnackBar(
+              content: Text(loc.translate('profileRemoved')), // ✅
+              backgroundColor: const Color(0xFF10B981),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -143,7 +144,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to remove photo: $e'),
+              content: Text('${loc.translate('failedToSubmit')}: $e'), // ✅
               backgroundColor: Colors.red,
               behavior: SnackBarBehavior.floating,
             ),
@@ -190,9 +191,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile photo updated!'),
-            backgroundColor: Color(0xFF10B981),
+          SnackBar(
+            content: Text(loc.translate('profileUpdated')), // ✅
+            backgroundColor: const Color(0xFF10B981),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -201,7 +202,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to update photo: $e'),
+            content: Text('${loc.translate('failedToSubmit')}: $e'), // ✅
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
           ),
@@ -212,7 +213,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _saveName() async {
+  Future<void> _saveName(AppLocalizations loc) async {
     final newName = _nameController.text.trim();
     if (newName.isEmpty) return;
 
@@ -229,7 +230,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() => _isEditingName = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Name updated!'),
+            content: Text(loc.translate('nameUpdated')), // ✅
             backgroundColor: const Color(0xFF10B981),
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -240,7 +241,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to update name: $e'),
+            content: Text('${loc.translate('failedToSubmit')}: $e'), // ✅
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -254,6 +255,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!; // ✅ Get localization
     final themeProvider = context.watch<ThemeProvider>();
     final authProvider = context.watch<AuthProvider>();
     final user = authProvider.currentUser;
@@ -269,7 +271,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Profile',
+          loc.translate('profile'), // ✅
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -281,30 +283,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 10, 20, 30),
         children: [
-          _buildProfileHeader(user),
+          _buildProfileHeader(user, loc),
           const SizedBox(height: 28),
-          _buildSectionHeader('Account'),
-          _buildAccountCard(user),
+          _buildSectionHeader(loc.translate('account')), // ✅
+          _buildAccountCard(user, loc),
           const SizedBox(height: 24),
-          _buildSectionHeader('Stats'),
-          _buildStatsCard(authProvider),
+          _buildSectionHeader(loc.translate('stats')), // ✅
+          _buildStatsCard(authProvider, loc),
           const SizedBox(height: 24),
-          _buildSectionHeader('Preferences'),
-          _buildPreferencesCard(themeProvider),
+          _buildSectionHeader(loc.translate('preferences')), // ✅
+          _buildPreferencesCard(themeProvider, loc),
           const SizedBox(height: 24),
-          _buildSectionHeader('Security'),
-          _buildSecurityCard(),
+          _buildSectionHeader(loc.translate('security')), // ✅
+          _buildSecurityCard(loc),
           const SizedBox(height: 32),
-          _buildLogoutButton(context),
+          _buildLogoutButton(context, loc),
           const SizedBox(height: 12),
-          _buildDeleteAccountButton(context),
+          _buildDeleteAccountButton(context, loc),
           const SizedBox(height: 20),
         ],
       ),
     );
   }
 
-  Widget _buildProfileHeader(UserModel? user) {
+  Widget _buildProfileHeader(UserModel? user, AppLocalizations loc) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -326,7 +328,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         children: [
           GestureDetector(
-            onTap: _isUploading ? null : _pickAndUploadImage,
+            onTap: _isUploading ? null : () => _pickAndUploadImage(loc),
             child: MouseRegion(
               cursor: SystemMouseCursors.click,
               child: Stack(
@@ -433,7 +435,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       size: 14, color: Colors.white),
                   const SizedBox(width: 6),
                   Text(
-                    'Premium Member',
+                    loc.translate('premiumMember'), // ✅
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -516,7 +518,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildAccountCard(UserModel? user) {
+  Widget _buildAccountCard(UserModel? user, AppLocalizations loc) {
     return _buildSettingCard([
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -536,7 +538,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Display Name',
+                  Text(loc.translate('displayName'), // ✅
                       style: GoogleFonts.poppins(
                           fontSize: 12, color: _t2(context))),
                   const SizedBox(height: 2),
@@ -570,7 +572,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             const SizedBox(width: 8),
                             GestureDetector(
-                              onTap: _isSaving ? null : _saveName,
+                              onTap: _isSaving ? null : () => _saveName(loc),
                               child: Container(
                                 padding: const EdgeInsets.all(6),
                                 decoration: BoxDecoration(
@@ -623,7 +625,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: const Icon(Icons.email_outlined,
               color: Colors.orange, size: 20),
         ),
-        title: Text('Email',
+        title: Text(loc.translate('email'), // ✅
             style: GoogleFonts.poppins(
                 fontSize: 14, fontWeight: FontWeight.w500, color: _t1(context))),
         subtitle: Text(user?.email ?? '',
@@ -632,13 +634,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ]);
   }
 
-  Widget _buildStatsCard(AuthProvider authProvider) {
+  Widget _buildStatsCard(AuthProvider authProvider, AppLocalizations loc) {
     final stats = [
-      (authProvider.chatHistory.length.toString(), 'AI Chats',
+      (authProvider.chatHistory.length.toString(), loc.translate('aiChats'), // ✅
           Icons.chat_bubble_rounded, const Color(0xFF6C63FF)),
-      (authProvider.imageAnalyses.length.toString(), 'Images',
+      (authProvider.imageAnalyses.length.toString(), loc.translate('imagesAnalyzed'), // ✅
           Icons.image_rounded, const Color(0xFF3B82F6)),
-      (authProvider.speechTranscriptions.length.toString(), 'Voice',
+      (authProvider.speechTranscriptions.length.toString(), loc.translate('voiceNotes'), // ✅
           Icons.mic_rounded, const Color(0xFF8B5CF6)),
     ];
 
@@ -694,7 +696,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ]);
   }
 
-  Widget _buildPreferencesCard(ThemeProvider themeProvider) {
+  Widget _buildPreferencesCard(ThemeProvider themeProvider, AppLocalizations loc) {
     return _buildSettingCard([
       ListTile(
         leading: Container(
@@ -706,7 +708,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: const Icon(Icons.dark_mode_outlined,
               color: Colors.indigo, size: 20),
         ),
-        title: Text('Dark Mode',
+        title: Text(loc.translate('darkMode'), // ✅
             style: GoogleFonts.poppins(
                 fontSize: 14, fontWeight: FontWeight.w500, color: _t1(context))),
         trailing: Switch.adaptive(
@@ -719,27 +721,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ]);
   }
 
-  Widget _buildSecurityCard() {
+  Widget _buildSecurityCard(AppLocalizations loc) {
     return _buildSettingCard([
       _buildSettingItem(
         icon: Icons.lock_outline_rounded,
         color: Colors.orange,
-        title: 'Change Password',
-        subtitle: 'Update your password',
+        title: loc.translate('changePassword'), // ✅
+        subtitle: loc.translate('changePasswordDesc'), // ✅
         onTap: () {},
       ),
       Divider(height: 1, indent: 56, color: _bd(context)),
       _buildSettingItem(
         icon: Icons.shield_outlined,
         color: Colors.blue,
-        title: 'Two-Factor Authentication',
-        subtitle: 'Add extra security to your account',
+        title: loc.translate('twoFactor'), // ✅
+        subtitle: loc.translate('twoFactorDesc'), // ✅
         onTap: () {},
       ),
     ]);
   }
 
-  Widget _buildLogoutButton(BuildContext ctx) {
+  Widget _buildLogoutButton(BuildContext ctx, AppLocalizations loc) {
     return InkWell(
       onTap: () async {
         final authProvider = Provider.of<AuthProvider>(ctx, listen: false);
@@ -764,7 +766,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 color: Color(0xFFEF4444), size: 20),
             const SizedBox(width: 10),
             Text(
-              'Sign Out',
+              loc.translate('signOut'), // ✅
               style: GoogleFonts.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -777,11 +779,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildDeleteAccountButton(BuildContext ctx) {
+  Widget _buildDeleteAccountButton(BuildContext ctx, AppLocalizations loc) {
     return TextButton(
       onPressed: () {},
       child: Text(
-        'Delete Account',
+        loc.translate('deleteAccount'), // ✅
         style: GoogleFonts.poppins(
           fontSize: 13,
           color: Colors.grey[400],

@@ -5,12 +5,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/dark_mode_helpers.dart';
+import '../../l10n/app_localizations.dart'; // ✅ Add this import
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!; // ✅ Get localization
     final size = MediaQuery.of(context).size;
     final bool isWide = size.width >= 840;
 
@@ -25,7 +27,7 @@ class AboutScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'About SmartAI',
+          loc.translate('aboutSmartAI'), // ✅
           style: GoogleFonts.poppins(
             color: D.t1(context),
             fontWeight: FontWeight.w600,
@@ -41,11 +43,11 @@ class AboutScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
             child: Column(
               children: [
-                _buildHeader(context),
+                _buildHeader(context, loc),
                 const SizedBox(height: 32),
-                _buildDescriptionCard(context),
+                _buildDescriptionCard(context, loc),
                 const SizedBox(height: 40),
-                _buildSupportSection(context),
+                _buildSupportSection(context, loc),
                 const SizedBox(height: 40),
                 Text(
                   '© 2026 SmartAI Inc.',
@@ -62,7 +64,7 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, AppLocalizations loc) {
     return Column(
       children: [
         Container(
@@ -114,7 +116,7 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDescriptionCard(BuildContext context) {
+  Widget _buildDescriptionCard(BuildContext context, AppLocalizations loc) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -126,7 +128,7 @@ class AboutScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Our Mission',
+            loc.translate('ourMission'), // ✅
             style: GoogleFonts.poppins(
               fontWeight: FontWeight.bold,
               fontSize: 16,
@@ -135,7 +137,7 @@ class AboutScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'SmartAI is a next-generation multimodal platform designed to bring the power of artificial intelligence to your fingertips. From advanced chat capabilities to image analysis, we strive to make AI accessible, intuitive, and helpful for everyone.',
+            loc.translate('missionDesc'), // ✅
             style: GoogleFonts.poppins(
               fontSize: 13,
               color: D.t1(context).withValues(alpha: 0.8),
@@ -147,7 +149,7 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSupportSection(BuildContext context) {
+  Widget _buildSupportSection(BuildContext context, AppLocalizations loc) {
     return Container(
       decoration: BoxDecoration(
         color: D.card(context),
@@ -156,14 +158,26 @@ class AboutScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _buildListTile(context, Icons.headset_mic_outlined, 'Contact Support',
-              () => Navigator.pushNamed(context, '/help')),
+          _buildListTile(
+            context,
+            Icons.headset_mic_outlined,
+            loc.translate('contactSupport'), // ✅
+            () => Navigator.pushNamed(context, '/help'),
+          ),
           Divider(height: 1, indent: 56, color: D.bd(context)),
-          _buildListTile(context, Icons.star_outline_rounded, 'Rate the App',
-              () => _showRateDialog(context)),
+          _buildListTile(
+            context,
+            Icons.star_outline_rounded,
+            loc.translate('rateTheApp'), // ✅
+            () => _showRateDialog(context, loc),
+          ),
           Divider(height: 1, indent: 56, color: D.bd(context)),
-          _buildListTile(context, Icons.share_outlined, 'Share with Friends',
-              () => _shareApp(context)),
+          _buildListTile(
+            context,
+            Icons.share_outlined,
+            loc.translate('shareWithFriends'), // ✅
+            () => _shareApp(context, loc),
+          ),
         ],
       ),
     );
@@ -187,7 +201,7 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  void _shareApp(BuildContext context) {
+  void _shareApp(BuildContext context, AppLocalizations loc) {
     final url = Uri.parse('https://smartai.app');
     showModalBottomSheet(
       context: context,
@@ -207,27 +221,29 @@ class AboutScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                     color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
               ),
-              Text('Share SmartAI',
-                  style: GoogleFonts.poppins(
-                      fontSize: 16, fontWeight: FontWeight.w600, color: D.t1(context))),
+              Text(
+                loc.translate('shareSmartAI'), // ✅
+                style: GoogleFonts.poppins(
+                    fontSize: 16, fontWeight: FontWeight.w600, color: D.t1(context)),
+              ),
               const SizedBox(height: 20),
-              _shareOption(ctx, context,
+              _shareOption(ctx, context, loc,
                 icon: Icons.link_rounded,
                 color: const Color(0xFF6366F1),
-                title: 'Copy Link',
+                title: loc.translate('copyLink'), // ✅
                 onTap: () async {
                   Navigator.pop(ctx);
                   try { await launchUrl(url); } catch (_) {}
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Link opened!')));
+                        SnackBar(content: Text(loc.translate('linkOpened')))); // ✅
                   }
                 },
               ),
-              _shareOption(ctx, context,
+              _shareOption(ctx, context, loc,
                 icon: Icons.email_outlined,
                 color: const Color(0xFF06B6D4),
-                title: 'Share via Email',
+                title: loc.translate('shareViaEmail'), // ✅
                 onTap: () async {
                   Navigator.pop(ctx);
                   final emailUrl = Uri.parse(
@@ -235,10 +251,10 @@ class AboutScreen extends StatelessWidget {
                   try { await launchUrl(emailUrl); } catch (_) {}
                 },
               ),
-              _shareOption(ctx, context,
+              _shareOption(ctx, context, loc,
                 icon: Icons.language_rounded,
                 color: const Color(0xFF10B981),
-                title: 'Open Website',
+                title: loc.translate('openWebsite'), // ✅
                 onTap: () async {
                   Navigator.pop(ctx);
                   try { await launchUrl(url, mode: LaunchMode.externalApplication); } catch (_) {}
@@ -252,7 +268,7 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _shareOption(BuildContext ctx, BuildContext context,
+  Widget _shareOption(BuildContext ctx, BuildContext context, AppLocalizations loc,
       {required IconData icon,
       required Color color,
       required String title,
@@ -270,7 +286,7 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  void _showRateDialog(BuildContext context) {
+  void _showRateDialog(BuildContext context, AppLocalizations loc) {
     int selectedRating = 0;
     final reviewController = TextEditingController();
 
@@ -296,9 +312,11 @@ class AboutScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                     color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
               ),
-              Text('Rate SmartAI',
-                  style: GoogleFonts.poppins(
-                      fontSize: 16, fontWeight: FontWeight.w600, color: D.t1(context))),
+              Text(
+                loc.translate('rateSmartAI'), // ✅
+                style: GoogleFonts.poppins(
+                    fontSize: 16, fontWeight: FontWeight.w600, color: D.t1(context)),
+              ),
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -322,7 +340,14 @@ class AboutScreen extends StatelessWidget {
               const SizedBox(height: 6),
               if (selectedRating > 0)
                 Text(
-                  ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][selectedRating],
+                  [
+                    '',
+                    loc.translate('poor'), // ✅
+                    loc.translate('fair'), // ✅
+                    loc.translate('good'), // ✅
+                    loc.translate('veryGood'), // ✅
+                    loc.translate('excellent') // ✅
+                  ][selectedRating],
                   style: GoogleFonts.poppins(
                       fontSize: 13, color: const Color(0xFFFBBF24), fontWeight: FontWeight.w600),
                 ),
@@ -332,7 +357,7 @@ class AboutScreen extends StatelessWidget {
                 maxLines: 3,
                 style: GoogleFonts.poppins(fontSize: 14, color: D.t1(context)),
                 decoration: InputDecoration(
-                  hintText: 'Write a review (optional)',
+                  hintText: loc.translate('writeReview'), // ✅
                   hintStyle: GoogleFonts.poppins(color: D.t2(context), fontSize: 14),
                   filled: true,
                   fillColor: D.bg(context),
@@ -362,16 +387,16 @@ class AboutScreen extends StatelessWidget {
                             if (ctx.mounted) Navigator.pop(ctx);
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Thanks for your review!'),
-                                    backgroundColor: Color(0xFF10B981)),
+                                SnackBar(
+                                    content: Text(loc.translate('thanksForReview')), // ✅
+                                    backgroundColor: const Color(0xFF10B981)),
                               );
                             }
                           } catch (e) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                    content: Text('Failed to submit: $e'),
+                                    content: Text(loc.translate('failedToSubmit')), // ✅
                                     backgroundColor: Colors.red),
                               );
                             }
@@ -382,9 +407,11 @@ class AboutScreen extends StatelessWidget {
                     disabledBackgroundColor: D.bd(context),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: Text('Submit Review',
-                      style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600, color: Colors.white)),
+                  child: Text(
+                    loc.translate('submitReview'), // ✅
+                    style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600, color: Colors.white),
+                  ),
                 ),
               ),
               const SizedBox(height: 20),

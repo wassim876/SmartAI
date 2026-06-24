@@ -127,7 +127,8 @@ class AppLocalizations {
       'bookmarkRemoved': 'Bookmark removed',
       'chatCopied': 'Chat copied to clipboard!',
       'startConversation': 'Start a Conversation',
-      'askMeAnything': 'Ask me anything! Use + to attach files, images or documents.',
+      'askMeAnything':
+          'Ask me anything! Use + to attach files, images or documents.',
       'explainConcept': 'Explain a concept',
       'analyzeImage': 'Analyze an image',
       'summarizeDocument': 'Summarize a document',
@@ -162,7 +163,8 @@ class AppLocalizations {
       'noHistory': 'No history yet',
       'noHistoryHint': 'Your recent activities will appear here',
       'clearHistory': 'Clear History',
-      'clearHistoryConfirm': 'Delete all activity history? This cannot be undone.',
+      'clearHistoryConfirm':
+          'Delete all activity history? This cannot be undone.',
       'deleteAll': 'Delete All',
       'chatWithAI': 'Chat with AI',
       'login': 'Login',
@@ -172,7 +174,8 @@ class AppLocalizations {
       'removed': 'removed',
       'aboutSmartAI': 'About SmartAI',
       'ourMission': 'Our Mission',
-      'missionDesc': 'SmartAI is a next-generation multimodal platform designed to bring the power of artificial intelligence to your fingertips.',
+      'missionDesc':
+          'SmartAI is a next-generation multimodal platform designed to bring the power of artificial intelligence to your fingertips.',
       'contactSupport': 'Contact Support',
       'rateTheApp': 'Rate the App',
       'shareWithFriends': 'Share with Friends',
@@ -206,6 +209,33 @@ class AppLocalizations {
       'updateYourPassword': 'Update your password',
       'addExtraSecurity': 'Add extra security to your account',
       'failedToSubmit': 'Failed to submit',
+      'howToStartChat': 'How do I start a chat with AI?',
+      'howToStartChatAnswer':
+          'Tap "AI Chat" from the home screen or sidebar. Type your message and press send. The AI will respond instantly.',
+      'howImageAnalysisWorks': 'How does Image Analysis work?',
+      'howImageAnalysisWorksAnswer':
+          'Use the + button in chat to attach a photo. The AI will describe and analyze the content automatically.',
+      'howManyMessages': 'How many messages can I send per day?',
+      'howManyMessagesAnswer':
+          'Free users get 50 messages per day. Premium users get unlimited messages. Your usage resets every 24 hours.',
+      'howSpeechToTextWorks': 'How does Speech to Text work?',
+      'howSpeechToTextWorksAnswer':
+          'Tap the microphone button in the chat input bar and speak clearly. The app will transcribe your voice.',
+      'howToUpgrade': 'How do I upgrade to Premium?',
+      'howToUpgradeAnswer':
+          'Tap "Upgrade" on any locked feature or check your Settings to see subscription options. Premium gives you unlimited access to all features.',
+      'canUseOffline': 'Can I use SmartAI offline?',
+      'canUseOfflineAnswer':
+          'No, SmartAI requires an internet connection to process AI requests. Make sure you have a stable connection.',
+      'howToResetPassword': 'How do I reset my password?',
+      'howToResetPasswordAnswer':
+          'On the login screen, tap "Forgot password?" and enter your email. You will receive a reset link shortly.',
+      'isDataSecure': 'Is my data secure?',
+      'isDataSecureAnswer':
+          'Yes. All data is encrypted in transit using HTTPS. We never sell your personal data to third parties.',
+      'howToDeleteAccount': 'How do I delete my account?',
+      'howToDeleteAccountAnswer':
+          'Contact our support team at smartai_support@openai.com and we will process your account deletion within 48 hours.',
     },
     'fr': {
       'appTitle': 'SmartAI',
@@ -311,7 +341,8 @@ class AppLocalizations {
       'bookmarkRemoved': 'Marque supprimée',
       'chatCopied': 'Chat copié dans le presse-papiers !',
       'startConversation': 'Commencer une Conversation',
-      'askMeAnything': 'Demandez-moi n\'importe quoi ! Utilisez + pour joindre des fichiers.',
+      'askMeAnything':
+          'Demandez-moi n\'importe quoi ! Utilisez + pour joindre des fichiers.',
       'explainConcept': 'Expliquer un concept',
       'analyzeImage': 'Analyser une image',
       'summarizeDocument': 'Résumer un document',
@@ -329,7 +360,8 @@ class AppLocalizations {
       'summarizerDesc': 'Résumer les longs textes',
       'open': 'Ouvrir',
       'upgradeToPremium': 'Passer à Premium',
-      'unlockUnlimited': 'Débloquez la puissance IA illimitée et l\'accès prioritaire.',
+      'unlockUnlimited':
+          'Débloquez la puissance IA illimitée et l\'accès prioritaire.',
       'unlimitedMessages': 'Messages IA illimités',
       'imageDocAnalysis': 'Analyse d\'images et documents',
       'fasterResponse': 'Temps de réponse plus rapide',
@@ -346,7 +378,8 @@ class AppLocalizations {
       'noHistory': 'Aucun historique',
       'noHistoryHint': 'Vos activités récentes apparaîtront ici',
       'clearHistory': "Effacer l'Historique",
-      'clearHistoryConfirm': 'Supprimer tout l\'historique ? Cette action est irréversible.',
+      'clearHistoryConfirm':
+          'Supprimer tout l\'historique ? Cette action est irréversible.',
       'deleteAll': 'Tout Supprimer',
       'chatWithAI': 'Chat avec IA',
       'login': 'Connexion',
@@ -356,7 +389,8 @@ class AppLocalizations {
       'removed': 'supprimé',
       'aboutSmartAI': 'À propos de SmartAI',
       'ourMission': 'Notre Mission',
-      'missionDesc': 'SmartAI est une plateforme multimodale de nouvelle génération conçue pour mettre la puissance de l\'IA à portée de main.',
+      'missionDesc':
+          'SmartAI est une plateforme multimodale de nouvelle génération conçue pour mettre la puissance de l\'IA à portée de main.',
       'contactSupport': 'Contacter le Support',
       'rateTheApp': "Noter l'App",
       'shareWithFriends': 'Partager avec des Amis',
@@ -390,6 +424,33 @@ class AppLocalizations {
       'updateYourPassword': 'Mettre à jour votre mot de passe',
       'addExtraSecurity': 'Ajoutez une sécurité supplémentaire',
       'failedToSubmit': 'Échec de la soumission',
+      'howToStartChat': 'Comment démarrer un chat avec l\'IA ?',
+      'howToStartChatAnswer':
+          'Appuyez sur "Chat IA" depuis l\'écran d\'accueil ou la barre latérale. Tapez votre message et appuyez sur envoyer. L\'IA répondra instantanément.',
+      'howImageAnalysisWorks': 'Comment fonctionne l\'analyse d\'image ?',
+      'howImageAnalysisWorksAnswer':
+          'Utilisez le bouton + dans le chat pour joindre une photo. L\'IA décrira et analysera automatiquement le contenu.',
+      'howManyMessages': 'Combien de messages puis-je envoyer par jour ?',
+      'howManyMessagesAnswer':
+          'Les utilisateurs gratuits ont 50 messages par jour. Les utilisateurs Premium ont des messages illimités. Votre utilisation se réinitialise toutes les 24 heures.',
+      'howSpeechToTextWorks': 'Comment fonctionne la voix vers texte ?',
+      'howSpeechToTextWorksAnswer':
+          'Appuyez sur le bouton microphone dans la barre de saisie du chat et parlez clairement. L\'application transcrira votre voix.',
+      'howToUpgrade': 'Comment passer à Premium ?',
+      'howToUpgradeAnswer':
+          'Appuyez sur "Mettre à niveau" sur n\'importe quelle fonctionnalité verrouillée ou consultez vos Paramètres pour voir les options d\'abonnement. Premium vous donne un accès illimité à toutes les fonctionnalités.',
+      'canUseOffline': 'Puis-je utiliser SmartAI hors ligne ?',
+      'canUseOfflineAnswer':
+          'Non, SmartAI nécessite une connexion internet pour traiter les requêtes IA. Assurez-vous d\'avoir une connexion stable.',
+      'howToResetPassword': 'Comment réinitialiser mon mot de passe ?',
+      'howToResetPasswordAnswer':
+          'Sur l\'écran de connexion, appuyez sur "Mot de passe oublié ?" et entrez votre email. Vous recevrez un lien de réinitialisation sous peu.',
+      'isDataSecure': 'Mes données sont-elles sécurisées ?',
+      'isDataSecureAnswer':
+          'Oui. Toutes les données sont cryptées en transit via HTTPS. Nous ne vendons jamais vos données personnelles à des tiers.',
+      'howToDeleteAccount': 'Comment supprimer mon compte ?',
+      'howToDeleteAccountAnswer':
+          'Contactez notre équipe de support à smartai_support@openai.com et nous traiterons la suppression de votre compte dans les 48 heures.',
     },
     'ar': {
       'appTitle': 'SmartAI',
@@ -540,7 +601,8 @@ class AppLocalizations {
       'removed': 'تم الإزالة',
       'aboutSmartAI': 'حول SmartAI',
       'ourMission': 'مهمتنا',
-      'missionDesc': 'SmartAI هي منصة متعددة الوسائط من الجيل التالي مصممة لوضع قوة الذكاء الاصطناعي في متناول يدك.',
+      'missionDesc':
+          'SmartAI هي منصة متعددة الوسائط من الجيل التالي مصممة لوضع قوة الذكاء الاصطناعي في متناول يدك.',
       'contactSupport': 'التواصل مع الدعم',
       'rateTheApp': 'تقييم التطبيق',
       'shareWithFriends': 'مشاركة مع الأصدقاء',
@@ -574,6 +636,33 @@ class AppLocalizations {
       'updateYourPassword': 'تحديث كلمة المرور',
       'addExtraSecurity': 'إضافة أمان إضافي لحسابك',
       'failedToSubmit': 'فشل الإرسال',
+      'howToStartChat': 'كيف أبدأ محادثة مع الذكاء الاصطناعي؟',
+      'howToStartChatAnswer':
+          'اضغط على "محادثة ذكية" من الشاشة الرئيسية أو القائمة الجانبية. اكتب رسالتك واضغط إرسال. سيرد الذكاء الاصطناعي فوراً.',
+      'howImageAnalysisWorks': 'كيف يعمل تحليل الصور؟',
+      'howImageAnalysisWorksAnswer':
+          'استخدم زر + في المحادثة لإرفاق صورة. سيصف الذكاء الاصطناعي ويحلل المحتوى تلقائياً.',
+      'howManyMessages': 'كم عدد الرسائل التي يمكنني إرسالها يومياً؟',
+      'howManyMessagesAnswer':
+          'يحصل المستخدمون المجانيون على 50 رسالة يومياً. المستخدمون المميزون يحصلون على رسائل غير محدودة. يتم إعادة تعيين استخدامك كل 24 ساعة.',
+      'howSpeechToTextWorks': 'كيف يعمل تحويل الصوت إلى نص؟',
+      'howSpeechToTextWorksAnswer':
+          'اضغط على زر الميكروفون في شريط إدخال المحادثة وتحدث بوضوح. سيقوم التطبيق بتحويل صوتك إلى نص.',
+      'howToUpgrade': 'كيف أرقى إلى Premium؟',
+      'howToUpgradeAnswer':
+          'اضغط على "ترقية" على أي ميزة مقفلة أو تحقق من الإعدادات لرؤية خيارات الاشتراك. Premium يمنحك وصولاً غير محدود لجميع الميزات.',
+      'canUseOffline': 'هل يمكنني استخدام SmartAI دون اتصال؟',
+      'canUseOfflineAnswer':
+          'لا، يتطلب SmartAI اتصالاً بالإنترنت لمعالجة طلبات الذكاء الاصطناعي. تأكد من وجود اتصال مستقر.',
+      'howToResetPassword': 'كيف أعيد تعيين كلمة المرور؟',
+      'howToResetPasswordAnswer':
+          'على شاشة تسجيل الدخول، اضغط على "نسيت كلمة المرور؟" وأدخل بريدك الإلكتروني. ستتلقى رابط إعادة تعيين قريباً.',
+      'isDataSecure': 'هل بياناتي آمنة؟',
+      'isDataSecureAnswer':
+          'نعم. جميع البيانات مشفرة أثناء النقل باستخدام HTTPS. نحن لا نبيع بياناتك الشخصية لأطراف ثالثة.',
+      'howToDeleteAccount': 'كيف أحذف حسابي؟',
+      'howToDeleteAccountAnswer':
+          'اتصل بفريق الدعم على smartai_support@openai.com وسنقوم بمعالجة حذف حسابك خلال 48 ساعة.',
     },
     'de': {
       'appTitle': 'SmartAI',
@@ -714,7 +803,8 @@ class AppLocalizations {
       'noHistory': 'Noch kein Verlauf',
       'noHistoryHint': 'Deine letzten Aktivitäten erscheinen hier',
       'clearHistory': 'Verlauf Löschen',
-      'clearHistoryConfirm': 'Gesamten Verlauf löschen? Kann nicht rückgängig gemacht werden.',
+      'clearHistoryConfirm':
+          'Gesamten Verlauf löschen? Kann nicht rückgängig gemacht werden.',
       'deleteAll': 'Alles Löschen',
       'chatWithAI': 'Chat mit KI',
       'login': 'Anmelden',
@@ -724,7 +814,8 @@ class AppLocalizations {
       'removed': 'entfernt',
       'aboutSmartAI': 'Über SmartAI',
       'ourMission': 'Unsere Mission',
-      'missionDesc': 'SmartAI ist eine multimodale Plattform der nächsten Generation, die KI für alle zugänglich macht.',
+      'missionDesc':
+          'SmartAI ist eine multimodale Plattform der nächsten Generation, die KI für alle zugänglich macht.',
       'contactSupport': 'Support Kontaktieren',
       'rateTheApp': 'App Bewerten',
       'shareWithFriends': 'Mit Freunden Teilen',
@@ -758,6 +849,33 @@ class AppLocalizations {
       'updateYourPassword': 'Passwort aktualisieren',
       'addExtraSecurity': 'Zusätzliche Sicherheit hinzufügen',
       'failedToSubmit': 'Einsenden fehlgeschlagen',
+      'howToStartChat': 'Wie starte ich einen Chat mit KI?',
+      'howToStartChatAnswer':
+          'Tippen Sie auf "KI-Chat" auf dem Startbildschirm oder in der Seitenleiste. Geben Sie Ihre Nachricht ein und drücken Sie Senden. Die KI antwortet sofort.',
+      'howImageAnalysisWorks': 'Wie funktioniert die Bildanalyse?',
+      'howImageAnalysisWorksAnswer':
+          'Verwenden Sie die +-Taste im Chat, um ein Foto anzuhängen. Die KI beschreibt und analysiert den Inhalt automatisch.',
+      'howManyMessages': 'Wie viele Nachrichten kann ich pro Tag senden?',
+      'howManyMessagesAnswer':
+          'Kostenlose Nutzer erhalten 50 Nachrichten pro Tag. Premium-Nutzer erhalten unbegrenzte Nachrichten. Ihre Nutzung wird alle 24 Stunden zurückgesetzt.',
+      'howSpeechToTextWorks': 'Wie funktioniert Sprache zu Text?',
+      'howSpeechToTextWorksAnswer':
+          'Tippen Sie auf die Mikrofontaste in der Chat-Eingabeleiste und sprechen Sie deutlich. Die App transkribiert Ihre Stimme.',
+      'howToUpgrade': 'Wie upgrade ich auf Premium?',
+      'howToUpgradeAnswer':
+          'Tippen Sie auf "Upgraden" bei einer gesperrten Funktion oder überprüfen Sie Ihre Einstellungen für Abonnementoptionen. Premium gibt Ihnen unbegrenzten Zugang zu allen Funktionen.',
+      'canUseOffline': 'Kann ich SmartAI offline nutzen?',
+      'canUseOfflineAnswer':
+          'Nein, SmartAI benötigt eine Internetverbindung für KI-Anfragen. Stellen Sie sicher, dass Sie eine stabile Verbindung haben.',
+      'howToResetPassword': 'Wie setze ich mein Passwort zurück?',
+      'howToResetPasswordAnswer':
+          'Tippen Sie auf dem Anmeldebildschirm auf "Passwort vergessen?" und geben Sie Ihre E-Mail ein. Sie erhalten in Kürze einen Reset-Link.',
+      'isDataSecure': 'Sind meine Daten sicher?',
+      'isDataSecureAnswer':
+          'Ja. Alle Daten werden während der Übertragung mit HTTPS verschlüsselt. Wir verkaufen Ihre persönlichen Daten niemals an Dritte.',
+      'howToDeleteAccount': 'Wie lösche ich mein Konto?',
+      'howToDeleteAccountAnswer':
+          'Kontaktieren Sie unser Support-Team unter smartai_support@openai.com und wir werden Ihre Kontolöschung innerhalb von 48 Stunden bearbeiten.',
     },
     'es': {
       'appTitle': 'SmartAI',
@@ -908,7 +1026,8 @@ class AppLocalizations {
       'removed': 'eliminado',
       'aboutSmartAI': 'Acerca de SmartAI',
       'ourMission': 'Nuestra Misión',
-      'missionDesc': 'SmartAI es una plataforma multimodal de nueva generación diseñada para acercar la IA a todos.',
+      'missionDesc':
+          'SmartAI es una plataforma multimodal de nueva generación diseñada para acercar la IA a todos.',
       'contactSupport': 'Contactar Soporte',
       'rateTheApp': 'Valorar la App',
       'shareWithFriends': 'Compartir con Amigos',
@@ -942,6 +1061,33 @@ class AppLocalizations {
       'updateYourPassword': 'Actualizar tu contraseña',
       'addExtraSecurity': 'Añade seguridad extra a tu cuenta',
       'failedToSubmit': 'Error al enviar',
+      'howToStartChat': '¿Cómo empiezo un chat con IA?',
+      'howToStartChatAnswer':
+          'Toca "Chat IA" en la pantalla de inicio o en la barra lateral. Escribe tu mensaje y presiona enviar. La IA responderá al instante.',
+      'howImageAnalysisWorks': '¿Cómo funciona el análisis de imágenes?',
+      'howImageAnalysisWorksAnswer':
+          'Usa el botón + en el chat para adjuntar una foto. La IA describirá y analizará el contenido automáticamente.',
+      'howManyMessages': '¿Cuántos mensajes puedo enviar al día?',
+      'howManyMessagesAnswer':
+          'Los usuarios gratuitos tienen 50 mensajes al día. Los usuarios Premium tienen mensajes ilimitados. Tu uso se reinicia cada 24 horas.',
+      'howSpeechToTextWorks': '¿Cómo funciona Voz a Texto?',
+      'howSpeechToTextWorksAnswer':
+          'Toca el botón de micrófono en la barra de entrada del chat y habla con claridad. La aplicación transcribirá tu voz.',
+      'howToUpgrade': '¿Cómo actualizo a Premium?',
+      'howToUpgradeAnswer':
+          'Toca "Mejorar" en cualquier función bloqueada o revisa tus Ajustes para ver las opciones de suscripción. Premium te da acceso ilimitado a todas las funciones.',
+      'canUseOffline': '¿Puedo usar SmartAI sin conexión?',
+      'canUseOfflineAnswer':
+          'No, SmartAI requiere conexión a internet para procesar solicitudes de IA. Asegúrate de tener una conexión estable.',
+      'howToResetPassword': '¿Cómo restablezco mi contraseña?',
+      'howToResetPasswordAnswer':
+          'En la pantalla de inicio de sesión, toca "¿Olvidaste tu contraseña?" e ingresa tu email. Recibirás un enlace de restablecimiento en breve.',
+      'isDataSecure': '¿Mis datos están seguros?',
+      'isDataSecureAnswer':
+          'Sí. Todos los datos están encriptados en tránsito usando HTTPS. Nunca vendemos tus datos personales a terceros.',
+      'howToDeleteAccount': '¿Cómo elimino mi cuenta?',
+      'howToDeleteAccountAnswer':
+          'Contacta a nuestro equipo de soporte en smartai_support@openai.com y procesaremos la eliminación de tu cuenta en 48 horas.',
     },
     'tr': {
       'appTitle': 'SmartAI',
@@ -1092,7 +1238,8 @@ class AppLocalizations {
       'removed': 'kaldırıldı',
       'aboutSmartAI': 'SmartAI Hakkında',
       'ourMission': 'Misyonumuz',
-      'missionDesc': 'SmartAI, yapay zekayı herkesin kullanımına sunmak için tasarlanmış yeni nesil bir multimodal platformdur.',
+      'missionDesc':
+          'SmartAI, yapay zekayı herkesin kullanımına sunmak için tasarlanmış yeni nesil bir multimodal platformdur.',
       'contactSupport': 'Destek ile İletişim',
       'rateTheApp': 'Uygulamayı Değerlendir',
       'shareWithFriends': 'Arkadaşlarınla Paylaş',
@@ -1126,6 +1273,33 @@ class AppLocalizations {
       'updateYourPassword': 'Şifrenizi güncelleyin',
       'addExtraSecurity': 'Hesabınıza ek güvenlik ekleyin',
       'failedToSubmit': 'Gönderme başarısız',
+      'howToStartChat': 'YZ ile sohbete nasıl başlarım?',
+      'howToStartChatAnswer':
+          'Ana ekrandan veya yan menüden "YZ Sohbet"e dokunun. Mesajınızı yazın ve gönder tuşuna basın. YZ anında yanıt verecektir.',
+      'howImageAnalysisWorks': 'Görüntü Analizi nasıl çalışır?',
+      'howImageAnalysisWorksAnswer':
+          'Sohbette fotoğraf eklemek için + butonunu kullanın. YZ içeriği otomatik olarak tanımlayacak ve analiz edecektir.',
+      'howManyMessages': 'Günde kaç mesaj gönderebilirim?',
+      'howManyMessagesAnswer':
+          'Ücretsiz kullanıcılar günde 50 mesaj alır. Premium kullanıcılar sınırsız mesaj alır. Kullanımınız her 24 saatte bir sıfırlanır.',
+      'howSpeechToTextWorks': 'Sesten Metne nasıl çalışır?',
+      'howSpeechToTextWorksAnswer':
+          'Sohbet giriş çubuğundaki mikrofon düğmesine dokunun ve net konuşun. Uygulama sesinizi metne dönüştürecektir.',
+      'howToUpgrade': 'Premium\'a nasıl yükseltirim?',
+      'howToUpgradeAnswer':
+          'Kilitli herhangi bir özellikte "Yükselt"e dokunun veya abonelik seçeneklerini görmek için Ayarlarınızı kontrol edin. Premium size tüm özelliklere sınırsız erişim sağlar.',
+      'canUseOffline': 'SmartAI\'ı çevrimdışı kullanabilir miyim?',
+      'canUseOfflineAnswer':
+          'Hayır, SmartAI YZ isteklerini işlemek için internet bağlantısı gerektirir. Stabil bir bağlantınız olduğundan emin olun.',
+      'howToResetPassword': 'Şifremi nasıl sıfırlarım?',
+      'howToResetPasswordAnswer':
+          'Giriş ekranında "Şifrenizi mi unuttunuz?"a dokunun ve e-postanızı girin. Kısa süre içinde bir sıfırlama bağlantısı alacaksınız.',
+      'isDataSecure': 'Verilerim güvende mi?',
+      'isDataSecureAnswer':
+          'Evet. Tüm veriler HTTPS kullanılarak aktarım sırasında şifrelenir. Kişisel verilerinizi asla üçüncü taraflara satmayız.',
+      'howToDeleteAccount': 'Hesabımı nasıl silerim?',
+      'howToDeleteAccountAnswer':
+          'Destek ekibimizle smartai_support@openai.com adresinden iletişime geçin ve hesap silme işleminizi 48 saat içinde gerçekleştireceğiz.',
     },
     'ru': {
       'appTitle': 'SmartAI',
@@ -1276,7 +1450,8 @@ class AppLocalizations {
       'removed': 'удалено',
       'aboutSmartAI': 'О SmartAI',
       'ourMission': 'Наша Миссия',
-      'missionDesc': 'SmartAI — мультимодальная платформа нового поколения, созданная для того, чтобы сделать ИИ доступным для всех.',
+      'missionDesc':
+          'SmartAI — мультимодальная платформа нового поколения, созданная для того, чтобы сделать ИИ доступным для всех.',
       'contactSupport': 'Связаться с Поддержкой',
       'rateTheApp': 'Оценить Приложение',
       'shareWithFriends': 'Поделиться с Друзьями',
@@ -1310,6 +1485,33 @@ class AppLocalizations {
       'updateYourPassword': 'Обновите пароль',
       'addExtraSecurity': 'Добавьте дополнительную безопасность',
       'failedToSubmit': 'Ошибка отправки',
+      'howToStartChat': 'Как начать чат с ИИ?',
+      'howToStartChatAnswer':
+          'Нажмите «Чат с ИИ» на главном экране или в боковой панели. Введите сообщение и нажмите отправить. ИИ ответит мгновенно.',
+      'howImageAnalysisWorks': 'Как работает анализ изображений?',
+      'howImageAnalysisWorksAnswer':
+          'Используйте кнопку + в чате, чтобы прикрепить фото. ИИ автоматически опишет и проанализирует содержимое.',
+      'howManyMessages': 'Сколько сообщений я могу отправлять в день?',
+      'howManyMessagesAnswer':
+          'Бесплатные пользователи получают 50 сообщений в день. Премиум-пользователи получают неограниченное количество сообщений. Использование сбрасывается каждые 24 часа.',
+      'howSpeechToTextWorks': 'Как работает распознавание речи?',
+      'howSpeechToTextWorksAnswer':
+          'Нажмите кнопку микрофона в панели ввода чата и говорите четко. Приложение преобразует ваш голос в текст.',
+      'howToUpgrade': 'Как обновиться до Premium?',
+      'howToUpgradeAnswer':
+          'Нажмите «Обновить» на любой заблокированной функции или проверьте Настройки для вариантов подписки. Premium дает неограниченный доступ ко всем функциям.',
+      'canUseOffline': 'Можно ли использовать SmartAI офлайн?',
+      'canUseOfflineAnswer':
+          'Нет, SmartAI требует подключения к интернету для обработки запросов ИИ. Убедитесь, что у вас стабильное соединение.',
+      'howToResetPassword': 'Как сбросить пароль?',
+      'howToResetPasswordAnswer':
+          'На экране входа нажмите «Забыли пароль?» и введите свою электронную почту. Вы получите ссылку для сброса в ближайшее время.',
+      'isDataSecure': 'Мои данные в безопасности?',
+      'isDataSecureAnswer':
+          'Да. Все данные шифруются при передаче с использованием HTTPS. Мы никогда не продаем ваши личные данные третьим лицам.',
+      'howToDeleteAccount': 'Как удалить аккаунт?',
+      'howToDeleteAccountAnswer':
+          'Свяжитесь с нашей службой поддержки по адресу smartai_support@openai.com, и мы обработаем удаление вашего аккаунта в течение 48 часов.',
     },
     'zh': {
       'appTitle': 'SmartAI',
@@ -1494,6 +1696,25 @@ class AppLocalizations {
       'updateYourPassword': '更新密码',
       'addExtraSecurity': '为账户添加额外安全保护',
       'failedToSubmit': '提交失败',
+      'howToStartChat': '如何开始与AI聊天？',
+      'howToStartChatAnswer': '从首页或侧边栏点击"AI聊天"。输入消息并发送，AI会立即回复。',
+      'howImageAnalysisWorks': '图像分析如何工作？',
+      'howImageAnalysisWorksAnswer': '在聊天中使用+按钮附加照片。AI会自动描述和分析内容。',
+      'howManyMessages': '我每天可以发送多少条消息？',
+      'howManyMessagesAnswer': '免费用户每天50条消息。高级用户消息无限制。使用量每24小时重置一次。',
+      'howSpeechToTextWorks': '语音转文字如何工作？',
+      'howSpeechToTextWorksAnswer': '点击聊天输入栏中的麦克风按钮并清晰说话。应用会转录你的语音。',
+      'howToUpgrade': '如何升级到Premium？',
+      'howToUpgradeAnswer': '点击任何锁定功能上的"升级"或检查设置查看订阅选项。Premium让您无限制访问所有功能。',
+      'canUseOffline': '我可以离线使用SmartAI吗？',
+      'canUseOfflineAnswer': '不可以，SmartAI需要网络连接来处理AI请求。请确保你连接稳定。',
+      'howToResetPassword': '如何重置密码？',
+      'howToResetPasswordAnswer': '在登录屏幕上点击"忘记密码？"并输入你的邮箱。你将很快收到重置链接。',
+      'isDataSecure': '我的数据安全吗？',
+      'isDataSecureAnswer': '是的。所有数据传输使用HTTPS加密。我们绝不会将你的个人数据出售给第三方。',
+      'howToDeleteAccount': '如何删除我的账户？',
+      'howToDeleteAccountAnswer':
+          '请联系我们的支持团队 smartai_support@openai.com，我们将在48小时内处理你的账户删除。',
     },
   };
 

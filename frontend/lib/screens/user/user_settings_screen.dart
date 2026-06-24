@@ -16,17 +16,40 @@ class UserSettingsScreen extends StatefulWidget {
 class _UserSettingsScreenState extends State<UserSettingsScreen> {
   static const _primary = Color(0xFF6C63FF);
 
-  Color _bg(BuildContext c) => Theme.of(c).brightness == Brightness.dark ? const Color(0xFF0B0B0F) : const Color(0xFFF4F6FB);
-  Color _t1(BuildContext c) => Theme.of(c).brightness == Brightness.dark ? Colors.white : const Color(0xFF12112A);
-  Color _t2(BuildContext c) => Theme.of(c).brightness == Brightness.dark ? const Color(0xFFA0A0B0) : const Color(0xFF7B7A8E);
-  Color _bd(BuildContext c) => Theme.of(c).brightness == Brightness.dark ? const Color(0xFF2A2A3E) : const Color(0xFFEAEAF4);
-  Color _card(BuildContext c) => Theme.of(c).brightness == Brightness.dark ? const Color(0xFF161622) : Colors.white;
+  Color _bg(BuildContext c) => Theme.of(c).brightness == Brightness.dark
+      ? const Color(0xFF0B0B0F)
+      : const Color(0xFFF4F6FB);
+  Color _t1(BuildContext c) => Theme.of(c).brightness == Brightness.dark
+      ? Colors.white
+      : const Color(0xFF12112A);
+  Color _t2(BuildContext c) => Theme.of(c).brightness == Brightness.dark
+      ? const Color(0xFFA0A0B0)
+      : const Color(0xFF7B7A8E);
+  Color _bd(BuildContext c) => Theme.of(c).brightness == Brightness.dark
+      ? const Color(0xFF2A2A3E)
+      : const Color(0xFFEAEAF4);
+  Color _card(BuildContext c) => Theme.of(c).brightness == Brightness.dark
+      ? const Color(0xFF161622)
+      : Colors.white;
 
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
     final user = context.watch<AuthProvider>().currentUser;
-    final loc = AppLocalizations.of(context);
+
+    // ✅ FIX: Get localization with null safety
+    final loc = AppLocalizations.of(context); // Note: No ! (bang operator)
+
+    // If for some reason loc is null, use a fallback
+    if (loc == null) {
+      // This shouldn't happen if properly set up, but just in case
+      return Scaffold(
+        backgroundColor: _bg(context),
+        body: Center(
+          child: Text('Localization not available'),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: _bg(context),
@@ -34,11 +57,12 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
         backgroundColor: _card(context),
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: _t1(context), size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: _t1(context), size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          loc.translate('settings'),
+          loc.translate('settings'), // ✅ Now using the local variable
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -50,24 +74,24 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          _buildSectionHeader(loc.translate('profile')),
+          _buildSectionHeader(loc.translate('profile')), // ✅
           _buildSettingCard([
             _buildSettingItem(
               icon: Icons.person_outline_rounded,
               color: _primary,
-              title: loc.translate('editProfile'),
-              subtitle: user?.displayName ?? loc.translate('editProfile'),
-              onTap: () => Navigator.push(
-                  context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
+              title: loc.translate('editProfile'), // ✅
+              subtitle: user?.displayName ?? loc.translate('editProfile'), // ✅
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const ProfileScreen())),
             ),
           ]),
           const SizedBox(height: 24),
-          _buildSectionHeader(loc.translate('appSection')),
+          _buildSectionHeader(loc.translate('appSection')), // ✅
           _buildSettingCard([
             _buildToggleItem(
               icon: Icons.notifications_none_rounded,
               color: Colors.red,
-              title: loc.translate('pushNotifications'),
+              title: loc.translate('pushNotifications'), // ✅
               value: true,
               onChanged: (_) {},
             ),
@@ -75,31 +99,30 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
             _buildToggleItem(
               icon: Icons.dark_mode_outlined,
               color: Colors.indigo,
-              title: loc.translate('darkMode'),
+              title: loc.translate('darkMode'), // ✅
               value: themeProvider.isDarkMode,
               onChanged: (v) => themeProvider.toggleTheme(v),
             ),
           ]),
           const SizedBox(height: 24),
-          _buildSectionHeader(loc.translate('support')),
+          _buildSectionHeader(loc.translate('support')), // ✅
           _buildSettingCard([
             _buildSettingItem(
               icon: Icons.help_outline_rounded,
               color: Colors.purple,
-              title: loc.translate('helpCenter'),
+              title: loc.translate('helpCenter'), // ✅
               onTap: () => Navigator.pushNamed(context, '/help'),
             ),
           ]),
           const SizedBox(height: 32),
-          _buildLogoutButton(context),
+          _buildLogoutButton(context, loc), // ✅ Pass loc
           const SizedBox(height: 20),
         ],
       ),
     );
   }
 
-  Widget _buildLogoutButton(BuildContext ctx) {
-    final loc = AppLocalizations.of(context);
+  Widget _buildLogoutButton(BuildContext ctx, AppLocalizations loc) {
     return InkWell(
       onTap: () async {
         final authProvider = Provider.of<AuthProvider>(ctx, listen: false);
@@ -120,10 +143,11 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.logout_rounded, color: Color(0xFFEF4444), size: 20),
+            Icon(Icons.logout_rounded,
+                color: const Color(0xFFEF4444), size: 20),
             const SizedBox(width: 10),
             Text(
-              'Sign Out',
+              loc.translate('signOut'), // ✅ Now using passed loc
               style: GoogleFonts.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -224,6 +248,5 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
     );
   }
 
-  Widget _buildDivider() =>
-      Divider(height: 1, indent: 56, color: _bd(context));
+  Widget _buildDivider() => Divider(height: 1, indent: 56, color: _bd(context));
 }
