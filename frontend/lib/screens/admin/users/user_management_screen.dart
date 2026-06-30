@@ -173,11 +173,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   final authProvider = context.read<AuthProvider>();
                   final nav = Navigator.of(context);
                   await authProvider.updateUser(user.uid, {
-                    'first_name': nameController.text,
+                    'displayName': nameController.text,
                     'email': emailController.text,
-                    'role': selectedRole,
-                    'is_active': isActive,
-                    'is_premium': isPremium,
+                    'isAdmin': selectedRole == 'Admin',
+                    'isActive': isActive,
+                    'isPremium': isPremium,
                   });
                   if (mounted) {
                     nav.pop();
@@ -282,6 +282,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   }
 
   Future<void> _deleteUser(UserModel user) async {
+    if (user.isAdmin) {
+      _showSnackBar('Cannot delete admin users from here.', const Color(0xFFF59E0B));
+      return;
+    }
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -622,14 +627,22 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 ),
                 MouseRegion(
                   cursor: SystemMouseCursors.click,
-                  child: IconButton(
+                  child: Builder(
+                    builder: (btnContext) => IconButton(
                     icon: Icon(Icons.more_vert_rounded, size: 20, color: D.t3(context)),
                     onPressed: () {
-                      final RenderBox renderBox = context.findRenderObject() as RenderBox;
-                      final Offset offset = renderBox.localToGlobal(Offset.zero);
+                      final RenderBox btnBox = btnContext.findRenderObject() as RenderBox;
+                      final Offset btnOffset = btnBox.localToGlobal(Offset.zero);
+                      final double btnWidth = btnBox.size.width;
+                      final double btnHeight = btnBox.size.height;
                       showMenu<String>(
                         context: context,
-                        position: RelativeRect.fromLTRB(offset.dx + 100, offset.dy + 100, offset.dx + 100, offset.dy + 100),
+                        position: RelativeRect.fromLTRB(
+                          btnOffset.dx,
+                          btnOffset.dy + btnHeight,
+                          btnOffset.dx + btnWidth,
+                          btnOffset.dy,
+                        ),
                         color: D.card(context),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: D.bd(context))),
                         items: [
@@ -680,6 +693,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     },
                     tooltip: 'More Actions',
                   ),
+                ),
                 ),
               ],
             ),

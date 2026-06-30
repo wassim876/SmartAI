@@ -42,11 +42,11 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  final List<_NavItem> _navItems = const [
-    _NavItem(Icons.home_rounded, 'Home'),
-    _NavItem(Icons.auto_awesome_rounded, 'AI Chat'),
-    _NavItem(Icons.history_rounded, 'History'),
-    _NavItem(Icons.star_outline_rounded, 'Favorites'),
+  final List<_NavItem> _navItems = [
+    _NavItem(Icons.home_rounded, 'home'),
+    _NavItem(Icons.auto_awesome_rounded, 'aiChat'),
+    _NavItem(Icons.history_rounded, 'chatHistory'),
+    _NavItem(Icons.star_outline_rounded, 'favorites'),
   ];
 
   @override
@@ -67,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
         break;
       case 3:
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Favorites coming soon!')));
+            SnackBar(content: Text(AppLocalizations.of(context).translate('favoritesComingSoon'))));
         break;
       default:
         setState(() => _selectedIndex = i);
@@ -77,6 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
   PageRoute _route(Widget page) => MaterialPageRoute(builder: (_) => page);
 
   void _showUpgrade() {
+    final loc = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (_) => Dialog(
@@ -97,21 +98,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 const Icon(Icons.auto_awesome_rounded,
                     color: Colors.white, size: 32),
                 const SizedBox(height: 14),
-                Text('Upgrade to Premium',
+                Text(loc.translate('upgradeToPremium'),
                     style: GoogleFonts.poppins(
                         color: Colors.white,
                         fontSize: 20,
                         fontWeight: FontWeight.w700)),
                 const SizedBox(height: 8),
-                Text('Unlock unlimited AI power and priority access.',
+                Text(loc.translate('unlockUnlimited'),
                     style: GoogleFonts.poppins(
                         color: Colors.white70, fontSize: 13)),
                 const SizedBox(height: 20),
                 ...[
-                  'Unlimited AI messages',
-                  'Image & document analysis',
-                  'Faster response time',
-                  'Priority support'
+                  loc.translate('unlimitedMessages'),
+                  loc.translate('imageDocAnalysis'),
+                  loc.translate('fasterResponse'),
+                  loc.translate('prioritySupport')
                 ].map((t) => Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),
                       child: Row(children: [
@@ -135,14 +136,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                         elevation: 0),
-                    child: Text('Upgrade Now',
+                    child: Text(loc.translate('upgradeNow'),
                         style:
                             GoogleFonts.poppins(fontWeight: FontWeight.w700)),
                   )),
                   const SizedBox(width: 12),
                   TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: Text('Later',
+                      child: Text(loc.translate('later'),
                           style: GoogleFonts.poppins(color: Colors.white70))),
                 ]),
               ]),
@@ -195,7 +196,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Navigator.push(context, _route(const ChatScreen()));
           } else if (i == 3) {
             ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Favorites coming soon!')));
+                SnackBar(content: Text(AppLocalizations.of(context).translate('favoritesComingSoon'))));
           } else {
             setState(() => _selectedIndex = i);
           }
@@ -205,6 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   PreferredSizeWidget _buildMobileAppBar(dynamic user) {
+    final loc = AppLocalizations.of(context);
     return AppBar(
       backgroundColor: D.appBar(context),
       elevation: 0,
@@ -231,7 +233,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontWeight: FontWeight.w700,
                     color: _primary)),
           ])),
-          Text('Your AI Assistant',
+          Text(loc.translate('yourAIAssistant'),
               style: GoogleFonts.poppins(fontSize: 10, color: _text2(context))),
         ]),
       ]),
@@ -264,15 +266,15 @@ class _HomeScreenState extends State<HomeScreen> {
     final features = [
       _Feature(loc.translate('aiChat'), loc.translate('aiChatDesc'),
           Icons.auto_awesome_rounded, const Color(0xFF6366F1)),
-      _Feature('Code Assistant', 'Write & debug code', Icons.code_rounded,
+      _Feature(loc.translate('codeAssistant'), loc.translate('codeAssistantDesc'), Icons.code_rounded,
           const Color(0xFF10B981)),
-      _Feature('Writing Assistant', 'Essays, emails & more',
+      _Feature(loc.translate('writingAssistant'), loc.translate('writingAssistantDesc'),
           Icons.edit_note_rounded, const Color(0xFFF59E0B)),
-      _Feature('Image Analysis', 'Analyze photos & pictures',
+      _Feature(loc.translate('imageAnalysis'), loc.translate('imageAnalysisDesc'),
           Icons.image_search_rounded, const Color(0xFF3B82F6)),
-      _Feature('Translator', 'Translate any language', Icons.translate_rounded,
+      _Feature(loc.translate('translator'), loc.translate('translatorDesc'), Icons.translate_rounded,
           const Color(0xFFEC4899)),
-      _Feature('Summarizer', 'Summarize long texts', Icons.summarize_rounded,
+      _Feature(loc.translate('summarizer'), loc.translate('summarizerDesc'), Icons.summarize_rounded,
           const Color(0xFF8B5CF6),
           interactive: false),
     ];
@@ -460,24 +462,25 @@ class _QuickStats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
     final stats = [
       (
         chatCount.toString(),
-        'AI Chats',
+        loc.translate('aiChats'),
         Icons.chat_bubble_rounded,
         const Color(0xFF6366F1),
         const Color(0xFF818CF8)
       ),
       (
         imageCount.toString(),
-        'Images',
+        loc.translate('images'),
         Icons.image_rounded,
         const Color(0xFF06B6D4),
         const Color(0xFF22D3EE)
       ),
       (
         activityCount.toString(),
-        'Activities',
+        loc.translate('activities'),
         Icons.history_rounded,
         const Color(0xFFF59E0B),
         const Color(0xFFFBBF24)
@@ -688,7 +691,7 @@ class _FeatureCard extends StatelessWidget {
                 color: locked ? const Color(0xFFF0F0F8) : null,
                 borderRadius: BorderRadius.circular(10)),
             child: Center(
-                child: Text(locked ? '🔒 Upgrade' : 'Open',
+                child: Text(locked ? '🔒 ${AppLocalizations.of(context).translate('upgrade')}' : AppLocalizations.of(context).translate('open'),
                     style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -757,6 +760,7 @@ class _ActivitySection extends StatelessWidget {
 
   Widget _buildActivityTile(
       BuildContext context, Map<String, dynamic> activity) {
+    final loc = AppLocalizations.of(context);
     final action = activity['action'] ?? 'Unknown';
     final details = activity['details'] ?? {};
     final createdAtRaw = activity['createdAt'];
@@ -780,21 +784,21 @@ class _ActivitySection extends StatelessWidget {
       case 'chat_message':
         icon = Icons.auto_awesome_rounded;
         color = _primary;
-        title = 'Chat with AI';
+        title = loc.translate('chatWithAI');
         final msg = details['message']?.toString() ?? '';
         subtitle = msg.length > 30 ? '${msg.substring(0, 30)}...' : msg;
         break;
       case 'image_analysis':
         icon = Icons.image_search_rounded;
         color = const Color(0xFF3B82F6);
-        title = 'Image Analysis';
-        subtitle = details['image_type'] ?? 'Image analyzed';
+        title = loc.translate('imageAnalysis');
+        subtitle = details['image_type'] ?? loc.translate('imageAnalyzed');
         break;
       case 'speech_to_text':
         icon = Icons.mic_rounded;
         color = const Color(0xFF8B5CF6);
-        title = 'Speech to Text';
-        subtitle = 'Voice transcribed';
+        title = loc.translate('speechToText');
+        subtitle = loc.translate('voiceTranscribed');
         break;
       default:
         icon = Icons.fiber_manual_record_rounded;
@@ -807,7 +811,7 @@ class _ActivitySection extends StatelessWidget {
       icon: icon,
       color: color,
       title: title,
-      subtitle: subtitle.isNotEmpty ? subtitle : _formatDate(createdAt),
+      subtitle: subtitle.isNotEmpty ? subtitle : _formatDate(context, createdAt),
       time: _formatTime(createdAt),
       onTap: () {
         switch (action) {
@@ -822,12 +826,13 @@ class _ActivitySection extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(BuildContext context, DateTime date) {
+    final loc = AppLocalizations.of(context);
     final diff = DateTime.now().difference(date);
-    if (diff.inDays > 0) return '${diff.inDays}d ago';
-    if (diff.inHours > 0) return '${diff.inHours}h ago';
-    if (diff.inMinutes > 0) return '${diff.inMinutes}m ago';
-    return 'Just now';
+    if (diff.inDays > 0) return '${diff.inDays}${loc.translate('daysAgo')}';
+    if (diff.inHours > 0) return '${diff.inHours}${loc.translate('hoursAgo')}';
+    if (diff.inMinutes > 0) return '${diff.inMinutes}${loc.translate('minutesAgo')}';
+    return loc.translate('justNow');
   }
 
   String _formatTime(DateTime date) =>
@@ -840,6 +845,7 @@ class _RightPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
     final used = user?.dailyMessagesUsed ?? 0;
     final limit = user?.dailyMessagesLimit ?? 50;
     final progress = limit > 0 ? (used / limit).clamp(0.0, 1.0) : 0.0;
@@ -873,7 +879,7 @@ class _RightPanel extends StatelessWidget {
                       const Icon(Icons.workspace_premium_rounded,
                           size: 11, color: Color(0xFFD97706)),
                       const SizedBox(width: 4),
-                      Text('Premium',
+                      Text(loc.translate('premiumMember'),
                           style: GoogleFonts.poppins(
                               fontSize: 11,
                               color: const Color(0xFFD97706),
@@ -885,7 +891,7 @@ class _RightPanel extends StatelessWidget {
           Divider(color: _border(context)),
           const SizedBox(height: 12),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text('Daily Usage',
+            Text(loc.translate('dailyUsage'),
                 style: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -907,7 +913,7 @@ class _RightPanel extends StatelessWidget {
           const SizedBox(height: 6),
           Align(
               alignment: Alignment.centerLeft,
-              child: Text('Resets in 24 hours',
+              child: Text(loc.translate('resetsIn'),
                   style: GoogleFonts.poppins(
                       fontSize: 11, color: _text2(context)))),
         ]),
@@ -980,6 +986,7 @@ class _UsageMini extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
     final used = user?.dailyMessagesUsed ?? 0;
     final limit = user?.dailyMessagesLimit ?? 50;
     final progress = limit > 0 ? (used / limit).clamp(0.0, 1.0) : 0.0;
@@ -991,7 +998,7 @@ class _UsageMini extends StatelessWidget {
           border: Border.all(color: _border(context))),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text('Daily Usage',
+          Text(loc.translate('dailyUsage'),
               style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
@@ -1000,7 +1007,7 @@ class _UsageMini extends StatelessWidget {
             cursor: SystemMouseCursors.click,
             child: GestureDetector(
                 onTap: onUpgrade,
-                child: Text('Upgrade ↗',
+                child: Text(loc.translate('upgradeArrow'),
                     style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -1016,7 +1023,7 @@ class _UsageMini extends StatelessWidget {
                 backgroundColor: const Color(0xFFEEEDFF),
                 valueColor: const AlwaysStoppedAnimation(Color(0xFF6C63FF)))),
         const SizedBox(height: 8),
-        Text('$used of $limit messages used today',
+        Text('$used / $limit ${loc.translate('messagesUsedToday')}',
             style: GoogleFonts.poppins(fontSize: 12, color: _text2(context))),
       ]),
     );
@@ -1038,6 +1045,7 @@ class _Sidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
     return Container(
       width: 230,
       decoration: BoxDecoration(
@@ -1068,7 +1076,7 @@ class _Sidebar extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                           color: _primary)),
                 ])),
-                Text('Your AI Assistant',
+                Text(loc.translate('yourAIAssistant'),
                     style: GoogleFonts.poppins(
                         fontSize: 10, color: _text2(context))),
               ]),
@@ -1101,7 +1109,7 @@ class _Sidebar extends StatelessWidget {
                           size: 19, color: sel ? _primary : _text2(context)),
                       const SizedBox(width: 11),
                       Expanded(
-                          child: Text(item.label,
+                          child: Text(loc.translate(item.label),
                               style: GoogleFonts.poppins(
                                   fontSize: 13,
                                   fontWeight:
@@ -1125,7 +1133,7 @@ class _Sidebar extends StatelessWidget {
               _footerItem(
                   context,
                   Icons.person_outline_rounded,
-                  'Profile',
+                  loc.translate('profile'),
                   false,
                   () => Navigator.push(
                       context,
@@ -1134,7 +1142,7 @@ class _Sidebar extends StatelessWidget {
               _footerItem(
                   context,
                   Icons.settings_outlined,
-                  'Settings',
+                  loc.translate('settings'),
                   false,
                   () => Navigator.push(
                       context,
@@ -1143,16 +1151,16 @@ class _Sidebar extends StatelessWidget {
               _footerItem(
                   context,
                   Icons.info_outline_rounded,
-                  'About',
+                  loc.translate('about'),
                   false,
                   () => Navigator.push(context,
                       MaterialPageRoute(builder: (_) => const AboutScreen()))),
-              _footerItem(context, Icons.help_outline_rounded, 'Support', false,
+              _footerItem(context, Icons.help_outline_rounded, loc.translate('support'), false,
                   () => Navigator.pushNamed(context, '/help')),
               _footerItem(
                   context,
                   Icons.logout_rounded,
-                  'Logout',
+                  loc.translate('logout'),
                   true,
                   () => context.read<AuthProvider>().signOut().then((_) {
                         if (context.mounted) {
@@ -1263,15 +1271,15 @@ class _TopBar extends StatelessWidget {
           },
           itemBuilder: (ctx) => [
             _buildPopupItem(
-                context, 'profile', Icons.person_outline_rounded, 'Profile'),
+                context, 'profile', Icons.person_outline_rounded, loc.translate('profile')),
             _buildPopupItem(
-                context, 'settings', Icons.settings_outlined, 'Settings'),
+                context, 'settings', Icons.settings_outlined, loc.translate('settings')),
             _buildPopupItem(
-                context, 'about', Icons.info_outline_rounded, 'About'),
+                context, 'about', Icons.info_outline_rounded, loc.translate('about')),
             _buildPopupItem(
-                context, 'support', Icons.help_outline_rounded, 'Support'),
+                context, 'support', Icons.help_outline_rounded, loc.translate('support')),
             const PopupMenuDivider(),
-            _buildPopupItem(context, 'logout', Icons.logout_rounded, 'Logout',
+            _buildPopupItem(context, 'logout', Icons.logout_rounded, loc.translate('logout'),
                 color: Colors.red),
           ],
           child: MouseRegion(
@@ -1289,7 +1297,7 @@ class _TopBar extends StatelessWidget {
                             fontWeight: FontWeight.w600,
                             color: _text1(context))),
                     if (user?.isPremium == true)
-                      Text('Premium',
+                      Text(loc.translate('premiumMember'),
                           style: GoogleFonts.poppins(
                               fontSize: 11,
                               color: const Color(0xFFD97706),
@@ -1479,16 +1487,16 @@ class _BottomNav extends StatelessWidget {
   final ValueChanged<int> onTap;
   const _BottomNav({required this.selected, required this.onTap});
 
-  static const List<(IconData, String)> _items = [
-    (Icons.home_rounded, 'Home'),
-    (Icons.history_rounded, 'History'),
-    (Icons.add_rounded, ''),
-    (Icons.star_outline_rounded, 'Favorites'),
-    (Icons.settings_outlined, 'Settings'),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    final items = [
+      (Icons.home_rounded, loc.translate('home')),
+      (Icons.history_rounded, loc.translate('history')),
+      (Icons.add_rounded, ''),
+      (Icons.star_outline_rounded, loc.translate('favorites')),
+      (Icons.settings_outlined, loc.translate('settings')),
+    ];
     return Container(
       height: 64 + MediaQuery.of(context).padding.bottom,
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
@@ -1497,7 +1505,7 @@ class _BottomNav extends StatelessWidget {
           border: Border(top: BorderSide(color: _border(context)))),
       child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: _items.asMap().entries.map((e) {
+          children: items.asMap().entries.map((e) {
             final i = e.key;
             final item = e.value;
             final sel = selected == i;
@@ -1616,7 +1624,7 @@ class _NotifBell extends StatelessWidget {
 class _LangPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final langProvider = context.read<LanguageProvider>();
+    final langProvider = context.watch<LanguageProvider>();
     final currentCode = langProvider.locale.languageCode;
     final flag = LanguageProvider.languageFlags[currentCode] ?? '🌐';
     return MouseRegion(
@@ -1737,6 +1745,7 @@ class _MobileDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
     return Drawer(
       backgroundColor: Colors.transparent,
       child: Container(
@@ -1879,7 +1888,7 @@ class _MobileDrawer extends StatelessWidget {
                                             size: 12,
                                             color: Colors.white),
                                         const SizedBox(width: 4),
-                                        Text('Premium',
+                                        Text(loc.translate('premiumMember'),
                                             style: GoogleFonts.poppins(
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.w600,
@@ -1911,7 +1920,7 @@ class _MobileDrawer extends StatelessWidget {
                         context: context,
                         icon: Icons.person_outline_rounded,
                         color: const Color(0xFF6366F1),
-                        label: 'Profile',
+                        label: loc.translate('profile'),
                         onTap: () {
                           Navigator.pop(context);
                           Navigator.push(
@@ -1924,7 +1933,7 @@ class _MobileDrawer extends StatelessWidget {
                         context: context,
                         icon: Icons.settings_outlined,
                         color: const Color(0xFF3B82F6),
-                        label: 'Settings',
+                        label: loc.translate('settings'),
                         onTap: () {
                           Navigator.pop(context);
                           Navigator.push(
@@ -1937,7 +1946,7 @@ class _MobileDrawer extends StatelessWidget {
                         context: context,
                         icon: Icons.history_rounded,
                         color: const Color(0xFFF59E0B),
-                        label: 'History',
+                        label: loc.translate('history'),
                         onTap: () {
                           Navigator.pop(context);
                           Navigator.pushNamed(context, '/history');
@@ -1947,7 +1956,7 @@ class _MobileDrawer extends StatelessWidget {
                         context: context,
                         icon: Icons.info_outline_rounded,
                         color: const Color(0xFF06B6D4),
-                        label: 'About',
+                        label: loc.translate('about'),
                         onTap: () {
                           Navigator.pop(context);
                           Navigator.push(
@@ -1960,7 +1969,7 @@ class _MobileDrawer extends StatelessWidget {
                         context: context,
                         icon: Icons.help_outline_rounded,
                         color: const Color(0xFF8B5CF6),
-                        label: 'Support',
+                        label: loc.translate('support'),
                         onTap: () {
                           Navigator.pop(context);
                           Navigator.pushNamed(context, '/help');
@@ -2001,7 +2010,7 @@ class _MobileDrawer extends StatelessWidget {
                                   color: Color(0xFFEF4444), size: 18),
                               const SizedBox(width: 8),
                               Text(
-                                'Sign Out',
+                                loc.translate('signOut'),
                                 style: GoogleFonts.poppins(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,

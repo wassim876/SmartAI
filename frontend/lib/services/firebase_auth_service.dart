@@ -200,6 +200,15 @@ class FirebaseAuthService {
     bool isAdmin = false,
     bool isPremium = false,
   }) async {
+    // Verify the calling user is an admin
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) throw Exception('Not authenticated');
+
+    final callerDoc = await _firestore.collection('users').doc(currentUser.uid).get();
+    if (!callerDoc.exists || callerDoc.data()?['isAdmin'] != true) {
+      throw Exception('Admin access required');
+    }
+
     FirebaseApp? secondaryApp;
     try {
       // Spin up a temporary secondary Firebase app instance

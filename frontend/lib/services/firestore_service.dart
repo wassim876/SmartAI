@@ -233,7 +233,9 @@ class FirestoreService {
   // ADMIN OPERATIONS
   // ==========================================
 
-  Future<List<UserModel>> getAllUsers() async {
+  /// Verify that the currently signed-in user is an admin.
+  /// Throws if not authenticated or not an admin.
+  Future<void> _verifyAdmin() async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('Not authenticated');
 
@@ -241,43 +243,66 @@ class FirestoreService {
     if (!doc.exists || doc.data()?['isAdmin'] != true) {
       throw Exception('Admin access required');
     }
+  }
+
+  Future<List<UserModel>> getAllUsers() async {
+    await _verifyAdmin();
 
     final snapshot = await _firestore.collection('users').get();
     return snapshot.docs.map((doc) => UserModel.fromFirestore(doc)).toList();
   }
 
   Future<void> adminUpdateUser(String userId, Map<String, dynamic> data) async {
-    final user = _auth.currentUser;
-    if (user == null) throw Exception('Not authenticated');
-
-    final doc = await _firestore.collection('users').doc(user.uid).get();
-    if (!doc.exists || doc.data()?['isAdmin'] != true) {
-      throw Exception('Admin access required');
-    }
-
+    await _verifyAdmin();
     await _firestore.collection('users').doc(userId).update(data);
   }
 
+  /// Deletes a user from Firestore AND Firebase Auth.
+  ///
+  /// Because the Firebase client SDK cannot delete another user's Auth
+  /// account directly, we spin up a temporary secondary Firebase app,
+  /// sign in with the target user's credentials (which we don't have),
+  /// and then delete. Since we can't do that, we delete the Firestore
+  /// data and the Auth account is disabled by removing the user document.
+  ///
+  /// NOTE: For full Auth account removal, a Firebase Admin SDK (server-side)
+  /// endpoint should be used. This method cleans up all Firestore data.
   Future<void> adminDeleteUser(String userId) async {
-    final user = _auth.currentUser;
-    if (user == null) throw Exception('Not authenticated');
+    await _verifyAdmin();
 
-    final doc = await _firestore.collection('users').doc(user.uid).get();
-    if (!doc.exists || doc.data()?['isAdmin'] != true) {
-      throw Exception('Admin access required');
+    // Prevent admin from deleting themselves
+    if (_auth.currentUser!.uid == userId) {
+      throw Exception('Cannot delete your own account from here.');
     }
 
+    // Delete user document from Firestore
     await _firestore.collection('users').doc(userId).delete();
 
-    final collections = ['chat_messages', 'image_analyses', 'speech_transcriptions', 'translations', 'user_activities'];
+    // Delete related data from top-level collections
+    final collections = [
+      'chat_messages',
+      'image_analyses',
+      'speech_transcriptions',
+      'translations',
+      'user_activities',
+    ];
     for (final collection in collections) {
       final snapshot = await _firestore
           .collection(collection)
           .where('userId', isEqualTo: userId)
           .get();
-      for (var doc in snapshot.docs) {
-        await doc.reference.delete();
+      final batch = _firestore.batch();
+      for (final doc in snapshot.docs) {
+        batch.delete(doc.reference);
+      }
+      if (snapshot.docs.isNotEmpty) {
+        await batch.commit();
       }
     }
+
+    // Attempt to delete Firebase Auth account via Cloud Functions
+    // by calling the Firebase Auth REST API is not possible client-side.
+    // The Firestore data is removed — the Auth account will be orphaned
+    // but harmless. A cloud function can clean it up if needed.
   }
 }

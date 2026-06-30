@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:firebase_storage/firebase_storage.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../services/photo_picker_service.dart';
 import '../../models/user_model.dart';
-import '../../l10n/app_localizations.dart'; // ✅ Add this import
+import '../../l10n/app_localizations.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -29,6 +29,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isEditingName = false;
   bool _isUploading = false;
   bool _isSaving = false;
+  final PhotoPickerService _photoPicker = PhotoPickerService();
 
   @override
   void initState() {
@@ -44,7 +45,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _pickAndUploadImage(AppLocalizations loc) async {
-    // Capture context-dependent objects before any await
     final messenger = ScaffoldMessenger.of(context);
     final authProvider = context.read<AuthProvider>();
     final hasPhoto = authProvider.currentUser?.photoURL?.isNotEmpty == true;
@@ -85,20 +85,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     color: _primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.camera_alt_rounded, color: _primary),
-                ),
-                title: Text(loc.translate('takePhoto'),
-                    style: GoogleFonts.poppins(fontSize: 14, color: _t1(ctx))),
-                onTap: () => Navigator.pop(ctx, 'camera'),
-              ),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.photo_library_rounded, color: Colors.green),
+                  child: const Icon(Icons.photo_library_rounded, color: _primary),
                 ),
                 title: Text(loc.translate('chooseFromGallery'),
                     style: GoogleFonts.poppins(fontSize: 14, color: _t1(ctx))),
@@ -142,7 +129,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
       } catch (e) {
         messenger.showSnackBar(SnackBar(
-          content: Text('${loc.translate('failedToSubmit')}: $e'),
+          content: Text('$e'),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
         ));
@@ -152,32 +139,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return;
     }
 
-    final source = result == 'camera' ? ImageSource.camera : ImageSource.gallery;
+    // Pick image using the same service as admin settings
+    final imageBytes = await _photoPicker.pickImageFromGallery();
+    if (imageBytes == null || !mounted) return;
 
     try {
       setState(() => _isUploading = true);
 
-      final picker = ImagePicker();
-      final XFile? image = await picker.pickImage(
-        source: source,
-        maxWidth: 512,
-        maxHeight: 512,
-        imageQuality: 85,
-      );
-
-      if (image == null) {
-        if (mounted) setState(() => _isUploading = false);
-        return;
-      }
-
-      final bytes = await image.readAsBytes();
       final uid = FirebaseAuth.instance.currentUser!.uid;
       final ref = FirebaseStorage.instance
           .ref()
           .child('profile_pics')
           .child('$uid.jpg');
 
-      await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
+      await ref.putData(imageBytes, SettableMetadata(contentType: 'image/jpeg'));
       final downloadUrl = await ref.getDownloadURL();
 
       await authProvider.updateProfile(
@@ -193,11 +168,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ));
       }
     } catch (e) {
-      messenger.showSnackBar(SnackBar(
-        content: Text('${loc.translate('failedToSubmit')}: $e'),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-      ));
+      if (mounted) {
+        messenger.showSnackBar(SnackBar(
+          content: Text('$e'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ));
+      }
     } finally {
       if (mounted) setState(() => _isUploading = false);
     }
@@ -450,20 +427,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildSettingCard(List<Widget> children) {
-    return Container(
-      decoration: BoxDecoration(
-        color: _card(context),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _bd(context)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+    return Material(
+      color: _card(context),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: _bd(context)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(children: children),
       ),
-      child: Column(children: children),
     );
   }
 
