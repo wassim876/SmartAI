@@ -1,8 +1,10 @@
 // lib/services/firebase_auth_service.dart
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../firebase_options.dart';
 import '../models/user_model.dart';
 
 class FirebaseAuthService {
@@ -104,18 +106,25 @@ class FirebaseAuthService {
   // ==========================================
   Future<UserModel?> signInWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return null;
+      late final UserCredential userCredential;
 
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      if (kIsWeb) {
+        final googleProvider = GoogleAuthProvider();
+        userCredential = await _auth.signInWithPopup(googleProvider);
+      } else {
+        final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+        if (googleUser == null) return null;
 
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
+        final GoogleSignInAuthentication googleAuth =
+            await googleUser.authentication;
 
-      final userCredential = await _auth.signInWithCredential(credential);
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+        userCredential = await _auth.signInWithCredential(credential);
+      }
+
       final user = userCredential.user!;
 
       // Check if user exists in Firestore
@@ -150,7 +159,9 @@ class FirebaseAuthService {
   Future<UserModel?> signInWithGitHub() async {
     try {
       final githubProvider = GithubAuthProvider();
-      final userCredential = await _auth.signInWithPopup(githubProvider);
+      final userCredential = kIsWeb
+          ? await _auth.signInWithPopup(githubProvider)
+          : await _auth.signInWithProvider(githubProvider);
       final user = userCredential.user!;
 
       final doc = await _firestore.collection('users').doc(user.uid).get();
@@ -175,6 +186,73 @@ class FirebaseAuthService {
       throw Exception(_getAuthErrorMessage(e));
     } catch (e) {
       throw Exception('GitHub sign in failed: $e');
+    }
+  }
+
+  // ==========================================
+  // ADMIN: CREATE USER WITHOUT SIGNING IN
+  // Uses a secondary Firebase app so the admin session is never interrupted.
+  // ==========================================
+  Future<UserModel> adminCreateUser({
+    required String username,
+    required String email,
+    required String password,
+    bool isAdmin = false,
+    bool isPremium = false,
+  }) async {
+    FirebaseApp? secondaryApp;
+    try {
+      // Spin up a temporary secondary Firebase app instance
+      secondaryApp = await Firebase.initializeApp(
+        name: 'adminCreateUser_${DateTime.now().millisecondsSinceEpoch}',
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+
+      final secondaryAuth = FirebaseAuth.instanceFor(app: secondaryApp);
+
+      final userCredential = await secondaryAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final newUser = userCredential.user!;
+
+      try {
+        await newUser.updateDisplayName(username);
+      } catch (_) {}
+
+      // Sign the new user out of the secondary app immediately
+      await secondaryAuth.signOut();
+
+      // Write the Firestore document using the admin's primary Firestore instance
+      final userModel = UserModel(
+        uid: newUser.uid,
+        username: username,
+        email: email,
+        displayName: username,
+        photoURL: null,
+        isPremium: isPremium,
+        isActive: true,
+        isAdmin: isAdmin,
+        dailyMessagesUsed: 0,
+        dailyMessagesLimit: 50,
+        createdAt: DateTime.now(),
+        lastLogin: DateTime.now(),
+      );
+
+      await _firestore.collection('users').doc(newUser.uid).set(
+            userModel.toFirestoreForCreate(),
+          );
+
+      final doc = await _firestore.collection('users').doc(newUser.uid).get();
+      return UserModel.fromFirestore(doc);
+    } on FirebaseAuthException catch (e) {
+      throw Exception(_getAuthErrorMessage(e));
+    } catch (e) {
+      throw Exception('Failed to create user: $e');
+    } finally {
+      // Always delete the secondary app to free resources
+      await secondaryApp?.delete();
     }
   }
 
@@ -253,15 +331,15 @@ class FirebaseAuthService {
   // ==========================================
   // CHANGE EMAIL
   // ==========================================
+  /// Sends a verification email to [newEmail]. Firestore is NOT updated here —
+  /// call [refreshUserData] after the user clicks the verification link and
+  /// signs in again so the updated email is written to Firestore.
   Future<void> changeEmail(String newEmail) async {
     final user = _auth.currentUser;
     if (user == null) throw Exception('Not authenticated');
 
     try {
       await user.verifyBeforeUpdateEmail(newEmail);
-      await _firestore.collection('users').doc(user.uid).set({
-        'email': newEmail,
-      }, SetOptions(merge: true));
     } on FirebaseAuthException catch (e) {
       throw Exception(_getAuthErrorMessage(e));
     } catch (e) {

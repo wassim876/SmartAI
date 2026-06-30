@@ -65,7 +65,7 @@ class AIServicesScreen extends StatelessWidget {
           LayoutBuilder(
             builder: (context, constraints) {
               final crossAxisCount = constraints.maxWidth > 1100 ? 3 : constraints.maxWidth > 700 ? 2 : 1;
-              final double childAspectRatio = constraints.maxWidth > 1100 ? 1.4 : constraints.maxWidth > 700 ? 1.2 : 0.85;
+              final double childAspectRatio = constraints.maxWidth > 1100 ? 1.3 : constraints.maxWidth > 700 ? 1.1 : 1.2;
               return GridView.count(
                 crossAxisCount: crossAxisCount,
                 shrinkWrap: true,

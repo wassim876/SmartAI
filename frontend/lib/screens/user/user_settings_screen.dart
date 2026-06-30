@@ -38,18 +38,7 @@ class _UserSettingsScreenState extends State<UserSettingsScreen> {
     final user = context.watch<AuthProvider>().currentUser;
 
     // ✅ FIX: Get localization with null safety
-    final loc = AppLocalizations.of(context); // Note: No ! (bang operator)
-
-    // If for some reason loc is null, use a fallback
-    if (loc == null) {
-      // This shouldn't happen if properly set up, but just in case
-      return Scaffold(
-        backgroundColor: _bg(context),
-        body: Center(
-          child: Text('Localization not available'),
-        ),
-      );
-    }
+    final loc = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: _bg(context),

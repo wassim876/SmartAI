@@ -404,18 +404,14 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final user = await _authService.signUp(
+      await _authService.adminCreateUser(
         username: userData['username'],
         email: userData['email'],
         password: userData['password'],
+        isAdmin: userData['role'] == 'Admin',
+        isPremium: userData['isPremium'] ?? false,
       );
-      if (user != null) {
-        await _firestoreService.adminUpdateUser(user.uid, {
-          'isAdmin': userData['role'] == 'Admin',
-          'isPremium': userData['isPremium'] ?? false,
-        });
-        await fetchUsers();
-      }
+      await fetchUsers();
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
       rethrow;

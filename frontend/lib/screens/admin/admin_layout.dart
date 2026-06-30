@@ -13,7 +13,6 @@ class AdminLayout extends StatefulWidget {
 }
 
 class _AdminLayoutState extends State<AdminLayout> {
-  bool _isSidebarExpanded = true;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -69,16 +68,12 @@ class _AdminLayoutState extends State<AdminLayout> {
           ? Drawer(
               backgroundColor: Colors.transparent,
               width: 260,
-              child: Sidebar(isExpanded: true, onToggle: () => Navigator.pop(context)),
+              child: Sidebar(key: UniqueKey()),
             )
           : null,
       body: Row(
         children: [
-          if (isDesktop)
-            Sidebar(
-              isExpanded: _isSidebarExpanded,
-              onToggle: () => setState(() => _isSidebarExpanded = !_isSidebarExpanded),
-            ),
+          if (isDesktop) const Sidebar(),
           Expanded(
             child: Container(
               color: D.bg(context),

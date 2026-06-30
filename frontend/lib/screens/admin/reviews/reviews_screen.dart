@@ -53,7 +53,7 @@ class ReviewsScreen extends StatelessWidget {
                       children: [
                         Text('Reviews & Ratings', style: GoogleFonts.poppins(fontSize: 26, fontWeight: FontWeight.bold, color: D.t1(context), letterSpacing: -0.5)),
                         const SizedBox(height: 4),
-                        Text('${docs.length} reviews · ${avgRating.toStringAsFixed(1)} average rating', style: GoogleFonts.poppins(fontSize: 14, color: D.t2(context))),
+                        Text('${docs.length} reviews · ${avgRating.toStringAsFixed(1)} average rating', style: GoogleFonts.poppins(fontSize: 14, color: D.t2(context)), overflow: TextOverflow.ellipsis),
                       ],
                     ),
                   ),
@@ -218,11 +218,13 @@ class ReviewsScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: List.generate(5, (i) => Icon(
-                          i < rating ? Icons.star_rounded : Icons.star_outline_rounded,
-                          color: const Color(0xFFFBBF24), size: 16)),
+                    Flexible(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: List.generate(5, (i) => Icon(
+                            i < rating ? Icons.star_rounded : Icons.star_outline_rounded,
+                            color: const Color(0xFFFBBF24), size: 16)),
+                      ),
                     ),
                   ],
                 ),

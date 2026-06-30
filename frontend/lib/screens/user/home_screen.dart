@@ -29,7 +29,8 @@ class _Feature {
   final IconData icon;
   final Color color;
   final bool interactive;
-  const _Feature(this.title, this.subtitle, this.icon, this.color, {this.interactive = true});
+  const _Feature(this.title, this.subtitle, this.icon, this.color,
+      {this.interactive = true});
 }
 
 class HomeScreen extends StatefulWidget {
@@ -220,7 +221,9 @@ class _HomeScreenState extends State<HomeScreen> {
             TextSpan(
                 text: 'Smart',
                 style: GoogleFonts.poppins(
-                    fontSize: 17, fontWeight: FontWeight.w700, color: _text1(context))),
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: _text1(context))),
             TextSpan(
                 text: 'AI',
                 style: GoogleFonts.poppins(
@@ -236,11 +239,14 @@ class _HomeScreenState extends State<HomeScreen> {
         _LangPicker(),
         _NotifBell(),
         const SizedBox(width: 4),
-        GestureDetector(
-          onTap: () => Navigator.push(context, _route(const ProfileScreen())),
-          child: Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: _Avatar(user: user, radius: 19)),
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () => Navigator.push(context, _route(const ProfileScreen())),
+            child: Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: _Avatar(user: user, radius: 19)),
+          ),
         ),
       ],
     );
@@ -258,16 +264,17 @@ class _HomeScreenState extends State<HomeScreen> {
     final features = [
       _Feature(loc.translate('aiChat'), loc.translate('aiChatDesc'),
           Icons.auto_awesome_rounded, const Color(0xFF6366F1)),
-      _Feature('Code Assistant', 'Write & debug code',
-          Icons.code_rounded, const Color(0xFF10B981), interactive: false),
+      _Feature('Code Assistant', 'Write & debug code', Icons.code_rounded,
+          const Color(0xFF10B981)),
       _Feature('Writing Assistant', 'Essays, emails & more',
-          Icons.edit_note_rounded, const Color(0xFFF59E0B), interactive: false),
+          Icons.edit_note_rounded, const Color(0xFFF59E0B)),
       _Feature('Image Analysis', 'Analyze photos & pictures',
-          Icons.image_search_rounded, const Color(0xFF3B82F6), interactive: false),
-      _Feature('Translator', 'Translate any language',
-          Icons.translate_rounded, const Color(0xFFEC4899), interactive: false),
-      _Feature('Summarizer', 'Summarize long texts',
-          Icons.summarize_rounded, const Color(0xFF8B5CF6), interactive: false),
+          Icons.image_search_rounded, const Color(0xFF3B82F6)),
+      _Feature('Translator', 'Translate any language', Icons.translate_rounded,
+          const Color(0xFFEC4899)),
+      _Feature('Summarizer', 'Summarize long texts', Icons.summarize_rounded,
+          const Color(0xFF8B5CF6),
+          interactive: false),
     ];
 
     final prompts = [
@@ -310,12 +317,11 @@ class _HomeScreenState extends State<HomeScreen> {
             return _FeatureCard(
                 feature: f,
                 locked: false,
-                wide: wide,
-                onTap: f.interactive
-                    ? () {
-                        Navigator.push(context, _route(ChatScreen(initialPrompt: prompts[i])));
-                      }
-                    : null);
+                wide: wide, // Always interactive now
+                onTap: () {
+                  Navigator.push(
+                      context, _route(ChatScreen(initialPrompt: prompts[i])));
+                });
           },
         ),
         SizedBox(height: wide ? 32 : 24),
@@ -544,8 +550,8 @@ class _SectionLabel extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                     color: _text1(context))),
             Text(subtitle,
-                style: GoogleFonts.poppins(
-                    fontSize: 12, color: _text2(context))),
+                style:
+                    GoogleFonts.poppins(fontSize: 12, color: _text2(context))),
           ]),
         ]);
   }
@@ -570,8 +576,9 @@ class _FeatureCard extends StatelessWidget {
         color: D.card(context),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-            color:
-                locked ? _border(context) : feature.color.withValues(alpha: 0.15)),
+            color: locked
+                ? _border(context)
+                : feature.color.withValues(alpha: 0.15)),
         boxShadow: [
           BoxShadow(
               color: feature.color.withValues(alpha: locked ? 0.03 : 0.08),
@@ -657,11 +664,13 @@ class _FeatureCard extends StatelessWidget {
         const Spacer(),
         Text(feature.title,
             style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w700, fontSize: 13, color: _text1(context))),
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+                color: _text1(context))),
         const SizedBox(height: 3),
         Text(feature.subtitle,
-            style:
-                GoogleFonts.poppins(fontSize: 10, color: _text2(context), height: 1.4),
+            style: GoogleFonts.poppins(
+                fontSize: 10, color: _text2(context), height: 1.4),
             maxLines: 2,
             overflow: TextOverflow.ellipsis),
         if (onTap != null) ...[
@@ -683,7 +692,8 @@ class _FeatureCard extends StatelessWidget {
                     style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: locked ? const Color(0xFFB0B0C8) : Colors.white))),
+                        color:
+                            locked ? const Color(0xFFB0B0C8) : Colors.white))),
           ),
         ],
       ]);
@@ -702,14 +712,19 @@ class _ActivitySection extends StatelessWidget {
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Text(loc.translate('recentActivity'),
             style: GoogleFonts.poppins(
-                fontSize: 16, fontWeight: FontWeight.w700, color: _text1(context))),
-        GestureDetector(
-            onTap: () => Navigator.pushNamed(context, '/history'),
-            child: Text(loc.translate('viewAll'),
-                style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _primary))),
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: _text1(context))),
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+              onTap: () => Navigator.pushNamed(context, '/history'),
+              child: Text(loc.translate('viewAll'),
+                  style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: _primary))),
+        ),
       ]),
       const SizedBox(height: 12),
       if (recentActivities.isEmpty)
@@ -872,7 +887,9 @@ class _RightPanel extends StatelessWidget {
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             Text('Daily Usage',
                 style: GoogleFonts.poppins(
-                    fontSize: 13, fontWeight: FontWeight.w600, color: _text1(context))),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: _text1(context))),
             Text('$used / $limit',
                 style: GoogleFonts.poppins(
                     fontSize: 12,
@@ -891,7 +908,8 @@ class _RightPanel extends StatelessWidget {
           Align(
               alignment: Alignment.centerLeft,
               child: Text('Resets in 24 hours',
-                  style: GoogleFonts.poppins(fontSize: 11, color: _text2(context)))),
+                  style: GoogleFonts.poppins(
+                      fontSize: 11, color: _text2(context)))),
         ]),
       ),
       const SizedBox(height: 14),
@@ -907,7 +925,9 @@ class _RightPanel extends StatelessWidget {
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(loc.translate('tipsForYou'),
                 style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w700, fontSize: 14, color: _text1(context))),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    color: _text1(context))),
             const SizedBox(height: 14),
             _buildTip(context, Icons.mic_rounded, const Color(0xFF8B5CF6),
                 loc.translate('tryVoice'), loc.translate('tryVoiceHint')),
@@ -915,7 +935,8 @@ class _RightPanel extends StatelessWidget {
             _buildTip(context, Icons.image_rounded, const Color(0xFF3B82F6),
                 loc.translate('clearImages'), loc.translate('clearImagesHint')),
             const SizedBox(height: 12),
-            _buildTip(context,
+            _buildTip(
+                context,
                 Icons.bookmark_rounded,
                 const Color(0xFF6C63FF),
                 loc.translate('bookmarkChats'),
@@ -926,7 +947,8 @@ class _RightPanel extends StatelessWidget {
     ]);
   }
 
-  Widget _buildTip(BuildContext context, IconData icon, Color color, String title, String subtitle) {
+  Widget _buildTip(BuildContext context, IconData icon, Color color,
+      String title, String subtitle) {
     return Row(children: [
       Container(
           width: 34,
@@ -941,8 +963,11 @@ class _RightPanel extends StatelessWidget {
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(title,
             style: GoogleFonts.poppins(
-                fontSize: 12, fontWeight: FontWeight.w600, color: _text1(context))),
-        Text(subtitle, style: GoogleFonts.poppins(fontSize: 11, color: _text2(context))),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: _text1(context))),
+        Text(subtitle,
+            style: GoogleFonts.poppins(fontSize: 11, color: _text2(context))),
       ])),
     ]);
   }
@@ -962,20 +987,25 @@ class _UsageMini extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
           color: D.card(context),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: _border(context))),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: _border(context))),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Text('Daily Usage',
               style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w600, fontSize: 14, color: _text1(context))),
-          GestureDetector(
-              onTap: onUpgrade,
-              child: Text('Upgrade ↗',
-                  style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: _primary))),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  color: _text1(context))),
+          MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+                onTap: onUpgrade,
+                child: Text('Upgrade ↗',
+                    style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: _primary))),
+          ),
         ]),
         const SizedBox(height: 12),
         ClipRRect(
@@ -1039,7 +1069,8 @@ class _Sidebar extends StatelessWidget {
                           color: _primary)),
                 ])),
                 Text('Your AI Assistant',
-                    style: GoogleFonts.poppins(fontSize: 10, color: _text2(context))),
+                    style: GoogleFonts.poppins(
+                        fontSize: 10, color: _text2(context))),
               ]),
             ])),
         Divider(height: 1, color: _border(context)),
@@ -1066,7 +1097,8 @@ class _Sidebar extends StatelessWidget {
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(12)),
                     child: Row(children: [
-                      Icon(item.icon, size: 19, color: sel ? _primary : _text2(context)),
+                      Icon(item.icon,
+                          size: 19, color: sel ? _primary : _text2(context)),
                       const SizedBox(width: 11),
                       Expanded(
                           child: Text(item.label,
@@ -1074,9 +1106,7 @@ class _Sidebar extends StatelessWidget {
                                   fontSize: 13,
                                   fontWeight:
                                       sel ? FontWeight.w600 : FontWeight.w400,
-                                   color: sel
-                                      ? _primary
-                                      : D.t1(context)))),
+                                  color: sel ? _primary : D.t1(context)))),
                       if (sel)
                         Container(
                             width: 6,
@@ -1169,33 +1199,36 @@ class _TopBar extends StatelessWidget {
           border: Border(bottom: BorderSide(color: _border(context)))),
       child: Row(children: [
         Expanded(
-            child: GestureDetector(
-          onTap: () => _openSearch(context, loc),
-          child: Container(
-            height: 38,
-            decoration: BoxDecoration(
-                color: D.bg(context),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: D.bd(context))),
-            child: Row(children: [
-              const SizedBox(width: 12),
-              Icon(Icons.search_rounded, size: 17, color: D.t2(context)),
-              const SizedBox(width: 8),
-              Text(loc.translate('searchAnything'),
-                  style: GoogleFonts.poppins(
-                      fontSize: 13, color: D.t2(context))),
-              const Spacer(),
-              Container(
-                  margin: const EdgeInsets.only(right: 10),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                  decoration: BoxDecoration(
-                      color: D.bd(context),
-                      borderRadius: BorderRadius.circular(6)),
-                  child: Text('Ctrl /',
-                      style: GoogleFonts.poppins(
-                          fontSize: 11, color: D.t2(context)))),
-            ]),
+            child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () => _openSearch(context, loc),
+            child: Container(
+              height: 38,
+              decoration: BoxDecoration(
+                  color: D.bg(context),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: D.bd(context))),
+              child: Row(children: [
+                const SizedBox(width: 12),
+                Icon(Icons.search_rounded, size: 17, color: D.t2(context)),
+                const SizedBox(width: 8),
+                Text(loc.translate('searchAnything'),
+                    style: GoogleFonts.poppins(
+                        fontSize: 13, color: D.t2(context))),
+                const Spacer(),
+                Container(
+                    margin: const EdgeInsets.only(right: 10),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                        color: D.bd(context),
+                        borderRadius: BorderRadius.circular(6)),
+                    child: Text('Ctrl /',
+                        style: GoogleFonts.poppins(
+                            fontSize: 11, color: D.t2(context)))),
+              ]),
+            ),
           ),
         )),
         const SizedBox(width: 14),
@@ -1229,42 +1262,50 @@ class _TopBar extends StatelessWidget {
             }
           },
           itemBuilder: (ctx) => [
-            _buildPopupItem(context, 'profile', Icons.person_outline_rounded, 'Profile'),
-            _buildPopupItem(context, 'settings', Icons.settings_outlined, 'Settings'),
-            _buildPopupItem(context, 'about', Icons.info_outline_rounded, 'About'),
-            _buildPopupItem(context, 'support', Icons.help_outline_rounded, 'Support'),
+            _buildPopupItem(
+                context, 'profile', Icons.person_outline_rounded, 'Profile'),
+            _buildPopupItem(
+                context, 'settings', Icons.settings_outlined, 'Settings'),
+            _buildPopupItem(
+                context, 'about', Icons.info_outline_rounded, 'About'),
+            _buildPopupItem(
+                context, 'support', Icons.help_outline_rounded, 'Support'),
             const PopupMenuDivider(),
             _buildPopupItem(context, 'logout', Icons.logout_rounded, 'Logout',
                 color: Colors.red),
           ],
-          child: Row(children: [
-            _Avatar(user: user, radius: 18),
-            const SizedBox(width: 9),
-            Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(user?.displayName ?? 'User',
-                      style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: _text1(context))),
-                  if (user?.isPremium == true)
-                    Text('Premium',
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: Row(children: [
+              _Avatar(user: user, radius: 18),
+              const SizedBox(width: 9),
+              Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(user?.displayName ?? 'User',
                         style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            color: const Color(0xFFD97706),
-                            fontWeight: FontWeight.w500)),
-                ]),
-            Icon(Icons.keyboard_arrow_down_rounded,
-                color: D.t2(context), size: 18),
-          ]),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: _text1(context))),
+                    if (user?.isPremium == true)
+                      Text('Premium',
+                          style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              color: const Color(0xFFD97706),
+                              fontWeight: FontWeight.w500)),
+                  ]),
+              Icon(Icons.keyboard_arrow_down_rounded,
+                  color: D.t2(context), size: 18),
+            ]),
+          ),
         ),
       ]),
     );
   }
 
-  PopupMenuItem<String> _buildPopupItem(BuildContext context, String val, IconData icon, String label,
+  PopupMenuItem<String> _buildPopupItem(
+      BuildContext context, String val, IconData icon, String label,
       {Color? color}) {
     return PopupMenuItem(
         value: val,
@@ -1272,7 +1313,8 @@ class _TopBar extends StatelessWidget {
           Icon(icon, size: 18, color: color ?? _text1(context)),
           const SizedBox(width: 12),
           Text(label,
-              style: GoogleFonts.poppins(fontSize: 13, color: color ?? _text1(context))),
+              style: GoogleFonts.poppins(
+                  fontSize: 13, color: color ?? _text1(context))),
         ]));
   }
 
@@ -1358,13 +1400,14 @@ class _TopBar extends StatelessWidget {
                     child: TextField(
                       controller: controller,
                       autofocus: true,
-                      style: GoogleFonts.poppins(fontSize: 14, color: D.t1(context)),
+                      style: GoogleFonts.poppins(
+                          fontSize: 14, color: D.t1(context)),
                       decoration: InputDecoration(
                           hintText: loc.translate('searchAnything'),
                           hintStyle: GoogleFonts.poppins(
                               color: D.t2(context), fontSize: 14),
-                          prefixIcon:
-                              Icon(Icons.search_rounded, size: 20, color: D.t2(context)),
+                          prefixIcon: Icon(Icons.search_rounded,
+                              size: 20, color: D.t2(context)),
                           filled: true,
                           fillColor: D.bg(context),
                           border: OutlineInputBorder(
@@ -1459,22 +1502,25 @@ class _BottomNav extends StatelessWidget {
             final item = e.value;
             final sel = selected == i;
             if (i == 2) {
-              return GestureDetector(
-                  onTap: () => onTap(i),
-                  child: Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                          color: _primary,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                                color: _primary.withValues(alpha: 0.35),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4))
-                          ]),
-                      child: const Icon(Icons.add_rounded,
-                          color: Colors.white, size: 26)));
+              return MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                    onTap: () => onTap(i),
+                    child: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                            color: _primary,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                  color: _primary.withValues(alpha: 0.35),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4))
+                            ]),
+                        child: const Icon(Icons.add_rounded,
+                            color: Colors.white, size: 26))),
+              );
             }
             return MouseRegion(
                 cursor: SystemMouseCursors.click,
@@ -1547,8 +1593,8 @@ class _NotifBell extends StatelessWidget {
                               color: _text1(context))),
                       const SizedBox(height: 4),
                       Text(loc.translate('noNotificationsHint'),
-                          style:
-                              GoogleFonts.poppins(fontSize: 13, color: _text2(context))),
+                          style: GoogleFonts.poppins(
+                              fontSize: 13, color: _text2(context))),
                     ]),
                   ),
                 ]),
@@ -1628,6 +1674,12 @@ class _LangPicker extends StatelessWidget {
                                 onTap: () {
                                   langProvider.setLocale(Locale(entry.key));
                                   Navigator.pop(ctx);
+                                  // Pop all routes back to /home so every
+                                  // screen rebuilds with the new locale
+                                  Navigator.of(context).pushNamedAndRemoveUntil(
+                                    '/home',
+                                    (route) => false,
+                                  );
                                 },
                               );
                             })),
@@ -1707,7 +1759,11 @@ class _MobileDrawer extends StatelessWidget {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFF6366F1), Color(0xFF8B5CF6), Color(0xFFA855F7)],
+                      colors: [
+                        Color(0xFF6366F1),
+                        Color(0xFF8B5CF6),
+                        Color(0xFFA855F7)
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -1753,15 +1809,20 @@ class _MobileDrawer extends StatelessWidget {
                             height: 56,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 2),
+                              border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.3),
+                                  width: 2),
                             ),
                             child: CircleAvatar(
                               radius: 26,
-                              backgroundColor: Colors.white.withValues(alpha: 0.2),
-                              backgroundImage: user?.photoURL != null && user!.photoURL!.isNotEmpty
+                              backgroundColor:
+                                  Colors.white.withValues(alpha: 0.2),
+                              backgroundImage: user?.photoURL != null &&
+                                      user!.photoURL!.isNotEmpty
                                   ? NetworkImage(user.photoURL!)
                                   : null,
-                              child: (user?.photoURL == null || user!.photoURL!.isEmpty)
+                              child: (user?.photoURL == null ||
+                                      user!.photoURL!.isEmpty)
                                   ? Text(
                                       user?.displayName?.isNotEmpty == true
                                           ? user!.displayName[0].toUpperCase()
@@ -1803,17 +1864,26 @@ class _MobileDrawer extends StatelessWidget {
                                 if (user?.isPremium == true) ...[
                                   const SizedBox(height: 6),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 3),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.2),
+                                      color:
+                                          Colors.white.withValues(alpha: 0.2),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const Icon(Icons.workspace_premium_rounded, size: 12, color: Colors.white),
+                                        const Icon(
+                                            Icons.workspace_premium_rounded,
+                                            size: 12,
+                                            color: Colors.white),
                                         const SizedBox(width: 4),
-                                        Text('Premium', style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.white)),
+                                        Text('Premium',
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.white)),
                                       ],
                                     ),
                                   ),
@@ -1842,35 +1912,59 @@ class _MobileDrawer extends StatelessWidget {
                         icon: Icons.person_outline_rounded,
                         color: const Color(0xFF6366F1),
                         label: 'Profile',
-                        onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())); },
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const ProfileScreen()));
+                        },
                       ),
                       _drawerItem(
                         context: context,
                         icon: Icons.settings_outlined,
                         color: const Color(0xFF3B82F6),
                         label: 'Settings',
-                        onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => const UserSettingsScreen())); },
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const UserSettingsScreen()));
+                        },
                       ),
                       _drawerItem(
                         context: context,
                         icon: Icons.history_rounded,
                         color: const Color(0xFFF59E0B),
                         label: 'History',
-                        onTap: () { Navigator.pop(context); Navigator.pushNamed(context, '/history'); },
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.pushNamed(context, '/history');
+                        },
                       ),
                       _drawerItem(
                         context: context,
                         icon: Icons.info_outline_rounded,
                         color: const Color(0xFF06B6D4),
                         label: 'About',
-                        onTap: () { Navigator.pop(context); Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen())); },
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const AboutScreen()));
+                        },
                       ),
                       _drawerItem(
                         context: context,
                         icon: Icons.help_outline_rounded,
                         color: const Color(0xFF8B5CF6),
                         label: 'Support',
-                        onTap: () { Navigator.pop(context); Navigator.pushNamed(context, '/help'); },
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.pushNamed(context, '/help');
+                        },
                       ),
                     ],
                   ),
@@ -1889,34 +1983,41 @@ class _MobileDrawer extends StatelessWidget {
                         color: const Color(0xFFEF4444).withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.pop(context);
-                          context.read<AuthProvider>().signOut().then((_) {
-                            if (context.mounted) Navigator.pushReplacementNamed(context, '/');
-                          });
-                        },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.logout_rounded, color: Color(0xFFEF4444), size: 18),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Sign Out',
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: const Color(0xFFEF4444),
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.pop(context);
+                            context.read<AuthProvider>().signOut().then((_) {
+                              if (context.mounted) {
+                                Navigator.pushReplacementNamed(context, '/');
+                              }
+                            });
+                          },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.logout_rounded,
+                                  color: Color(0xFFEF4444), size: 18),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Sign Out',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFFEF4444),
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'SmartAI v1.0.0',
-                      style: GoogleFonts.poppins(fontSize: 10, color: Colors.grey[400]),
+                      style: GoogleFonts.poppins(
+                          fontSize: 10, color: Colors.grey[400]),
                     ),
                   ],
                 ),
@@ -1967,7 +2068,8 @@ class _MobileDrawer extends StatelessWidget {
                     ),
                   ),
                 ),
-                Icon(Icons.chevron_right_rounded, color: D.t2(context), size: 18),
+                Icon(Icons.chevron_right_rounded,
+                    color: D.t2(context), size: 18),
               ],
             ),
           ),

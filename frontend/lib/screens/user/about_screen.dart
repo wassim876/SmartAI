@@ -5,14 +5,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/dark_mode_helpers.dart';
-import '../../l10n/app_localizations.dart'; // ✅ Add this import
+import '../../l10n/app_localizations.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final loc = AppLocalizations.of(context)!; // ✅ Get localization
+    final loc = AppLocalizations.of(context);
     final size = MediaQuery.of(context).size;
     final bool isWide = size.width >= 840;
 
@@ -183,7 +183,8 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildListTile(BuildContext context, IconData icon, String title, VoidCallback onTap) {
+  Widget _buildListTile(
+      BuildContext context, IconData icon, String title, VoidCallback onTap) {
     return ListTile(
       onTap: onTap,
       leading: Icon(icon, color: D.t1(context), size: 22),
@@ -195,8 +196,8 @@ class AboutScreen extends StatelessWidget {
           color: D.t1(context),
         ),
       ),
-      trailing: Icon(Icons.arrow_forward_ios_rounded,
-          size: 14, color: D.t2(context)),
+      trailing:
+          Icon(Icons.arrow_forward_ios_rounded, size: 14, color: D.t2(context)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
     );
   }
@@ -216,31 +217,39 @@ class AboutScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 40, height: 4,
+                width: 40,
+                height: 4,
                 margin: const EdgeInsets.only(bottom: 20),
                 decoration: BoxDecoration(
-                    color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2)),
               ),
               Text(
                 loc.translate('shareSmartAI'), // ✅
                 style: GoogleFonts.poppins(
-                    fontSize: 16, fontWeight: FontWeight.w600, color: D.t1(context)),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: D.t1(context)),
               ),
               const SizedBox(height: 20),
-              _shareOption(ctx, context, loc,
+              _shareOption(
+                ctx, context, loc,
                 icon: Icons.link_rounded,
                 color: const Color(0xFF6366F1),
                 title: loc.translate('copyLink'), // ✅
                 onTap: () async {
                   Navigator.pop(ctx);
-                  try { await launchUrl(url); } catch (_) {}
+                  try {
+                    await launchUrl(url);
+                  } catch (_) {}
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(loc.translate('linkOpened')))); // ✅
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(loc.translate('linkOpened')))); // ✅
                   }
                 },
               ),
-              _shareOption(ctx, context, loc,
+              _shareOption(
+                ctx, context, loc,
                 icon: Icons.email_outlined,
                 color: const Color(0xFF06B6D4),
                 title: loc.translate('shareViaEmail'), // ✅
@@ -248,16 +257,21 @@ class AboutScreen extends StatelessWidget {
                   Navigator.pop(ctx);
                   final emailUrl = Uri.parse(
                       'mailto:?subject=Check out SmartAI&body=Try SmartAI - your AI assistant! https://smartai.app');
-                  try { await launchUrl(emailUrl); } catch (_) {}
+                  try {
+                    await launchUrl(emailUrl);
+                  } catch (_) {}
                 },
               ),
-              _shareOption(ctx, context, loc,
+              _shareOption(
+                ctx, context, loc,
                 icon: Icons.language_rounded,
                 color: const Color(0xFF10B981),
                 title: loc.translate('openWebsite'), // ✅
                 onTap: () async {
                   Navigator.pop(ctx);
-                  try { await launchUrl(url, mode: LaunchMode.externalApplication); } catch (_) {}
+                  try {
+                    await launchUrl(url, mode: LaunchMode.externalApplication);
+                  } catch (_) {}
                 },
               ),
               const SizedBox(height: 8),
@@ -268,7 +282,8 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _shareOption(BuildContext ctx, BuildContext context, AppLocalizations loc,
+  Widget _shareOption(
+      BuildContext ctx, BuildContext context, AppLocalizations loc,
       {required IconData icon,
       required Color color,
       required String title,
@@ -277,11 +292,14 @@ class AboutScreen extends StatelessWidget {
       leading: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12)),
         child: Icon(icon, color: color, size: 22),
       ),
-      title: Text(title, style: GoogleFonts.poppins(fontSize: 14, color: D.t1(context))),
-      trailing: Icon(Icons.chevron_right_rounded, color: D.t2(context), size: 20),
+      title: Text(title,
+          style: GoogleFonts.poppins(fontSize: 14, color: D.t1(context))),
+      trailing:
+          Icon(Icons.chevron_right_rounded, color: D.t2(context), size: 20),
       onTap: onTap,
     );
   }
@@ -301,121 +319,139 @@ class AboutScreen extends StatelessWidget {
         builder: (ctx, setModalState) => Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(ctx).viewInsets.bottom,
-            left: 24, right: 24, top: 24,
+            left: 24,
+            right: 24,
+            top: 24,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40, height: 4,
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                    color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
-              ),
-              Text(
-                loc.translate('rateSmartAI'), // ✅
-                style: GoogleFonts.poppins(
-                    fontSize: 16, fontWeight: FontWeight.w600, color: D.t1(context)),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(5, (i) {
-                  final star = i + 1;
-                  return GestureDetector(
-                    onTap: () => setModalState(() => selectedRating = star),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: Icon(
-                        star <= selectedRating
-                            ? Icons.star_rounded
-                            : Icons.star_outline_rounded,
-                        color: const Color(0xFFFBBF24),
-                        size: 40,
-                      ),
-                    ),
-                  );
-                }),
-              ),
-              const SizedBox(height: 6),
-              if (selectedRating > 0)
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2)),
+                ),
                 Text(
-                  [
-                    '',
-                    loc.translate('poor'), // ✅
-                    loc.translate('fair'), // ✅
-                    loc.translate('good'), // ✅
-                    loc.translate('veryGood'), // ✅
-                    loc.translate('excellent') // ✅
-                  ][selectedRating],
+                  loc.translate('rateSmartAI'), // ✅
                   style: GoogleFonts.poppins(
-                      fontSize: 13, color: const Color(0xFFFBBF24), fontWeight: FontWeight.w600),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: D.t1(context)),
                 ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: reviewController,
-                maxLines: 3,
-                style: GoogleFonts.poppins(fontSize: 14, color: D.t1(context)),
-                decoration: InputDecoration(
-                  hintText: loc.translate('writeReview'), // ✅
-                  hintStyle: GoogleFonts.poppins(color: D.t2(context), fontSize: 14),
-                  filled: true,
-                  fillColor: D.bg(context),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(5, (i) {
+                    final star = i + 1;
+                    return GestureDetector(
+                      onTap: () => setModalState(() => selectedRating = star),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Icon(
+                          star <= selectedRating
+                              ? Icons.star_rounded
+                              : Icons.star_outline_rounded,
+                          color: const Color(0xFFFBBF24),
+                          size: 40,
+                        ),
+                      ),
+                    );
+                  }),
                 ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: selectedRating == 0
-                      ? null
-                      : () async {
-                          final auth = context.read<AuthProvider>();
-                          final user = auth.currentUser;
-                          try {
-                            await FirebaseFirestore.instance.collection('reviews').add({
-                              'userId': user?.uid ?? '',
-                              'userName': user?.displayName ?? 'Anonymous',
-                              'userEmail': user?.email ?? '',
-                              'rating': selectedRating,
-                              'review': reviewController.text.trim(),
-                              'createdAt': FieldValue.serverTimestamp(),
-                            });
-                            if (ctx.mounted) Navigator.pop(ctx);
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content: Text(loc.translate('thanksForReview')), // ✅
-                                    backgroundColor: const Color(0xFF10B981)),
-                              );
-                            }
-                          } catch (e) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content: Text(loc.translate('failedToSubmit')), // ✅
-                                    backgroundColor: Colors.red),
-                              );
-                            }
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6366F1),
-                    disabledBackgroundColor: D.bd(context),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: Text(
-                    loc.translate('submitReview'), // ✅
+                const SizedBox(height: 6),
+                if (selectedRating > 0)
+                  Text(
+                    [
+                      '',
+                      loc.translate('poor'), // ✅
+                      loc.translate('fair'), // ✅
+                      loc.translate('good'), // ✅
+                      loc.translate('veryGood'), // ✅
+                      loc.translate('excellent') // ✅
+                    ][selectedRating],
                     style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w600, color: Colors.white),
+                        fontSize: 13,
+                        color: const Color(0xFFFBBF24),
+                        fontWeight: FontWeight.w600),
+                  ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: reviewController,
+                  maxLines: 3,
+                  style:
+                      GoogleFonts.poppins(fontSize: 14, color: D.t1(context)),
+                  decoration: InputDecoration(
+                    hintText: loc.translate('writeReview'), // ✅
+                    hintStyle:
+                        GoogleFonts.poppins(color: D.t2(context), fontSize: 14),
+                    filled: true,
+                    fillColor: D.bg(context),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none),
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-            ],
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: selectedRating == 0
+                        ? null
+                        : () async {
+                            final auth = context.read<AuthProvider>();
+                            final user = auth.currentUser;
+                            try {
+                              await FirebaseFirestore.instance
+                                  .collection('reviews')
+                                  .add({
+                                'userId': user?.uid ?? '',
+                                'userName': user?.displayName ?? 'Anonymous',
+                                'userEmail': user?.email ?? '',
+                                'rating': selectedRating,
+                                'review': reviewController.text.trim(),
+                                'createdAt': FieldValue.serverTimestamp(),
+                              });
+                              if (ctx.mounted) Navigator.pop(ctx);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text(loc
+                                          .translate('thanksForReview')), // ✅
+                                      backgroundColor: const Color(0xFF10B981)),
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text(
+                                          loc.translate('failedToSubmit')), // ✅
+                                      backgroundColor: Colors.red),
+                                );
+                              }
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6366F1),
+                      disabledBackgroundColor: D.bd(context),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                      loc.translate('submitReview'), // ✅
+                      style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600, color: Colors.white),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),

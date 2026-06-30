@@ -310,7 +310,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Future<void> _speakText(String text) async {
+  void _speakText(String text) {
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('TTS: Connect a TTS API to enable voice output'),
         behavior: SnackBarBehavior.floating,
@@ -322,6 +322,9 @@ class _ChatScreenState extends State<ChatScreen> {
     if (text.isEmpty && _pendingAttachments.isEmpty) return;
     _controller.clear();
     final attachments = List<_Attachment>.from(_pendingAttachments);
+    // Capture context-dependent objects before any await
+    final authProvider = context.read<AuthProvider>();
+    final user = authProvider.currentUser;
     setState(() {
       _pendingAttachments.clear();
       _messages.add({'role': 'user', 'text': text, 'attachments': attachments});
@@ -329,10 +332,9 @@ class _ChatScreenState extends State<ChatScreen> {
     });
     _scrollToBottom();
     try {
-      await context.read<AuthProvider>().incrementDailyMessages();
+      await authProvider.incrementDailyMessages();
     } catch (_) {}
     try {
-      final user = context.read<AuthProvider>().currentUser;
       await AdminNotificationService.onNewChat(user?.displayName ?? 'Unknown');
     } catch (_) {}
 

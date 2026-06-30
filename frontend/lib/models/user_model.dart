@@ -78,7 +78,9 @@ class UserModel {
       isAdmin: data['isAdmin'] ?? false,
       dailyMessagesUsed: data['dailyMessagesUsed'] ?? 0,
       dailyMessagesLimit: data['dailyMessagesLimit'] ?? 50,
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
+      createdAt: data['createdAt'] != null
+          ? (data['createdAt'] as Timestamp).toDate()
+          : DateTime.now(),
       lastLogin: data['lastLogin'] != null
           ? (data['lastLogin'] as Timestamp).toDate()
           : null,

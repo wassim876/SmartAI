@@ -16,7 +16,7 @@ class ChatLogsScreen extends StatelessWidget {
         children: [
           Text('Chat Logs', style: GoogleFonts.poppins(fontSize: 26, fontWeight: FontWeight.bold, color: D.t1(context), letterSpacing: -0.5)),
           const SizedBox(height: 4),
-          Text('Review conversations between users and AI services', style: GoogleFonts.poppins(color: D.t2(context), fontSize: 14)),
+          Text('Review conversations between users and AI services', style: GoogleFonts.poppins(color: D.t2(context), fontSize: 14), overflow: TextOverflow.ellipsis,),
           const SizedBox(height: 24),
           StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance

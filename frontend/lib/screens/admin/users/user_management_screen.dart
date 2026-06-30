@@ -534,7 +534,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                           Expanded(flex: 2, child: _buildTableHeader('DISPLAY NAME')),
                                           Expanded(flex: 2, child: _buildTableHeader('JOINED DATE')),
                                           Expanded(flex: 1, child: _buildTableHeader('STATUS')),
-                                          Expanded(flex: 1, child: _buildTableHeader('ACTIONS')),
+                                          Expanded(flex: 2, child: _buildTableHeader('ACTIONS')),
                                         ]),
                                       ),
                                       Divider(height: 1, color: D.divider(context)),
@@ -586,25 +586,29 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           ),
           Expanded(
             flex: 1,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: user.isActive ? const Color(0xFF10B981).withValues(alpha: 0.12) : const Color(0xFFEF4444).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                user.isActive ? 'Active' : 'Inactive',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  color: user.isActive ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: user.isActive ? const Color(0xFF10B981).withValues(alpha: 0.12) : const Color(0xFFEF4444).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  user.isActive ? 'Active' : 'Inactive',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    color: user.isActive ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
           ),
           Expanded(
-            flex: 1,
+            flex: 2,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

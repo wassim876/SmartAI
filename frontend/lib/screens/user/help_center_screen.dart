@@ -36,7 +36,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context)!.translate('emailCopied') + ': $_email'), // ✅
+            content: Text('${AppLocalizations.of(context).translate('emailCopied')}: $_email'),
             backgroundColor: _primary,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -48,7 +48,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final loc = AppLocalizations.of(context)!; // ✅ Get localization
+    final loc = AppLocalizations.of(context);
     
     // ✅ Build FAQ list with translations
     final faqs = [
@@ -181,8 +181,8 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                 child: _QuickCard(
                     icon: Icons.workspace_premium_rounded,
                     color: const Color(0xFFF59E0B),
-                    label: loc.translate('premium'), // ✅
-                    onTap: () => setState(() => _openFaq = 5))),
+                    label: loc.translate('upgradeToPremium'),
+                    onTap: () => setState(() => _openFaq = 4))),
           ]),
 
           const SizedBox(height: 28),

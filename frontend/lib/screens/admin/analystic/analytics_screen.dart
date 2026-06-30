@@ -13,20 +13,20 @@ class AnalyticsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 12,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Analytics', style: GoogleFonts.poppins(fontSize: 26, fontWeight: FontWeight.bold, color: D.t1(context), letterSpacing: -0.5)),
-                    const SizedBox(height: 4),
-                    Text('Track platform performance and usage trends', style: GoogleFonts.poppins(color: D.t2(context), fontSize: 14), overflow: TextOverflow.ellipsis),
-                  ],
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Analytics', style: GoogleFonts.poppins(fontSize: 26, fontWeight: FontWeight.bold, color: D.t1(context), letterSpacing: -0.5)),
+                  const SizedBox(height: 4),
+                  Text('Track platform performance and usage trends', style: GoogleFonts.poppins(color: D.t2(context), fontSize: 14)),
+                ],
               ),
-              const SizedBox(width: 12),
               MouseRegion(
                 cursor: SystemMouseCursors.click,
                 child: Container(

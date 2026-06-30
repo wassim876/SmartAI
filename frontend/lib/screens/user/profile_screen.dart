@@ -44,6 +44,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _pickAndUploadImage(AppLocalizations loc) async {
+    // Capture context-dependent objects before any await
+    final messenger = ScaffoldMessenger.of(context);
+    final authProvider = context.read<AuthProvider>();
+    final hasPhoto = authProvider.currentUser?.photoURL?.isNotEmpty == true;
+
     final result = await showModalBottomSheet<String>(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -65,11 +70,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               Text(
-                loc.translate('changeProfilePhoto'), // ✅
+                loc.translate('changeProfilePhoto'),
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: _t1(context),
+                  color: _t1(ctx),
                 ),
               ),
               const SizedBox(height: 16),
@@ -82,8 +87,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   child: const Icon(Icons.camera_alt_rounded, color: _primary),
                 ),
-                title: Text(loc.translate('takePhoto'), // ✅
-                    style: GoogleFonts.poppins(fontSize: 14, color: _t1(context))),
+                title: Text(loc.translate('takePhoto'),
+                    style: GoogleFonts.poppins(fontSize: 14, color: _t1(ctx))),
                 onTap: () => Navigator.pop(ctx, 'camera'),
               ),
               ListTile(
@@ -93,14 +98,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     color: Colors.green.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.photo_library_rounded,
-                      color: Colors.green),
+                  child: const Icon(Icons.photo_library_rounded, color: Colors.green),
                 ),
-                title: Text(loc.translate('chooseFromGallery'), // ✅
-                    style: GoogleFonts.poppins(fontSize: 14, color: _t1(context))),
+                title: Text(loc.translate('chooseFromGallery'),
+                    style: GoogleFonts.poppins(fontSize: 14, color: _t1(ctx))),
                 onTap: () => Navigator.pop(ctx, 'gallery'),
               ),
-              if (context.read<AuthProvider>().currentUser?.photoURL != null && context.read<AuthProvider>().currentUser!.photoURL!.isNotEmpty)
+              if (hasPhoto)
                 ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(10),
@@ -108,10 +112,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: Colors.red.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.delete_outline_rounded,
-                        color: Colors.red),
+                    child: const Icon(Icons.delete_outline_rounded, color: Colors.red),
                   ),
-                  title: Text(loc.translate('removePhoto'), // ✅
+                  title: Text(loc.translate('removePhoto'),
                       style: GoogleFonts.poppins(fontSize: 14, color: Colors.red)),
                   onTap: () => Navigator.pop(ctx, 'remove'),
                 ),
@@ -126,30 +129,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (result == 'remove') {
       try {
         setState(() => _isUploading = true);
-        final authProvider = context.read<AuthProvider>();
         await authProvider.updateProfile(
           displayName: _nameController.text.trim(),
           clearPhoto: true,
         );
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(loc.translate('profileRemoved')), // ✅
-              backgroundColor: const Color(0xFF10B981),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          messenger.showSnackBar(SnackBar(
+            content: Text(loc.translate('profileRemoved')),
+            backgroundColor: const Color(0xFF10B981),
+            behavior: SnackBarBehavior.floating,
+          ));
         }
       } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('${loc.translate('failedToSubmit')}: $e'), // ✅
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
+        messenger.showSnackBar(SnackBar(
+          content: Text('${loc.translate('failedToSubmit')}: $e'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ));
       } finally {
         if (mounted) setState(() => _isUploading = false);
       }
@@ -170,44 +166,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
 
       if (image == null) {
-        setState(() => _isUploading = false);
+        if (mounted) setState(() => _isUploading = false);
         return;
       }
 
       final bytes = await image.readAsBytes();
+      final uid = FirebaseAuth.instance.currentUser!.uid;
       final ref = FirebaseStorage.instance
           .ref()
           .child('profile_pics')
-          .child('${FirebaseAuth.instance.currentUser!.uid}.jpg');
+          .child('$uid.jpg');
 
       await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
       final downloadUrl = await ref.getDownloadURL();
 
-      final authProvider = context.read<AuthProvider>();
       await authProvider.updateProfile(
         displayName: _nameController.text.trim(),
         photoURL: downloadUrl,
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(loc.translate('profileUpdated')), // ✅
-            backgroundColor: const Color(0xFF10B981),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        messenger.showSnackBar(SnackBar(
+          content: Text(loc.translate('profileUpdated')),
+          backgroundColor: const Color(0xFF10B981),
+          behavior: SnackBarBehavior.floating,
+        ));
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${loc.translate('failedToSubmit')}: $e'), // ✅
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+      messenger.showSnackBar(SnackBar(
+        content: Text('${loc.translate('failedToSubmit')}: $e'),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ));
     } finally {
       if (mounted) setState(() => _isUploading = false);
     }
@@ -217,6 +207,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final newName = _nameController.text.trim();
     if (newName.isEmpty) return;
 
+    final messenger = ScaffoldMessenger.of(context);
     try {
       setState(() => _isSaving = true);
       final authProvider = context.read<AuthProvider>();
@@ -228,26 +219,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (mounted) {
         setState(() => _isEditingName = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(loc.translate('nameUpdated')), // ✅
-            backgroundColor: const Color(0xFF10B981),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-        );
+        messenger.showSnackBar(SnackBar(
+          content: Text(loc.translate('nameUpdated')),
+          backgroundColor: const Color(0xFF10B981),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ));
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${loc.translate('failedToSubmit')}: $e'), // ✅
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-        );
-      }
+      messenger.showSnackBar(SnackBar(
+        content: Text('${loc.translate('failedToSubmit')}: $e'),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ));
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -255,7 +240,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final loc = AppLocalizations.of(context)!; // ✅ Get localization
+    final loc = AppLocalizations.of(context); // ✅ Get localization
     final themeProvider = context.watch<ThemeProvider>();
     final authProvider = context.watch<AuthProvider>();
     final user = authProvider.currentUser;
@@ -350,10 +335,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: CircleAvatar(
                     radius: 48,
                     backgroundColor: Colors.white.withValues(alpha: 0.2),
-                    backgroundImage: user?.photoURL != null && user!.photoURL!.isNotEmpty
+                    backgroundImage: (user?.photoURL != null && user!.photoURL!.isNotEmpty)
                         ? NetworkImage(user.photoURL!)
                         : null,
-                    onBackgroundImageError: (user?.photoURL != null && user!.photoURL!.isNotEmpty) ? (_, __) {} : null,
                     child: (user?.photoURL == null || user!.photoURL!.isEmpty)
                         ? Text(
                             (user?.displayName != null && user!.displayName.isNotEmpty)
@@ -587,7 +571,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                             strokeWidth: 2,
                                             color: Colors.white),
                                       )
-                                    : Icon(Icons.check_rounded, color: _primary, size: 16),
+                                    : const Icon(Icons.check_rounded, color: Colors.white, size: 16),
                               ),
                             ),
                           ],
