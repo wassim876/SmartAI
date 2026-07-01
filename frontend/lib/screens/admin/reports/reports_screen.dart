@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -86,6 +87,18 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   Future<String?> _save(String fileName, Uint8List bytes) async {
+    // On web there is no filesystem: passing `bytes` makes file_picker trigger
+    // a browser download directly (it returns null but the download happens).
+    if (kIsWeb) {
+      await FilePicker.platform.saveFile(
+        dialogTitle: 'Save report',
+        fileName: fileName,
+        type: FileType.custom,
+        allowedExtensions: const ['csv'],
+        bytes: bytes,
+      );
+      return fileName;
+    }
     final path = await FilePicker.platform.saveFile(
       dialogTitle: 'Save report',
       fileName: fileName,

@@ -1,10 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/supabase_config.dart';
+import '../../../services/supabase_data_service.dart';
 import '../../../theme/dark_mode_helpers.dart';
 
-class ReviewsScreen extends StatelessWidget {
+class ReviewsScreen extends StatefulWidget {
   const ReviewsScreen({super.key});
+
+  @override
+  State<ReviewsScreen> createState() => _ReviewsScreenState();
+}
+
+class _ReviewsScreenState extends State<ReviewsScreen> {
+  /// user_id -> profile, so each review shows the reviewer's name/email.
+  Map<String, Map<String, dynamic>> _directory = const {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDirectory();
+  }
+
+  Future<void> _loadDirectory() async {
+    try {
+      final dir = await SupabaseDataService().getUserDirectory();
+      if (mounted) setState(() => _directory = dir);
+    } catch (_) {
+      // Non-fatal: cards fall back to a shortened id.
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -169,8 +193,15 @@ class ReviewsScreen extends StatelessWidget {
   Widget _buildReviewCard(BuildContext context, Map<String, dynamic> data) {
     final rating = (data['rating'] as num? ?? 0).toInt();
     final review = data['comment']?.toString() ?? '';
-    final userName = data['user_id']?.toString() ?? 'User';
-    final userEmail = '';
+    final userId = data['user_id']?.toString() ?? '';
+    final profile = _directory[userId];
+    final resolvedName =
+        (profile?['display_name'] ?? profile?['username'] ?? profile?['email'])
+            ?.toString();
+    final userName = (resolvedName != null && resolvedName.isNotEmpty)
+        ? resolvedName
+        : (userId.length > 8 ? '${userId.substring(0, 8)}…' : 'User');
+    final userEmail = profile?['email']?.toString() ?? '';
     final createdAt = DateTime.tryParse(data['created_at']?.toString() ?? '');
     final date = createdAt;
 

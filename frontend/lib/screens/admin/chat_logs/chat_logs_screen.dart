@@ -2,10 +2,42 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/supabase_config.dart';
+import '../../../services/supabase_data_service.dart';
 import '../../../theme/dark_mode_helpers.dart';
 
-class ChatLogsScreen extends StatelessWidget {
+class ChatLogsScreen extends StatefulWidget {
   const ChatLogsScreen({super.key});
+
+  @override
+  State<ChatLogsScreen> createState() => _ChatLogsScreenState();
+}
+
+class _ChatLogsScreenState extends State<ChatLogsScreen> {
+  /// user_id -> profile, so rows show the person's name instead of a raw UUID.
+  Map<String, Map<String, dynamic>> _directory = const {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDirectory();
+  }
+
+  Future<void> _loadDirectory() async {
+    try {
+      final dir = await SupabaseDataService().getUserDirectory();
+      if (mounted) setState(() => _directory = dir);
+    } catch (_) {
+      // Non-fatal: rows fall back to a shortened id.
+    }
+  }
+
+  /// Resolve a display name for a user_id (name > username > email > short id).
+  String _nameFor(String userId) {
+    final p = _directory[userId];
+    final name = (p?['display_name'] ?? p?['username'] ?? p?['email'])?.toString();
+    if (name != null && name.isNotEmpty) return name;
+    return userId.length > 8 ? '${userId.substring(0, 8)}…' : userId;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +152,7 @@ class ChatLogsScreen extends StatelessWidget {
           final message = data['message']?.toString() ?? '';
           final createdAt = DateTime.tryParse(data['created_at']?.toString() ?? '');
           final dateStr = createdAt != null ? DateFormat('MMM d, yyyy').format(createdAt) : '';
-          return _buildTableRow(context, userId, model, message, dateStr);
+          return _buildTableRow(context, _nameFor(userId), model, message, dateStr);
         }),
       ],
     );
@@ -190,7 +222,7 @@ class ChatLogsScreen extends StatelessWidget {
   Widget _buildCardList(BuildContext context, List<Map<String, dynamic>> docs) {
     return Column(
       children: docs.map((data) {
-        final userId = data['user_id']?.toString() ?? 'Unknown';
+        final userId = _nameFor(data['user_id']?.toString() ?? 'Unknown');
         final model = data['model']?.toString() ?? 'AI';
         final message = data['message']?.toString() ?? '';
         final createdAt = DateTime.tryParse(data['created_at']?.toString() ?? '');

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -37,6 +38,11 @@ class _ChatScreenState extends State<ChatScreen> {
   final SpeechToText _speech = SpeechToText();
   final FlutterTts _tts = FlutterTts();
   bool _speechAvailable = false;
+  // Continuous dictation: the recognizer ends on a pause or when it hits a
+  // platform time limit. While the user is still recording we commit the text
+  // so far and restart, so it doesn't cut off mid-sentence.
+  bool _wantListening = false;
+  String _sttBase = '';
 
   String? _currentSessionId;
   List<_ChatSession> _sessions = [];
@@ -58,11 +64,15 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _initSpeech() async {
     try {
       _speechAvailable = await _speech.initialize(
-        onStatus: (_) {
-          if (mounted) setState(() => _isRecording = _speech.isListening);
-        },
+        onStatus: _onSpeechStatus,
         onError: (_) {
-          if (mounted) setState(() => _isRecording = false);
+          // Stop cleanly on error rather than looping restarts.
+          if (mounted) {
+            setState(() {
+              _wantListening = false;
+              _isRecording = false;
+            });
+          }
         },
       );
     } catch (_) {
@@ -75,6 +85,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
+    _wantListening = false;
     _speech.stop();
     _tts.stop();
     super.dispose();
@@ -162,9 +173,13 @@ class _ChatScreenState extends State<ChatScreen> {
   void _deleteSession(_ChatSession session) async {
     try {
       await SupabaseDataService().deleteChatSession(session.id);
+      if (!mounted) return;
       setState(() => _sessions.removeWhere((s) => s.id == session.id));
       if (_currentSessionId == session.id) _startNewChat();
-    } catch (_) {}
+      _showSnack(AppLocalizations.of(context).translate('chatDeleted'));
+    } catch (e) {
+      if (mounted) _showSnack('Error: $e');
+    }
   }
 
   void _showAttachMenu() {
@@ -242,14 +257,20 @@ class _ChatScreenState extends State<ChatScreen> {
       if (source == ImageSource.gallery) {
         // file_picker works on desktop (macOS) where image_picker's gallery
         // source is unsupported; returns a readable file path on native.
-        final result = await FilePicker.platform.pickFiles(type: FileType.image);
+        final result = await FilePicker.platform.pickFiles(
+          type: FileType.image,
+          withData: true, // load bytes: on web there is no file path
+        );
         if (result != null && result.files.isNotEmpty) {
           final file = result.files.first;
-          if (file.path != null) {
+          // `file.path` throws on web — only read it on native platforms.
+          final path = kIsWeb ? '' : (file.path ?? '');
+          if (file.bytes != null || path.isNotEmpty) {
             setState(() => _pendingAttachments.add(_Attachment(
                 type: _AttachmentType.image,
-                path: file.path!,
-                name: file.name)));
+                path: path,
+                name: file.name,
+                bytes: file.bytes)));
           }
         }
       } else {
@@ -294,8 +315,10 @@ class _ChatScreenState extends State<ChatScreen> {
         final type = (ext == 'mp3' || ext == 'wav' || ext == 'm4a')
             ? _AttachmentType.audio
             : _AttachmentType.document;
-        setState(() => _pendingAttachments.add(
-            _Attachment(type: type, path: file.path ?? '', name: file.name)));
+        // `file.path` throws on web — only read it on native platforms.
+        final path = kIsWeb ? '' : (file.path ?? '');
+        setState(() => _pendingAttachments.add(_Attachment(
+            type: type, path: path, name: file.name, bytes: file.bytes)));
       }
     } catch (e) {
       if (mounted) {
@@ -407,10 +430,17 @@ class _ChatScreenState extends State<ChatScreen> {
         attachments.where((a) => a.type == _AttachmentType.image).toList();
     if (images.isNotEmpty) {
       try {
-        final bytes = await File(images.first.path).readAsBytes();
-        final ext = images.first.path.split('.').last.toLowerCase();
-        final mime = ext == 'png' ? 'image/png' : 'image/jpeg';
-        imageDataUrl = 'data:$mime;base64,${base64Encode(bytes)}';
+        final img = images.first;
+        // Prefer in-memory bytes (always present on web); fall back to the
+        // file path on native.
+        final bytes = img.bytes ??
+            (img.path.isNotEmpty ? await File(img.path).readAsBytes() : null);
+        if (bytes != null) {
+          final ext =
+              img.name.contains('.') ? img.name.split('.').last.toLowerCase() : 'jpg';
+          final mime = ext == 'png' ? 'image/png' : 'image/jpeg';
+          imageDataUrl = 'data:$mime;base64,${base64Encode(bytes)}';
+        }
       } catch (_) {}
     }
 
@@ -484,31 +514,75 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _toggleRecording() async {
-    // On-device speech recognition; recognized words stream into the input.
-    if (_speech.isListening) {
+    // Continuous on-device dictation; recognized words stream into the input.
+    if (_wantListening || _speech.isListening) {
+      _wantListening = false;
       await _speech.stop();
       if (mounted) setState(() => _isRecording = false);
       return;
     }
     if (!_speechAvailable) {
-      _speechAvailable = await _speech.initialize();
+      _speechAvailable = await _speech.initialize(onStatus: _onSpeechStatus);
       if (!_speechAvailable) {
         _showSnack('Speech recognition is not available on this device.');
         return;
       }
     }
-    await _speech.listen(
-      onResult: (result) {
-        if (mounted) {
-          setState(() => _controller.text = result.recognizedWords);
-        }
-      },
-      listenOptions: SpeechListenOptions(
-        listenFor: const Duration(seconds: 30),
-        pauseFor: const Duration(seconds: 3),
-      ),
-    );
-    if (mounted) setState(() => _isRecording = _speech.isListening);
+    // Preserve anything already typed; speech is appended after it.
+    _sttBase = _controller.text.trim();
+    _wantListening = true;
+    await _startListening();
+  }
+
+  /// Starts (or resumes) a listen session. The recognizer naturally ends on a
+  /// pause or at a platform time limit; [_onSpeechStatus] restarts it while
+  /// [_wantListening] is true so long utterances aren't cut off.
+  Future<void> _startListening() async {
+    if (!_wantListening || !mounted || _speech.isListening) return;
+    try {
+      await _speech.listen(
+        onResult: (result) {
+          if (!mounted) return;
+          final words = result.recognizedWords;
+          final combined = _sttBase.isEmpty
+              ? words
+              : (words.isEmpty ? _sttBase : '$_sttBase $words');
+          setState(() {
+            _controller.text = combined;
+            _controller.selection =
+                TextSelection.collapsed(offset: _controller.text.length);
+          });
+        },
+        listenOptions: SpeechListenOptions(
+          listenMode: ListenMode.dictation,
+          partialResults: true,
+          cancelOnError: false,
+          listenFor: const Duration(minutes: 5),
+          pauseFor: const Duration(seconds: 8),
+        ),
+      );
+      if (mounted) setState(() => _isRecording = true);
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _wantListening = false;
+          _isRecording = false;
+        });
+      }
+    }
+  }
+
+  /// Handles recognizer lifecycle. When a session ends but the user still wants
+  /// to dictate, the recognized text is committed and a new session starts.
+  void _onSpeechStatus(String status) {
+    if (!mounted) return;
+    if ((status == 'done' || status == 'notListening') && _wantListening) {
+      _sttBase = _controller.text.trim();
+      // Brief delay so the previous session fully tears down before restart.
+      Future.delayed(const Duration(milliseconds: 50), _startListening);
+      return;
+    }
+    setState(() => _isRecording = _wantListening || _speech.isListening);
   }
 
   @override
@@ -734,7 +808,7 @@ class _ChatScreenState extends State<ChatScreen> {
           onTap: () => _loadSession(session),
           onLongPress: () => _showDeleteDialog(session),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             child: Row(children: [
               Icon(Icons.chat_bubble_outline_rounded,
                   size: 16, color: isActive ? _primary : D.t2(context)),
@@ -749,7 +823,20 @@ class _ChatScreenState extends State<ChatScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),
               ),
-              Icon(Icons.chevron_right_rounded, size: 16, color: D.t2(context)),
+              const SizedBox(width: 4),
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: IconButton(
+                  icon: Icon(Icons.delete_outline_rounded,
+                      size: 18, color: D.t2(context)),
+                  tooltip: AppLocalizations.of(context).translate('deleteChat'),
+                  splashRadius: 18,
+                  padding: EdgeInsets.zero,
+                  constraints:
+                      const BoxConstraints(minWidth: 32, minHeight: 32),
+                  onPressed: () => _showDeleteDialog(session),
+                ),
+              ),
             ]),
           ),
         ),
@@ -1001,8 +1088,11 @@ class _ChatScreenState extends State<ChatScreen> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: Stack(children: [
-              Image.file(File(a.path),
-                  width: 200, height: 140, fit: BoxFit.cover),
+              a.bytes != null
+                  ? Image.memory(a.bytes!,
+                      width: 200, height: 140, fit: BoxFit.cover)
+                  : Image.file(File(a.path),
+                      width: 200, height: 140, fit: BoxFit.cover),
               Positioned(
                   top: 4,
                   right: 4,
@@ -1122,8 +1212,11 @@ class _ChatScreenState extends State<ChatScreen> {
                                 child: a.type == _AttachmentType.image
                                     ? ClipRRect(
                                         borderRadius: BorderRadius.circular(10),
-                                        child: Image.file(File(a.path),
-                                            fit: BoxFit.cover))
+                                        child: a.bytes != null
+                                            ? Image.memory(a.bytes!,
+                                                fit: BoxFit.cover)
+                                            : Image.file(File(a.path),
+                                                fit: BoxFit.cover))
                                     : Container(
                                         decoration: BoxDecoration(
                                             color: a.type ==
@@ -1259,10 +1352,14 @@ enum _AttachmentType { image, document, audio }
 
 class _Attachment {
   final _AttachmentType type;
-  final String path;
+  final String path; // native file path; '' on web (use [bytes] there)
   final String name;
+  final Uint8List? bytes; // in-memory data; always populated on web
   const _Attachment(
-      {required this.type, required this.path, required this.name});
+      {required this.type,
+      required this.path,
+      required this.name,
+      this.bytes});
 }
 
 class _ChatSession {

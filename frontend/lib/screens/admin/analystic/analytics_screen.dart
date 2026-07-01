@@ -63,7 +63,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   /// with the weekday abbreviation. Bar heights are normalized to 0-100 by the
   /// max daily count so the chart's proportional visuals stay intact.
   void _buildDailyBars(Map<String, dynamic> stats) {
-    final raw = (stats['daily_activity'] as List?) ?? const [];
+    final raw = (stats['activity_14d'] as List?) ?? const [];
     final counts = <String, int>{};
     for (final e in raw) {
       if (e is Map) {

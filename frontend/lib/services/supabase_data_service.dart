@@ -252,6 +252,19 @@ class SupabaseDataService {
     return Map<String, dynamic>.from(res as Map);
   }
 
+  /// Admin-only lookup of `user_id -> profile` (display_name/email/photo) for
+  /// resolving the owner of chat/review rows in the log views. Admins can read
+  /// every profile row (RLS: "profiles: authenticated read").
+  Future<Map<String, Map<String, dynamic>>> getUserDirectory() async {
+    final rows = await supabase
+        .from('profiles')
+        .select('id, username, display_name, email, photo_url');
+    return {
+      for (final r in List<Map<String, dynamic>>.from(rows))
+        r['id'].toString(): r,
+    };
+  }
+
   // ===================== REPORTS (admin exports) =====================
 
   Future<List<Map<String, dynamic>>> reportUsers() async {
