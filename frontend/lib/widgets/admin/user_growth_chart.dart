@@ -25,31 +25,8 @@ class UserGrowthChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Flexible(
-              child: Text('User Growth', overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold, color: D.t1(context))),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(color: D.hover(context), borderRadius: BorderRadius.circular(8), border: Border.all(color: D.bd(context))),
-              child: Row(children: [
-                Text('Last 6 months', style: GoogleFonts.poppins(fontSize: 11, color: D.t2(context))),
-                Icon(Icons.keyboard_arrow_down_rounded, size: 14, color: D.t2(context)),
-              ]),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
-        Expanded(
-          child: data.isEmpty ? _buildEmpty(context) : _buildChart(context),
-        ),
-      ],
-    );
+    // Header is provided by the surrounding dashboard panel.
+    return data.isEmpty ? _buildEmpty(context) : _buildChart(context);
   }
 
   Widget _buildEmpty(BuildContext context) {

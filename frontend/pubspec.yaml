@@ -28,10 +28,9 @@ dependencies:
   file_picker: ^8.1.7
   url_launcher: ^6.3.0
 
-#Audio (speech-to-text recording + text-to-speech playback)
-  record: ^7.1.1
-  audioplayers: ^6.1.0
-  path_provider: ^2.1.4
+#Voice (on-device speech-to-text + text-to-speech)
+  speech_to_text: ^7.0.0
+  flutter_tts: ^4.2.0
 
 #Supabase (backend: auth, database, storage, realtime)
   supabase_flutter: ^2.8.0

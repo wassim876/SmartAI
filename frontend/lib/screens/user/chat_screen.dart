@@ -7,9 +7,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:record/record.dart';
-import 'package:audioplayers/audioplayers.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:speech_to_text/speech_to_text.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import '../../providers/auth_provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/admin_notification_service.dart';
@@ -33,12 +32,11 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isTyping = false;
   bool _isRecording = false;
   bool _isStreaming = false;
-  bool _isTranscribing = false;
   final ImagePicker _picker = ImagePicker();
   final AiService _ai = AiService();
-  final AudioRecorder _recorder = AudioRecorder();
-  final AudioPlayer _player = AudioPlayer();
-  String? _recordPath;
+  final SpeechToText _speech = SpeechToText();
+  final FlutterTts _tts = FlutterTts();
+  bool _speechAvailable = false;
 
   String? _currentSessionId;
   List<_ChatSession> _sessions = [];
@@ -51,17 +49,34 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _loadSessions();
+    _initSpeech();
     if (widget.initialPrompt.isNotEmpty) {
       _controller.text = widget.initialPrompt;
     }
+  }
+
+  Future<void> _initSpeech() async {
+    try {
+      _speechAvailable = await _speech.initialize(
+        onStatus: (_) {
+          if (mounted) setState(() => _isRecording = _speech.isListening);
+        },
+        onError: (_) {
+          if (mounted) setState(() => _isRecording = false);
+        },
+      );
+    } catch (_) {
+      _speechAvailable = false;
+    }
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
-    _recorder.dispose();
-    _player.dispose();
+    _speech.stop();
+    _tts.stop();
     super.dispose();
   }
 
@@ -342,11 +357,10 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _speakText(String text) async {
     if (text.trim().isEmpty) return;
     try {
-      final audio = await _ai.tts(text);
-      await _player.stop();
-      await _player.play(BytesSource(audio, mimeType: 'audio/mpeg'));
-    } catch (e) {
-      _showSnack('Voice output failed. Please try again.');
+      await _tts.stop();
+      await _tts.speak(text);
+    } catch (_) {
+      _showSnack('Voice output is not available on this device.');
     }
   }
 
@@ -470,52 +484,31 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _toggleRecording() async {
-    if (_isTranscribing) return;
-    if (_isRecording) {
-      // Stop recording, then transcribe via nim-transcribe.
-      String? path;
-      try {
-        path = await _recorder.stop();
-      } catch (_) {}
-      if (!mounted) return;
-      setState(() {
-        _isRecording = false;
-        _isTranscribing = true;
-      });
-      try {
-        if (path == null) throw Exception('no recording');
-        final bytes = await File(path).readAsBytes();
-        final transcript = await _ai.transcribe(
-          audioBase64: base64Encode(bytes),
-          mimeType: 'audio/wav',
-        );
-        if (mounted && transcript.trim().isNotEmpty) {
-          setState(() => _controller.text = transcript.trim());
-        }
-      } catch (_) {
-        _showSnack('Transcription failed. Please try again.');
-      } finally {
-        if (mounted) setState(() => _isTranscribing = false);
-      }
-    } else {
-      // Start recording to a temp WAV file.
-      try {
-        if (!await _recorder.hasPermission()) {
-          _showSnack('Microphone permission is required.');
-          return;
-        }
-        final dir = await getTemporaryDirectory();
-        _recordPath =
-            '${dir.path}/rec_${DateTime.now().millisecondsSinceEpoch}.wav';
-        await _recorder.start(
-          const RecordConfig(encoder: AudioEncoder.wav),
-          path: _recordPath!,
-        );
-        if (mounted) setState(() => _isRecording = true);
-      } catch (_) {
-        _showSnack('Could not start recording.');
+    // On-device speech recognition; recognized words stream into the input.
+    if (_speech.isListening) {
+      await _speech.stop();
+      if (mounted) setState(() => _isRecording = false);
+      return;
+    }
+    if (!_speechAvailable) {
+      _speechAvailable = await _speech.initialize();
+      if (!_speechAvailable) {
+        _showSnack('Speech recognition is not available on this device.');
+        return;
       }
     }
+    await _speech.listen(
+      onResult: (result) {
+        if (mounted) {
+          setState(() => _controller.text = result.recognizedWords);
+        }
+      },
+      listenOptions: SpeechListenOptions(
+        listenFor: const Duration(seconds: 30),
+        pauseFor: const Duration(seconds: 3),
+      ),
+    );
+    if (mounted) setState(() => _isRecording = _speech.isListening);
   }
 
   @override

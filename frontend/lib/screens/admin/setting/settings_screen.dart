@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show FileOptions;
 import '../../../providers/theme_provider.dart';
-import '../../../providers/user_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../services/photo_picker_service.dart';
 import '../../../theme/dark_mode_helpers.dart';
+import '../../../core/supabase_config.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -18,7 +19,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _emailNotifications = true;
   bool _pushNotifications = false;
   bool _isLoggingOut = false;
+  bool _isSaving = false;
   final PhotoPickerService _photoPicker = PhotoPickerService();
+  late final TextEditingController _nameController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: context.read<AuthProvider>().currentUser?.name ?? '');
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
 
   Future<void> _handleLogoutEverywhere() async {
     final confirmed = await showDialog<bool>(
@@ -54,8 +69,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _changeProfilePhoto() async {
-    final userProvider = context.read<UserProvider>();
-
     final choice = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: D.card(context),
@@ -99,24 +112,73 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final messenger = ScaffoldMessenger.of(context);
 
     if (choice == 'gallery') {
-      final imageBytes = await _photoPicker.pickImageFromGallery();
-      if (imageBytes != null && mounted) {
-        userProvider.updateProfileImage(imageBytes);
+      try {
+        final bytes = await _photoPicker.pickImageFromGallery();
+        if (bytes == null) return;
+        final uid = supabase.auth.currentUser!.id;
+        final path = '$uid/avatar.jpg';
+        await supabase.storage.from('avatars').uploadBinary(
+              path,
+              bytes,
+              fileOptions: const FileOptions(upsert: true, contentType: 'image/jpeg'),
+            );
+        final url = supabase.storage.from('avatars').getPublicUrl(path);
+        if (!mounted) return;
+        await context.read<AuthProvider>().updateProfile(photoURL: url);
         messenger.showSnackBar(SnackBar(
           content: Text('Profile photo updated successfully!', style: GoogleFonts.poppins()),
           backgroundColor: const Color(0xFF10B981),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ));
+      } catch (e) {
+        messenger.showSnackBar(SnackBar(
+          content: Text('Failed to update photo: $e', style: GoogleFonts.poppins()),
+          backgroundColor: const Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ));
       }
     } else if (choice == 'remove') {
-      userProvider.updateProfileImage(null);
+      try {
+        await context.read<AuthProvider>().updateProfile(clearPhoto: true);
+        messenger.showSnackBar(SnackBar(
+          content: Text('Profile photo removed!', style: GoogleFonts.poppins()),
+          backgroundColor: const Color(0xFFF59E0B),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ));
+      } catch (e) {
+        messenger.showSnackBar(SnackBar(
+          content: Text('Failed to remove photo: $e', style: GoogleFonts.poppins()),
+          backgroundColor: const Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ));
+      }
+    }
+  }
+
+  Future<void> _saveChanges() async {
+    setState(() => _isSaving = true);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await context.read<AuthProvider>().updateProfile(displayName: _nameController.text.trim());
       messenger.showSnackBar(SnackBar(
-        content: Text('Profile photo removed!', style: GoogleFonts.poppins()),
-        backgroundColor: const Color(0xFFF59E0B),
+        content: Text('Profile updated successfully!', style: GoogleFonts.poppins()),
+        backgroundColor: const Color(0xFF10B981),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(
+        content: Text('Failed to update profile: $e', style: GoogleFonts.poppins()),
+        backgroundColor: const Color(0xFFEF4444),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ));
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -140,8 +202,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
-    final userProvider = context.watch<UserProvider>();
     final authProvider = context.watch<AuthProvider>();
+    final currentUser = authProvider.currentUser;
+    final hasPhoto = currentUser?.photoURL != null && currentUser!.photoURL!.isNotEmpty;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -175,8 +238,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           child: CircleAvatar(
                             radius: 36,
                             backgroundColor: D.card(context),
-                            backgroundImage: userProvider.profileImageBytes != null ? MemoryImage(userProvider.profileImageBytes!) : null,
-                            child: userProvider.profileImageBytes == null ? Icon(Icons.person_rounded, color: D.t2(context), size: 36) : null,
+                            backgroundImage: hasPhoto ? NetworkImage(currentUser.photoURL!) : null,
+                            child: hasPhoto ? null : Icon(Icons.person_rounded, color: D.t2(context), size: 36),
                           ),
                         ),
                         Positioned(
@@ -221,9 +284,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   builder: (context, constraints) {
                     final isWide = constraints.maxWidth > 600;
                     final fields = [
-                      _textField('Full Name', userProvider.userName, onChanged: (value) => context.read<UserProvider>().updateUserName(value)),
+                      _textField('Full Name', '', controller: _nameController),
                       _textField('Email Address', authProvider.currentUser?.email ?? 'Not available', enabled: false),
-                      _textField('Role', userProvider.userRole, enabled: false),
+                      _textField('Role', authProvider.currentUser?.role ?? 'User', enabled: false),
                     ];
                     if (isWide) {
                       return Column(children: [
@@ -239,14 +302,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 MouseRegion(
                   cursor: SystemMouseCursors.click,
                   child: ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text('Profile updated successfully!', style: GoogleFonts.poppins()),
-                        backgroundColor: const Color(0xFF10B981),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ));
-                    },
+                    onPressed: _isSaving ? null : _saveChanges,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6C63FF),
                       foregroundColor: Colors.white,
@@ -254,7 +310,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       elevation: 0,
                     ),
-                    child: Text('Save Changes', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                    child: _isSaving
+                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : Text('Save Changes', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
                   ),
                 ),
               ],
@@ -345,7 +403,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _textField(String label, String value, {bool enabled = true, ValueChanged<String>? onChanged}) {
+  Widget _textField(String label, String value, {bool enabled = true, ValueChanged<String>? onChanged, TextEditingController? controller}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -353,7 +411,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const SizedBox(height: 6),
         TextField(
           enabled: enabled,
-          controller: enabled ? null : TextEditingController(text: value),
+          controller: controller ?? (enabled ? null : TextEditingController(text: value)),
           onChanged: onChanged,
           style: GoogleFonts.poppins(color: D.t1(context)),
           decoration: InputDecoration(

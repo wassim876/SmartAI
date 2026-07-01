@@ -16,6 +16,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   final _service = SupabaseDataService();
   bool _loading = true;
 
+  Map<String, dynamic> _stats = {};
+
   // Bar chart data derived from `daily_activity`.
   List<double> _barValues = List.filled(7, 0);
   List<String> _barLabels = const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -31,6 +33,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       final stats = await _service.getAdminStats();
       if (!mounted) return;
       setState(() {
+        _stats = stats;
         _buildDailyBars(stats);
         _loading = false;
       });
@@ -41,6 +44,20 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   int _asInt(dynamic v) => v is num ? v.toInt() : 0;
+
+  int _si(String k) => (_stats[k] is num) ? (_stats[k] as num).toInt() : 0;
+
+  final _numFmt = NumberFormat.decimalPattern();
+
+  /// Computes a month-over-month delta chip value. Returns null when there is no
+  /// meaningful change to show (both periods empty). Returns ('New', false) when
+  /// there was no prior activity but there is now.
+  (String, bool)? _delta(int now, int prev) {
+    if (now == 0 && prev == 0) return null;
+    if (prev == 0 && now > 0) return ('New', false);
+    final pct = (now - prev) / prev * 100.0;
+    return ('${pct.abs().toStringAsFixed(1)}%', pct < 0);
+  }
 
   /// Produces 7 bars for the last 7 calendar days (missing days -> 0), labelled
   /// with the weekday abbreviation. Bar heights are normalized to 0-100 by the
@@ -128,6 +145,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           LayoutBuilder(
             builder: (context, constraints) {
               final crossAxisCount = constraints.maxWidth > 600 ? 4 : 2;
+
+              final usersDelta = _delta(_si('users_this_month'), _si('users_prev_month'));
+              final aiRequests = _si('total_conversations') + _si('total_images') + _si('total_speech') + _si('total_translations');
+              final requestsDelta = _delta(_si('requests_this_month'), _si('requests_prev_month'));
+              final avgRating = _si('reviews_count') > 0 ? (_stats['avg_rating'] as num).toStringAsFixed(1) : '—';
+
               return GridView.count(
                 crossAxisCount: crossAxisCount,
                 shrinkWrap: true,
@@ -136,10 +159,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 crossAxisSpacing: 12,
                 childAspectRatio: constraints.maxWidth > 600 ? 1.6 : 1.5,
                 children: [
-                  _summaryCard(context, 'Page Views', '482,920', '+8.4%', const Color(0xFF3B82F6)),
-                  _summaryCard(context, 'Avg. Session', '4m 32s', '+1.2%', const Color(0xFF10B981)),
-                  _summaryCard(context, 'Bounce Rate', '32.4%', '-3.1%', const Color(0xFFEF4444), negative: true),
-                  _summaryCard(context, 'New Signups', '1,284', '+22.6%', const Color(0xFF8B5CF6)),
+                  _summaryCard(context, 'Total Users', _numFmt.format(_si('total_users')), usersDelta?.$1, const Color(0xFF3B82F6), negative: usersDelta?.$2 ?? false),
+                  _summaryCard(context, 'Active (7d)', _numFmt.format(_si('active_users_7d')), null, const Color(0xFF10B981)),
+                  _summaryCard(context, 'AI Requests', _numFmt.format(aiRequests), requestsDelta?.$1, const Color(0xFFF59E0B), negative: requestsDelta?.$2 ?? false),
+                  _summaryCard(context, 'Avg Rating', avgRating, null, const Color(0xFF8B5CF6)),
                 ],
               );
             },
@@ -211,6 +234,24 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 ),
               );
 
+              const serviceColors = [
+                Color(0xFF3B82F6),
+                Color(0xFF10B981),
+                Color(0xFFF59E0B),
+                Color(0xFF8B5CF6),
+              ];
+              final breakdown = (_stats['service_breakdown'] as List?) ?? const [];
+              final services = <(String, int, Color)>[];
+              for (var i = 0; i < breakdown.length; i++) {
+                final e = breakdown[i];
+                if (e is Map) {
+                  final label = e['label']?.toString() ?? '';
+                  final count = _asInt(e['count']);
+                  services.add((label, count, serviceColors[i % serviceColors.length]));
+                }
+              }
+              final serviceTotal = services.fold<int>(0, (s, e) => s + e.$2);
+
               final pieChart = Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -221,28 +262,41 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Traffic Sources', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold, color: D.t1(context))),
+                    Text('Requests by service', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold, color: D.t1(context))),
                     const SizedBox(height: 12),
-                    SizedBox(
-                      height: 180,
-                      child: PieChart(
-                        PieChartData(
-                          sectionsSpace: 2,
-                          centerSpaceRadius: 36,
-                          sections: [
-                            PieChartSectionData(color: const Color(0xFF6366F1), value: 45, title: '45%', radius: 46, titleStyle: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
-                            PieChartSectionData(color: const Color(0xFF14B8A6), value: 30, title: '30%', radius: 46, titleStyle: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
-                            PieChartSectionData(color: const Color(0xFFF59E0B), value: 15, title: '15%', radius: 46, titleStyle: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
-                            PieChartSectionData(color: const Color(0xFFEC4899), value: 10, title: '10%', radius: 46, titleStyle: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
-                          ],
+                    if (serviceTotal == 0)
+                      SizedBox(
+                        height: 180,
+                        child: Center(
+                          child: Text('No usage yet', style: GoogleFonts.poppins(fontSize: 13, color: D.t2(context))),
+                        ),
+                      )
+                    else ...[
+                      SizedBox(
+                        height: 180,
+                        child: PieChart(
+                          PieChartData(
+                            sectionsSpace: 2,
+                            centerSpaceRadius: 36,
+                            sections: [
+                              for (final s in services)
+                                if (s.$2 > 0)
+                                  PieChartSectionData(
+                                    color: s.$3,
+                                    value: s.$2.toDouble(),
+                                    title: '${(s.$2 / serviceTotal * 100).round()}%',
+                                    radius: 46,
+                                    titleStyle: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                                  ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    _legendItem(const Color(0xFF6366F1), 'Direct', '45%', context),
-                    _legendItem(const Color(0xFF14B8A6), 'Search', '30%', context),
-                    _legendItem(const Color(0xFFF59E0B), 'Social', '15%', context),
-                    _legendItem(const Color(0xFFEC4899), 'Referral', '10%', context),
+                      const SizedBox(height: 12),
+                      for (final s in services)
+                        if (s.$2 > 0)
+                          _legendItem(s.$3, s.$1, '${(s.$2 / serviceTotal * 100).round()}%', context),
+                    ],
                   ],
                 ),
               );
@@ -266,7 +320,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  Widget _summaryCard(BuildContext context, String title, String value, String change, Color color, {bool negative = false}) {
+  Widget _summaryCard(BuildContext context, String title, String value, String? change, Color color, {bool negative = false}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
@@ -286,25 +340,27 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             alignment: Alignment.centerLeft,
             child: Text(value, style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold, color: D.t1(context), letterSpacing: -0.5)),
           ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                decoration: BoxDecoration(
-                  color: (negative ? const Color(0xFFEF4444) : const Color(0xFF10B981)).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(4),
+          if (change != null) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: (negative ? const Color(0xFFEF4444) : const Color(0xFF10B981)).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Row(children: [
+                    Icon(negative ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded, size: 10, color: negative ? const Color(0xFFEF4444) : const Color(0xFF10B981)),
+                    const SizedBox(width: 2),
+                    Text(change, style: GoogleFonts.poppins(color: negative ? const Color(0xFFEF4444) : const Color(0xFF10B981), fontSize: 11, fontWeight: FontWeight.w600)),
+                  ]),
                 ),
-                child: Row(children: [
-                  Icon(negative ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded, size: 10, color: negative ? const Color(0xFFEF4444) : const Color(0xFF10B981)),
-                  const SizedBox(width: 2),
-                  Text(change, style: GoogleFonts.poppins(color: negative ? const Color(0xFFEF4444) : const Color(0xFF10B981), fontSize: 11, fontWeight: FontWeight.w600)),
-                ]),
-              ),
-              const SizedBox(width: 6),
-              Flexible(child: Text('vs last month', style: GoogleFonts.poppins(color: D.t3(context), fontSize: 10), overflow: TextOverflow.ellipsis)),
-            ],
-          ),
+                const SizedBox(width: 6),
+                Flexible(child: Text('vs last month', style: GoogleFonts.poppins(color: D.t3(context), fontSize: 10), overflow: TextOverflow.ellipsis)),
+              ],
+            ),
+          ],
         ],
       ),
     );

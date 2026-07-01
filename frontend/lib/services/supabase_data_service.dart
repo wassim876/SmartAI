@@ -252,6 +252,49 @@ class SupabaseDataService {
     return Map<String, dynamic>.from(res as Map);
   }
 
+  // ===================== REPORTS (admin exports) =====================
+
+  Future<List<Map<String, dynamic>>> reportUsers() async {
+    final rows = await supabase
+        .from('profiles')
+        .select(
+            'email, username, display_name, is_premium, is_active, is_admin, daily_messages_used, daily_messages_limit, created_at, last_login')
+        .order('created_at');
+    return List<Map<String, dynamic>>.from(rows);
+  }
+
+  Future<List<Map<String, dynamic>>> reportReviews() async {
+    final rows = await supabase
+        .from('reviews')
+        .select('rating, comment, user_id, created_at')
+        .order('created_at', ascending: false);
+    return List<Map<String, dynamic>>.from(rows);
+  }
+
+  Future<List<Map<String, dynamic>>> reportActivity() async {
+    final rows = await supabase
+        .from('user_activities')
+        .select('action, details, user_id, created_at')
+        .order('created_at', ascending: false)
+        .limit(2000);
+    return List<Map<String, dynamic>>.from(rows);
+  }
+
+  Future<List<Map<String, dynamic>>> reportAiUsage() async {
+    final stats = await getAdminStats();
+    final breakdown = (stats['service_breakdown'] as List?) ?? const [];
+    final rows = breakdown
+        .map((b) => {
+              'service': (b as Map)['label'],
+              'requests': b['count'],
+            })
+        .toList();
+    final total = rows.fold<int>(
+        0, (s, r) => s + ((r['requests'] as num?)?.toInt() ?? 0));
+    rows.add({'service': 'Total', 'requests': total});
+    return List<Map<String, dynamic>>.from(rows);
+  }
+
   Future<List<UserModel>> getAllUsers() async {
     final rows = await supabase
         .from('profiles')

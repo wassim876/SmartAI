@@ -8,7 +8,6 @@ import 'core/supabase_config.dart';
 import 'theme/app_theme.dart';
 import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
-import 'providers/user_provider.dart';
 import 'providers/language_provider.dart';
 import 'l10n/app_localizations.dart';
 import 'services/notification_service.dart';
@@ -55,7 +54,6 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => LanguageProvider()),
       ],
       child: const SmartAIApp(),

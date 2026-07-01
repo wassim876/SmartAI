@@ -3,8 +3,6 @@
 // Client wrapper over the NVIDIA-NIM Edge Functions (nim-chat / nim-translate /
 // nim-transcribe / nim-tts). Each call goes through supabase.functions.invoke,
 // which attaches the user's JWT automatically.
-import 'dart:convert';
-import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/supabase_config.dart';
 
@@ -46,32 +44,6 @@ class AiService {
     final t = data['translation'];
     if (t is String) return t;
     throw Exception('Translation failed');
-  }
-
-  Future<String> transcribe({
-    required String audioBase64,
-    String mimeType = 'audio/wav',
-    String language = 'en-US',
-  }) async {
-    final data = await _invoke('nim-transcribe', {
-      'audio': audioBase64,
-      'mimeType': mimeType,
-      'language': language,
-    });
-    final t = data['transcript'];
-    if (t is String) return t;
-    throw Exception('Transcription failed');
-  }
-
-  /// Text-to-speech → decoded audio bytes (mp3).
-  Future<Uint8List> tts(String text, {String? voice}) async {
-    final data = await _invoke('nim-tts', {
-      'text': text,
-      if (voice != null) 'voice': voice,
-    });
-    final audio = data['audio'];
-    if (audio is String) return base64Decode(audio);
-    throw Exception('Voice output failed');
   }
 
   Future<Map<String, dynamic>> _invoke(

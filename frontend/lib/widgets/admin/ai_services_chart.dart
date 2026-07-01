@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -32,44 +33,47 @@ class AIServicesChart extends StatelessWidget {
     final int total =
         breakdown.fold<int>(0, (sum, e) => sum + _countFor(e));
 
+    // Header is provided by the surrounding dashboard panel.
+    if (total == 0) {
+      return Center(
+        child: Text('No usage yet',
+            style: GoogleFonts.poppins(fontSize: 13, color: D.t3(context))),
+      );
+    }
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('AI Services Usage', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold, color: D.t1(context))),
-        const SizedBox(height: 10),
-        if (total == 0)
-          Expanded(
-            child: Center(
-              child: Text('No usage yet',
-                  style: GoogleFonts.poppins(fontSize: 13, color: D.t3(context))),
-            ),
-          )
-        else ...[
-          Expanded(
-            child: Center(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final double chartSize = constraints.maxWidth.isFinite ? constraints.maxWidth : 200;
-                  return PieChart(
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // Bound the pie by the SMALLER of width/height so it never
+              // overflows the panel or overlaps the legend.
+              final double chartSize =
+                  math.min(constraints.maxWidth, constraints.maxHeight);
+              return Center(
+                child: SizedBox(
+                  width: chartSize,
+                  height: chartSize,
+                  child: PieChart(
                     PieChartData(
                       sectionsSpace: 2,
-                      centerSpaceRadius: (chartSize * 0.12).clamp(10, 40),
+                      centerSpaceRadius: (chartSize * 0.16).clamp(10, 60),
                       sections: _showingSections(chartSize, total),
                     ),
-                  );
-                },
-              ),
-            ),
+                  ),
+                ),
+              );
+            },
           ),
-          const SizedBox(height: 10),
-          _buildLegend(context),
-        ],
+        ),
+        const SizedBox(height: 12),
+        _buildLegend(context),
       ],
     );
   }
 
   List<PieChartSectionData> _showingSections(double chartSize, int total) {
-    final double radius = chartSize * 0.18;
+    final double radius = chartSize * 0.20;
     final sections = <PieChartSectionData>[];
     for (int i = 0; i < breakdown.length; i++) {
       final count = _countFor(breakdown[i]);

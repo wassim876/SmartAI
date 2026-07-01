@@ -40,34 +40,16 @@ class RecentActivityList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Recent Activity', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold, color: D.t1(context))),
-            TextButton(
-              onPressed: () {},
-              style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-              child: Text('View All', style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF6C63FF), fontWeight: FontWeight.w500)),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Expanded(
-          child: items.isEmpty
-              ? Center(
-                  child: Text('No recent activity',
-                      style: GoogleFonts.poppins(fontSize: 13, color: D.t3(context))),
-                )
-              : ListView(
-                  children: [
-                    for (final raw in items) _buildItem(context, raw),
-                  ],
-                ),
-        ),
-      ],
+    // Header is provided by the surrounding dashboard panel.
+    if (items.isEmpty) {
+      return Center(
+        child: Text('No recent activity',
+            style: GoogleFonts.poppins(fontSize: 13, color: D.t3(context))),
+      );
+    }
+    return ListView(
+      padding: EdgeInsets.zero,
+      children: [for (final raw in items) _buildItem(context, raw)],
     );
   }
 

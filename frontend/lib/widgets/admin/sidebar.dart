@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import '../../providers/user_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../models/user_model.dart';
 
 class Sidebar extends StatelessWidget {
   const Sidebar({super.key});
@@ -9,7 +10,7 @@ class Sidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentRoute = ModalRoute.of(context)?.settings.name ?? '/admin/dashboard';
-    final userProvider = context.watch<UserProvider>();
+    final user = context.watch<AuthProvider>().currentUser;
 
     return Container(
       width: 260,
@@ -88,7 +89,7 @@ class Sidebar extends StatelessWidget {
           child: Column(children: [
             Divider(color: Colors.white.withValues(alpha: 0.06), height: 1),
             const SizedBox(height: 8),
-            _buildUserProfile(context, userProvider),
+            _buildUserProfile(context, user),
             const SizedBox(height: 12),
           ]),
         ),
@@ -96,7 +97,7 @@ class Sidebar extends StatelessWidget {
     );
   }
 
-  Widget _buildUserProfile(BuildContext context, UserProvider userProvider) {
+  Widget _buildUserProfile(BuildContext context, UserModel? user) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: Material(
@@ -124,8 +125,10 @@ class Sidebar extends StatelessWidget {
                 child: CircleAvatar(
                   backgroundColor: const Color(0xFF1A1A2E),
                   radius: 18,
-                  backgroundImage: userProvider.profileImageBytes != null ? MemoryImage(userProvider.profileImageBytes!) : null,
-                  child: userProvider.profileImageBytes == null
+                  backgroundImage: (user?.photoURL != null && user!.photoURL!.isNotEmpty)
+                      ? NetworkImage(user.photoURL!)
+                      : null,
+                  child: (user?.photoURL == null || user!.photoURL!.isEmpty)
                       ? Icon(Icons.person, color: Colors.white.withValues(alpha: 0.7), size: 18)
                       : null,
                 ),
@@ -133,8 +136,8 @@ class Sidebar extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(userProvider.userName, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
-                  Text(userProvider.userRole, style: GoogleFonts.poppins(color: Colors.white.withValues(alpha: 0.4), fontSize: 11)),
+                  Text(user?.name ?? 'Admin', maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                  Text(user?.role ?? 'Administrator', style: GoogleFonts.poppins(color: Colors.white.withValues(alpha: 0.4), fontSize: 11)),
                 ]),
               ),
               Icon(Icons.more_horiz_rounded, color: Colors.white.withValues(alpha: 0.3), size: 16),
