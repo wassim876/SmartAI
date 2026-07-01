@@ -1,12 +1,60 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../../../theme/dark_mode_helpers.dart';
+import '../../../services/supabase_data_service.dart';
 
-class AIServicesScreen extends StatelessWidget {
+class AIServicesScreen extends StatefulWidget {
   const AIServicesScreen({super.key});
 
   @override
+  State<AIServicesScreen> createState() => _AIServicesScreenState();
+}
+
+class _AIServicesScreenState extends State<AIServicesScreen> {
+  final _service = SupabaseDataService();
+  Map<String, dynamic>? _stats;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStats();
+  }
+
+  Future<void> _loadStats() async {
+    try {
+      final stats = await _service.getAdminStats();
+      if (!mounted) return;
+      setState(() {
+        _stats = stats;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+    }
+  }
+
+  int _asInt(dynamic v) => v is num ? v.toInt() : 0;
+
+  @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final stats = _stats ?? const {};
+    final chat = _asInt(stats['total_conversations']);
+    final images = _asInt(stats['total_images']);
+    final speech = _asInt(stats['total_speech']);
+    final translations = _asInt(stats['total_translations']);
+    final total = chat + images + speech + translations;
+
+    final fmt = NumberFormat.decimalPattern();
+    double usageOf(int count) =>
+        total == 0 ? 0 : double.parse((count / total * 100).toStringAsFixed(1));
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -74,12 +122,12 @@ class AIServicesScreen extends StatelessWidget {
                 crossAxisSpacing: 14,
                 childAspectRatio: childAspectRatio,
                 children: [
-                  _buildServiceCard(context, icon: Icons.chat_bubble_outline_rounded, color: const Color(0xFF3B82F6), title: 'Chat Assistant', description: 'Conversational AI assistant for general queries', requests: '35,070', usage: 35.6, status: 'Active'),
-                  _buildServiceCard(context, icon: Icons.image_outlined, color: const Color(0xFF10B981), title: 'Image Analysis', description: 'Detect objects, text, and content in images', requests: '22,418', usage: 22.8, status: 'Active'),
-                  _buildServiceCard(context, icon: Icons.mic_none_outlined, color: const Color(0xFFF59E0B), title: 'Speech to Text', description: 'Transcribe audio recordings into text', requests: '14,996', usage: 15.3, status: 'Active'),
-                  _buildServiceCard(context, icon: Icons.record_voice_over_outlined, color: const Color(0xFF8B5CF6), title: 'Text to Speech', description: 'Convert written text into natural speech', requests: '10,520', usage: 10.7, status: 'Active'),
-                  _buildServiceCard(context, icon: Icons.translate_outlined, color: const Color(0xFF14B8A6), title: 'Translation', description: 'Translate text between multiple languages', requests: '8,455', usage: 8.6, status: 'Active'),
-                  _buildServiceCard(context, icon: Icons.apps_outlined, color: const Color(0xFF6B7280), title: 'Others', description: 'Miscellaneous AI utilities and tools', requests: '5,861', usage: 6.0, status: 'Maintenance'),
+                  _buildServiceCard(context, icon: Icons.chat_bubble_outline_rounded, color: const Color(0xFF3B82F6), title: 'Chat Assistant', description: 'Conversational AI assistant for general queries', requests: fmt.format(chat), usage: usageOf(chat), status: 'Active'),
+                  _buildServiceCard(context, icon: Icons.image_outlined, color: const Color(0xFF10B981), title: 'Image Analysis', description: 'Detect objects, text, and content in images', requests: fmt.format(images), usage: usageOf(images), status: 'Active'),
+                  _buildServiceCard(context, icon: Icons.mic_none_outlined, color: const Color(0xFFF59E0B), title: 'Speech to Text', description: 'Transcribe audio recordings into text', requests: fmt.format(speech), usage: usageOf(speech), status: 'Active'),
+                  _buildServiceCard(context, icon: Icons.record_voice_over_outlined, color: const Color(0xFF8B5CF6), title: 'Text to Speech', description: 'Convert written text into natural speech', requests: fmt.format(0), usage: 0, status: 'Maintenance'),
+                  _buildServiceCard(context, icon: Icons.translate_outlined, color: const Color(0xFF14B8A6), title: 'Translation', description: 'Translate text between multiple languages', requests: fmt.format(translations), usage: usageOf(translations), status: 'Active'),
+                  _buildServiceCard(context, icon: Icons.apps_outlined, color: const Color(0xFF6B7280), title: 'Others', description: 'Miscellaneous AI utilities and tools', requests: fmt.format(0), usage: 0, status: 'Maintenance'),
                 ],
               );
             },

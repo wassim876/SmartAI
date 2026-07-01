@@ -1,13 +1,86 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../../../theme/dark_mode_helpers.dart';
+import '../../../services/supabase_data_service.dart';
 
-class AnalyticsScreen extends StatelessWidget {
+class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
 
   @override
+  State<AnalyticsScreen> createState() => _AnalyticsScreenState();
+}
+
+class _AnalyticsScreenState extends State<AnalyticsScreen> {
+  final _service = SupabaseDataService();
+  bool _loading = true;
+
+  // Bar chart data derived from `daily_activity`.
+  List<double> _barValues = List.filled(7, 0);
+  List<String> _barLabels = const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStats();
+  }
+
+  Future<void> _loadStats() async {
+    try {
+      final stats = await _service.getAdminStats();
+      if (!mounted) return;
+      setState(() {
+        _buildDailyBars(stats);
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+    }
+  }
+
+  int _asInt(dynamic v) => v is num ? v.toInt() : 0;
+
+  /// Produces 7 bars for the last 7 calendar days (missing days -> 0), labelled
+  /// with the weekday abbreviation. Bar heights are normalized to 0-100 by the
+  /// max daily count so the chart's proportional visuals stay intact.
+  void _buildDailyBars(Map<String, dynamic> stats) {
+    final raw = (stats['daily_activity'] as List?) ?? const [];
+    final counts = <String, int>{};
+    for (final e in raw) {
+      if (e is Map) {
+        final day = e['day']?.toString();
+        final parsed = day == null ? null : DateTime.tryParse(day);
+        if (parsed != null) {
+          final key = DateFormat('yyyy-MM-dd').format(parsed);
+          counts[key] = _asInt(e['count']);
+        }
+      }
+    }
+
+    final now = DateTime.now();
+    final days = List.generate(7, (i) {
+      final d = DateTime(now.year, now.month, now.day)
+          .subtract(Duration(days: 6 - i));
+      return d;
+    });
+
+    final rawCounts =
+        days.map((d) => counts[DateFormat('yyyy-MM-dd').format(d)] ?? 0).toList();
+    final maxCount = rawCounts.fold<int>(0, (m, c) => c > m ? c : m);
+
+    _barValues = rawCounts
+        .map((c) => maxCount == 0 ? 0.0 : c / maxCount * 100.0)
+        .toList();
+    _barLabels = days.map((d) => DateFormat('EEE').format(d)).toList();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -108,22 +181,22 @@ class AnalyticsScreen extends StatelessWidget {
                               sideTitles: SideTitles(
                                 showTitles: true,
                                 getTitlesWidget: (value, meta) {
-                                  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                                  final i = value.toInt();
+                                  final label = (i >= 0 && i < _barLabels.length) ? _barLabels[i] : '';
                                   return Padding(
                                     padding: const EdgeInsets.only(top: 8),
-                                    child: Text(days[value.toInt() % 7], style: GoogleFonts.poppins(fontSize: 11, color: D.t2(context))),
+                                    child: Text(label, style: GoogleFonts.poppins(fontSize: 11, color: D.t2(context))),
                                   );
                                 },
                               ),
                             ),
                           ),
                           barGroups: List.generate(7, (i) {
-                            final values = [60.0, 75.0, 50.0, 90.0, 80.0, 65.0, 95.0];
                             return BarChartGroupData(
                               x: i,
                               barRods: [
                                 BarChartRodData(
-                                  toY: values[i],
+                                  toY: _barValues[i],
                                   color: const Color(0xFF6C63FF),
                                   width: 16,
                                   borderRadius: BorderRadius.circular(6),

@@ -1,16 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../../theme/dark_mode_helpers.dart';
+import '../../services/supabase_data_service.dart';
 import '../../widgets/admin/stat_card.dart';
 import '../../widgets/admin/user_growth_chart.dart';
 import '../../widgets/admin/ai_services_chart.dart';
 import '../../widgets/admin/recent_activity_list.dart';
 
-class AdminDashboard extends StatelessWidget {
+class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
 
+  @override
+  State<AdminDashboard> createState() => _AdminDashboardState();
+}
+
+class _AdminDashboardState extends State<AdminDashboard> {
   static const Color _accent = Color(0xFF6C63FF);
   static const Color _accent2 = Color(0xFF8B7CFF);
+
+  final NumberFormat _fmt = NumberFormat.decimalPattern();
+
+  Map<String, dynamic>? _stats;
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final stats = await SupabaseDataService().getAdminStats();
+      if (!mounted) return;
+      setState(() {
+        _stats = stats;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = 'Failed to load dashboard data.';
+        _loading = false;
+      });
+    }
+  }
+
+  int _int(String key) {
+    final v = _stats?[key];
+    if (v is num) return v.toInt();
+    return 0;
+  }
+
+  int get _aiRequests =>
+      _int('total_conversations') +
+      _int('total_images') +
+      _int('total_speech') +
+      _int('total_translations');
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +74,13 @@ class AdminDashboard extends StatelessWidget {
           final bool isMobile = w < 640;
           final bool isTablet = w >= 640 && w < 1020;
           final bool isDesktop = w >= 1020;
+
+          if (_loading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (_error != null) {
+            return _buildError(context);
+          }
 
           return SingleChildScrollView(
             padding: EdgeInsets.symmetric(
@@ -45,6 +104,25 @@ class AdminDashboard extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildError(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.error_outline_rounded, color: D.t3(context), size: 40),
+          const SizedBox(height: 12),
+          Text(_error ?? 'Something went wrong.',
+              style: GoogleFonts.poppins(color: D.t2(context), fontSize: 14)),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _load,
+            child: Text('Retry', style: GoogleFonts.poppins()),
+          ),
+        ],
       ),
     );
   }
@@ -161,42 +239,45 @@ class AdminDashboard extends StatelessWidget {
 
   Widget _buildStatsSection(BuildContext context,
       {required bool isMobile, required bool isTablet}) {
-    final stats = const [
+    final num avgRatingNum = (_stats?['avg_rating'] ?? 0) as num;
+    final int reviewsCount = _int('reviews_count');
+
+    final stats = [
       StatCard(
           icon: Icons.people_rounded,
-          iconColor: Color(0xFF3B82F6),
+          iconColor: const Color(0xFF3B82F6),
           title: 'Total Users',
-          value: '12,450',
-          growth: '12.5%',
-          growthType: 'vs last month'),
+          value: _fmt.format(_int('total_users')),
+          growth: '',
+          growthType: 'Registered'),
       StatCard(
           icon: Icons.chat_bubble_rounded,
-          iconColor: Color(0xFF10B981),
+          iconColor: const Color(0xFF10B981),
           title: 'Conversations',
-          value: '45,780',
-          growth: '18.2%',
-          growthType: 'vs last month'),
-      StatCard(
-          icon: Icons.attach_money_rounded,
-          iconColor: Color(0xFFF59E0B),
-          title: 'Revenue',
-          value: '\$24,780',
-          growth: '15.3%',
-          growthType: 'vs last month'),
+          value: _fmt.format(_int('total_conversations')),
+          growth: '',
+          growthType: 'All-time'),
       StatCard(
           icon: Icons.trending_up_rounded,
-          iconColor: Color(0xFF6366F1),
+          iconColor: const Color(0xFF6366F1),
           title: 'AI Requests',
-          value: '98,320',
-          growth: '20.1%',
-          growthType: 'vs last month'),
+          value: _fmt.format(_aiRequests),
+          growth: '',
+          growthType: 'All-time'),
       StatCard(
-          icon: Icons.pie_chart_rounded,
-          iconColor: Color(0xFF8B5CF6),
-          title: 'Success Rate',
-          value: '99.2%',
-          growth: '2.1%',
-          growthType: 'vs last month'),
+          icon: Icons.workspace_premium_rounded,
+          iconColor: const Color(0xFFF59E0B),
+          title: 'Premium Users',
+          value: _fmt.format(_int('premium_users')),
+          growth: '',
+          growthType: 'Upgraded'),
+      StatCard(
+          icon: Icons.star_rounded,
+          iconColor: const Color(0xFF8B5CF6),
+          title: 'Avg Rating',
+          value: avgRatingNum.toStringAsFixed(1),
+          growth: '',
+          growthType: 'from $reviewsCount reviews'),
     ];
 
     if (isMobile) {
@@ -227,6 +308,15 @@ class AdminDashboard extends StatelessWidget {
 
   Widget _buildChartsSection(BuildContext context,
       {required bool isDesktop, required bool isTablet}) {
+    final growth = (_stats?['user_growth'] as List<dynamic>?) ?? const [];
+    final breakdown =
+        (_stats?['service_breakdown'] as List<dynamic>?) ?? const [];
+    final recent = (_stats?['recent_activity'] as List<dynamic>?) ?? const [];
+
+    final userGrowth = UserGrowthChart(data: growth);
+    final aiServices = AIServicesChart(breakdown: breakdown);
+    final recentActivity = RecentActivityList(items: recent);
+
     if (isDesktop) {
       return IntrinsicHeight(
         child: Row(
@@ -234,18 +324,15 @@ class AdminDashboard extends StatelessWidget {
           children: [
             Expanded(
                 flex: 2,
-                child:
-                    _buildPanel(context, const UserGrowthChart(), height: 360)),
+                child: _buildPanel(context, userGrowth, height: 360)),
             const SizedBox(width: 14),
             Expanded(
                 flex: 1,
-                child:
-                    _buildPanel(context, const AIServicesChart(), height: 360)),
+                child: _buildPanel(context, aiServices, height: 360)),
             const SizedBox(width: 14),
             Expanded(
                 flex: 1,
-                child: _buildPanel(context, const RecentActivityList(),
-                    height: 360)),
+                child: _buildPanel(context, recentActivity, height: 360)),
           ],
         ),
       );
@@ -257,27 +344,25 @@ class AdminDashboard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(
-                    child: _buildPanel(context, const UserGrowthChart(),
-                        height: 320)),
+                    child: _buildPanel(context, userGrowth, height: 320)),
                 const SizedBox(width: 14),
                 Expanded(
-                    child: _buildPanel(context, const AIServicesChart(),
-                        height: 320)),
+                    child: _buildPanel(context, aiServices, height: 320)),
               ],
             ),
           ),
           const SizedBox(height: 14),
-          _buildPanel(context, const RecentActivityList(), height: 380),
+          _buildPanel(context, recentActivity, height: 380),
         ],
       );
     } else {
       return Column(
         children: [
-          _buildPanel(context, const UserGrowthChart(), height: 280),
+          _buildPanel(context, userGrowth, height: 280),
           const SizedBox(height: 14),
-          _buildPanel(context, const AIServicesChart(), height: 300),
+          _buildPanel(context, aiServices, height: 300),
           const SizedBox(height: 14),
-          _buildPanel(context, const RecentActivityList(), height: 360),
+          _buildPanel(context, recentActivity, height: 360),
         ],
       );
     }
@@ -309,31 +394,31 @@ class AdminDashboard extends StatelessWidget {
   Widget _buildSystemOverview(BuildContext context, {required bool isMobile}) {
     final items = [
       (
-        icon: Icons.cloud_done_rounded,
-        title: 'Server Status',
-        subtitle: 'All systems operational',
-        status: 'Healthy',
-        color: const Color(0xFF22C55E)
-      ),
-      (
         icon: Icons.storage_rounded,
         title: 'Database',
-        subtitle: 'MongoDB Atlas',
+        subtitle: 'Supabase Postgres',
         status: 'Healthy',
         color: const Color(0xFF22C55E)
       ),
       (
-        icon: Icons.speed_rounded,
-        title: 'API Response',
-        subtitle: 'Average response time',
-        status: '120ms',
+        icon: Icons.people_rounded,
+        title: 'Total Users',
+        subtitle: 'Registered accounts',
+        status: _fmt.format(_int('total_users')),
         color: const Color(0xFF3B82F6)
       ),
       (
-        icon: Icons.folder_shared_rounded,
-        title: 'Storage Used',
-        subtitle: '256 GB / 1 TB',
-        status: '25%',
+        icon: Icons.trending_up_rounded,
+        title: 'AI Requests',
+        subtitle: 'All-time',
+        status: _fmt.format(_aiRequests),
+        color: const Color(0xFF6366F1)
+      ),
+      (
+        icon: Icons.workspace_premium_rounded,
+        title: 'Premium Users',
+        subtitle: 'Upgraded accounts',
+        status: _fmt.format(_int('premium_users')),
         color: const Color(0xFFF59E0B)
       ),
     ];

@@ -246,6 +246,12 @@ class SupabaseDataService {
 
   // ============================== ADMIN ==============================
 
+  /// Aggregated admin dashboard metrics (admin-only; RPC raises otherwise).
+  Future<Map<String, dynamic>> getAdminStats() async {
+    final res = await supabase.rpc('admin_dashboard_stats');
+    return Map<String, dynamic>.from(res as Map);
+  }
+
   Future<List<UserModel>> getAllUsers() async {
     final rows = await supabase
         .from('profiles')

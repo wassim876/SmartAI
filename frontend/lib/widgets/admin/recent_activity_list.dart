@@ -3,7 +3,40 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../theme/dark_mode_helpers.dart';
 
 class RecentActivityList extends StatelessWidget {
-  const RecentActivityList({super.key});
+  const RecentActivityList({super.key, required this.items});
+
+  final List<dynamic> items;
+
+  ({IconData icon, Color color, String title}) _mapAction(String action) {
+    switch (action) {
+      case 'signup':
+        return (icon: Icons.person_add_rounded, color: const Color(0xFF3B82F6), title: 'New user registered');
+      case 'login':
+      case 'google_login':
+      case 'github_login':
+        return (icon: Icons.login_rounded, color: const Color(0xFF10B981), title: 'User signed in');
+      default:
+        return (icon: Icons.bolt_rounded, color: const Color(0xFF8B5CF6), title: action);
+    }
+  }
+
+  String _relativeTime(String? createdAt) {
+    if (createdAt == null) return '';
+    final dt = DateTime.tryParse(createdAt);
+    if (dt == null) return '';
+    final diff = DateTime.now().difference(dt);
+    if (diff.inSeconds < 60) return 'just now';
+    if (diff.inMinutes < 60) {
+      final m = diff.inMinutes;
+      return '$m min ago';
+    }
+    if (diff.inHours < 24) {
+      final h = diff.inHours;
+      return '$h hr${h == 1 ? '' : 's'} ago';
+    }
+    final d = diff.inDays;
+    return '$d day${d == 1 ? '' : 's'} ago';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,15 +56,37 @@ class RecentActivityList extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Expanded(
-          child: ListView(children: [
-            _buildActivityItem(context, icon: Icons.person_add_rounded, iconColor: const Color(0xFF3B82F6), title: 'New user registered', subtitle: 'Sarah Johnson joined', time: '2 min ago'),
-            _buildActivityItem(context, icon: Icons.chat_bubble_rounded, iconColor: const Color(0xFF10B981), title: 'New conversation started', subtitle: 'User #1234 started a chat', time: '5 min ago'),
-            _buildActivityItem(context, icon: Icons.payment_rounded, iconColor: const Color(0xFFF59E0B), title: 'Payment received', subtitle: '\$29.99 from Michael B.', time: '12 min ago'),
-            _buildActivityItem(context, icon: Icons.warning_amber_rounded, iconColor: const Color(0xFFF97316), title: 'API rate limit warning', subtitle: '80% of quota used', time: '25 min ago'),
-            _buildActivityItem(context, icon: Icons.system_update_rounded, iconColor: const Color(0xFF8B5CF6), title: 'System update completed', subtitle: 'Version 2.1.0 deployed', time: '1 hour ago'),
-          ]),
+          child: items.isEmpty
+              ? Center(
+                  child: Text('No recent activity',
+                      style: GoogleFonts.poppins(fontSize: 13, color: D.t3(context))),
+                )
+              : ListView(
+                  children: [
+                    for (final raw in items) _buildItem(context, raw),
+                  ],
+                ),
         ),
       ],
+    );
+  }
+
+  Widget _buildItem(BuildContext context, dynamic raw) {
+    final map = raw is Map ? raw : const {};
+    final action = (map['action'] ?? '').toString();
+    final mapped = _mapAction(action);
+    final displayName = map['display_name'];
+    final email = map['email'];
+    final subtitle = (displayName ?? email ?? 'Unknown user').toString();
+    final time = _relativeTime(map['created_at']?.toString());
+
+    return _buildActivityItem(
+      context,
+      icon: mapped.icon,
+      iconColor: mapped.color,
+      title: mapped.title,
+      subtitle: subtitle,
+      time: time,
     );
   }
 
@@ -53,11 +108,12 @@ class RecentActivityList extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500, color: D.t1(context))),
+              Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500, color: D.t1(context))),
               const SizedBox(height: 2),
-              Text(subtitle, style: GoogleFonts.poppins(fontSize: 11, color: D.t2(context))),
+              Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.poppins(fontSize: 11, color: D.t2(context))),
             ]),
           ),
+          const SizedBox(width: 8),
           Text(time, style: GoogleFonts.poppins(fontSize: 10, color: D.t3(context))),
         ]),
       ),
