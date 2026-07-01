@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:provider/provider.dart';
-import '../../providers/auth_provider.dart';
 import '../../theme/dark_mode_helpers.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/supabase_data_service.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -403,19 +401,11 @@ class AboutScreen extends StatelessWidget {
                     onPressed: selectedRating == 0
                         ? null
                         : () async {
-                            final auth = context.read<AuthProvider>();
-                            final user = auth.currentUser;
                             try {
-                              await FirebaseFirestore.instance
-                                  .collection('reviews')
-                                  .add({
-                                'userId': user?.uid ?? '',
-                                'userName': user?.displayName ?? 'Anonymous',
-                                'userEmail': user?.email ?? '',
-                                'rating': selectedRating,
-                                'review': reviewController.text.trim(),
-                                'createdAt': FieldValue.serverTimestamp(),
-                              });
+                              await SupabaseDataService().saveReview(
+                                rating: selectedRating,
+                                comment: reviewController.text.trim(),
+                              );
                               if (ctx.mounted) Navigator.pop(ctx);
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(

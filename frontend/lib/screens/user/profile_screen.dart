@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
-import 'package:firebase_storage/firebase_storage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show FileOptions;
+import '../../core/supabase_config.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/photo_picker_service.dart';
@@ -146,14 +146,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       setState(() => _isUploading = true);
 
-      final uid = FirebaseAuth.instance.currentUser!.uid;
-      final ref = FirebaseStorage.instance
-          .ref()
-          .child('profile_pics')
-          .child('$uid.jpg');
-
-      await ref.putData(imageBytes, SettableMetadata(contentType: 'image/jpeg'));
-      final downloadUrl = await ref.getDownloadURL();
+      final uid = supabase.auth.currentUser!.id;
+      final path = '$uid/avatar.jpg';
+      await supabase.storage.from('avatars').uploadBinary(
+            path,
+            imageBytes,
+            fileOptions:
+                const FileOptions(upsert: true, contentType: 'image/jpeg'),
+          );
+      final downloadUrl = supabase.storage.from('avatars').getPublicUrl(path);
 
       await authProvider.updateProfile(
         displayName: _nameController.text.trim(),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import '../../../core/supabase_config.dart';
 import '../../../theme/dark_mode_helpers.dart';
 
 class ChatLogsScreen extends StatelessWidget {
@@ -18,18 +18,18 @@ class ChatLogsScreen extends StatelessWidget {
           const SizedBox(height: 4),
           Text('Review conversations between users and AI services', style: GoogleFonts.poppins(color: D.t2(context), fontSize: 14), overflow: TextOverflow.ellipsis,),
           const SizedBox(height: 24),
-          StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('chat_messages')
-                .orderBy('createdAt', descending: true)
-                .limit(50)
-                .snapshots(),
+          StreamBuilder<List<Map<String, dynamic>>>(
+            stream: supabase
+                .from('chat_messages')
+                .stream(primaryKey: ['id'])
+                .order('created_at', ascending: false)
+                .limit(200),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final docs = snapshot.data?.docs ?? [];
+              final docs = snapshot.data ?? [];
 
               if (docs.isEmpty) {
                 return Container(
@@ -98,7 +98,7 @@ class ChatLogsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTable(BuildContext context, List<QueryDocumentSnapshot> docs) {
+  Widget _buildTable(BuildContext context, List<Map<String, dynamic>> docs) {
     return Column(
       children: [
         Padding(
@@ -114,13 +114,12 @@ class ChatLogsScreen extends StatelessWidget {
           ),
         ),
         Divider(height: 1, color: D.divider(context)),
-        ...docs.map((doc) {
-          final data = doc.data() as Map<String, dynamic>;
-          final userId = data['userId'] ?? 'Unknown';
-          final model = data['model'] ?? 'AI';
-          final message = data['message'] ?? '';
-          final createdAt = data['createdAt'] as Timestamp?;
-          final dateStr = createdAt != null ? DateFormat('MMM d, yyyy').format(createdAt.toDate()) : '';
+        ...docs.map((data) {
+          final userId = data['user_id']?.toString() ?? 'Unknown';
+          final model = data['model']?.toString() ?? 'AI';
+          final message = data['message']?.toString() ?? '';
+          final createdAt = DateTime.tryParse(data['created_at']?.toString() ?? '');
+          final dateStr = createdAt != null ? DateFormat('MMM d, yyyy').format(createdAt) : '';
           return _buildTableRow(context, userId, model, message, dateStr);
         }),
       ],
@@ -188,15 +187,14 @@ class ChatLogsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCardList(BuildContext context, List<QueryDocumentSnapshot> docs) {
+  Widget _buildCardList(BuildContext context, List<Map<String, dynamic>> docs) {
     return Column(
-      children: docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        final userId = data['userId'] ?? 'Unknown';
-        final model = data['model'] ?? 'AI';
-        final message = data['message'] ?? '';
-        final createdAt = data['createdAt'] as Timestamp?;
-        final dateStr = createdAt != null ? DateFormat('MMM d, yyyy').format(createdAt.toDate()) : '';
+      children: docs.map((data) {
+        final userId = data['user_id']?.toString() ?? 'Unknown';
+        final model = data['model']?.toString() ?? 'AI';
+        final message = data['message']?.toString() ?? '';
+        final createdAt = DateTime.tryParse(data['created_at']?.toString() ?? '');
+        final dateStr = createdAt != null ? DateFormat('MMM d, yyyy').format(createdAt) : '';
 
         return Column(
           children: [

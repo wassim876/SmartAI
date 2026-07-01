@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import '../../../core/supabase_config.dart';
 import '../../../theme/dark_mode_helpers.dart';
 
 class NotificationsScreen extends StatelessWidget {
@@ -31,18 +31,17 @@ class NotificationsScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('admin_notifications')
-                .orderBy('createdAt', descending: true)
-                .limit(50)
-                .snapshots(),
+          StreamBuilder<List<Map<String, dynamic>>>(
+            stream: supabase
+                .from('notifications')
+                .stream(primaryKey: ['id'])
+                .order('created_at', ascending: false),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final docs = snapshot.data?.docs ?? [];
+              final docs = snapshot.data ?? [];
 
               if (docs.isEmpty) {
                 return Container(
@@ -87,16 +86,15 @@ class NotificationsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildNotification(BuildContext context, QueryDocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    final type = data['type'] ?? 'info';
-    final title = data['title'] ?? 'Notification';
-    final subtitle = data['message'] ?? '';
-    final createdAt = data['createdAt'] as Timestamp?;
+  Widget _buildNotification(BuildContext context, Map<String, dynamic> data) {
+    final type = data['type']?.toString() ?? 'info';
+    final title = data['title']?.toString() ?? 'Notification';
+    final subtitle = data['body']?.toString() ?? '';
+    final createdAt = DateTime.tryParse(data['created_at']?.toString() ?? '');
     final read = data['read'] ?? false;
 
     final (icon, color) = _getNotificationStyle(type);
-    final timeStr = createdAt != null ? _formatTime(createdAt.toDate()) : '';
+    final timeStr = createdAt != null ? _formatTime(createdAt) : '';
 
     return Container(
       color: !read ? const Color(0xFF6C63FF).withValues(alpha: 0.04) : Colors.transparent,

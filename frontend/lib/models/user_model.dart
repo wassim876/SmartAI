@@ -1,6 +1,4 @@
 // lib/models/user_model.dart
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class UserModel {
   final String uid;
@@ -46,101 +44,49 @@ class UserModel {
   // FACTORY CONSTRUCTORS
   // ==========================================
 
-  /// Create UserModel from Firebase Auth User
-  factory UserModel.fromFirebase(User user) {
+  /// Create a UserModel from a Supabase `profiles` row (snake_case columns).
+  factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
-      uid: user.uid,
-      username: user.displayName ?? user.email?.split('@').first ?? 'user',
-      email: user.email ?? '',
-      displayName: user.displayName ?? 'User',
-      photoURL: user.photoURL,
-      isPremium: false,
-      isActive: true,
-      isAdmin: false,
-      dailyMessagesUsed: 0,
-      dailyMessagesLimit: 50,
-      createdAt: DateTime.now(),
-      lastLogin: DateTime.now(),
-    );
-  }
-
-  /// Create UserModel from Firestore Document
-  factory UserModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    return UserModel(
-      uid: doc.id,
-      username: data['username'] ?? '',
-      email: data['email'] ?? '',
-      displayName: data['displayName'] ?? '',
-      photoURL: data['photoURL'],
-      isPremium: data['isPremium'] ?? false,
-      isActive: data['isActive'] ?? true,
-      isAdmin: data['isAdmin'] ?? false,
-      dailyMessagesUsed: data['dailyMessagesUsed'] ?? 0,
-      dailyMessagesLimit: data['dailyMessagesLimit'] ?? 50,
-      createdAt: data['createdAt'] != null
-          ? (data['createdAt'] as Timestamp).toDate()
-          : DateTime.now(),
-      lastLogin: data['lastLogin'] != null
-          ? (data['lastLogin'] as Timestamp).toDate()
-          : null,
+      uid: map['id'] as String,
+      username: map['username'] ?? '',
+      email: map['email'] ?? '',
+      displayName: map['display_name'] ?? '',
+      photoURL: map['photo_url'],
+      isPremium: map['is_premium'] ?? false,
+      isActive: map['is_active'] ?? true,
+      isAdmin: map['is_admin'] ?? false,
+      dailyMessagesUsed: map['daily_messages_used'] ?? 0,
+      dailyMessagesLimit: map['daily_messages_limit'] ?? 50,
+      createdAt: _parseDate(map['created_at']) ?? DateTime.now(),
+      lastLogin: _parseDate(map['last_login']),
     );
   }
 
   // ==========================================
-  // TO MAP METHODS
+  // TO MAP
   // ==========================================
 
-  /// For creating a new user in Firestore
-  Map<String, dynamic> toFirestoreForCreate() {
+  /// Column map for `profiles` inserts/updates. Server-managed timestamps
+  /// (`created_at`, `last_login`) are intentionally omitted.
+  Map<String, dynamic> toMap() {
     return {
-      'uid': uid,
+      'id': uid,
       'username': username,
       'email': email,
-      'displayName': displayName,
-      'photoURL': photoURL,
-      'isPremium': isPremium,
-      'isActive': isActive,
-      'isAdmin': isAdmin,
-      'dailyMessagesUsed': dailyMessagesUsed,
-      'dailyMessagesLimit': dailyMessagesLimit,
-      'createdAt': FieldValue.serverTimestamp(),
-      'lastLogin': FieldValue.serverTimestamp(),
+      'display_name': displayName,
+      'photo_url': photoURL,
+      'is_premium': isPremium,
+      'is_active': isActive,
+      'is_admin': isAdmin,
+      'daily_messages_used': dailyMessagesUsed,
+      'daily_messages_limit': dailyMessagesLimit,
     };
   }
 
-  /// For updating an existing user in Firestore
-  Map<String, dynamic> toFirestoreForUpdate() {
-    return {
-      'username': username,
-      'email': email,
-      'displayName': displayName,
-      'photoURL': photoURL,
-      'isPremium': isPremium,
-      'isActive': isActive,
-      'isAdmin': isAdmin,
-      'dailyMessagesUsed': dailyMessagesUsed,
-      'dailyMessagesLimit': dailyMessagesLimit,
-      'lastLogin': FieldValue.serverTimestamp(),
-    };
-  }
-
-  /// For use when you need a complete map (use with caution)
-  Map<String, dynamic> toFirestore() {
-    return {
-      'uid': uid,
-      'username': username,
-      'email': email,
-      'displayName': displayName,
-      'photoURL': photoURL,
-      'isPremium': isPremium,
-      'isActive': isActive,
-      'isAdmin': isAdmin,
-      'dailyMessagesUsed': dailyMessagesUsed,
-      'dailyMessagesLimit': dailyMessagesLimit,
-      'createdAt': createdAt,
-      'lastLogin': lastLogin,
-    };
+  static DateTime? _parseDate(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    return DateTime.tryParse(value.toString());
   }
 
   // ==========================================

@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/primary_button.dart';
-import '../../widgets/social_button.dart';
 import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
 import '../admin/admin_dashboard.dart';
@@ -84,83 +82,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _loginWithGoogle() async {
-  setState(() => _isLoading = true);
-  try {
-    final authProvider = context.read<AuthProvider>();
-    await authProvider.loginWithGoogle();
-    
-    if (mounted) {
-      if (authProvider.isAdmin) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const AdminLayout(child: AdminDashboard()),
-          ),
-        );
-      } else {
-        Navigator.pushReplacementNamed(context, '/home');
-      }
-    }
-  } catch (e) {
-    if (mounted) {
-      String errorMessage = 'Google login failed';
-      
-      // More specific error messages
-      if (e.toString().contains('canceled')) {
-        errorMessage = 'Google sign-in was cancelled';
-      } else if (e.toString().contains('network')) {
-        errorMessage = 'Network error. Please check your connection';
-      } else if (e.toString().contains('account-exists')) {
-        errorMessage = 'An account already exists with this email';
-      } else {
-        errorMessage = 'Google login failed: ${e.toString()}';
-      }
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-    }
-  } finally {
-    if (mounted) setState(() => _isLoading = false);
-  }
-  }
-
-  Future<void> _loginWithGitHub() async {
-    setState(() => _isLoading = true);
-    try {
-      final authProvider = context.read<AuthProvider>();
-      await authProvider.loginWithGitHub();
-      if (mounted) {
-        if (authProvider.isAdmin) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AdminLayout(child: AdminDashboard()),
-            ),
-          );
-        } else {
-          Navigator.pushReplacementNamed(context, '/home');
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('GitHub login failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
   Widget _headerSection(bool isWide, Size size) {
     return Container(
       width: isWide ? size.width * 0.35 : double.infinity,
@@ -229,50 +150,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _socialButtons(bool isWide) {
-    Widget googleButton = SocialButton(
-      label: 'Google',
-      iconWidget: SvgPicture.asset(
-        'assets/images/google-icon-logo-svgrepo-com.svg',
-        width: 20,
-        height: 20,
-        errorBuilder: (context, error, stackTrace) =>
-            const Icon(Icons.account_circle, size: 20),
-      ),
-      onPressed: _loginWithGoogle,
-    );
-
-    Widget githubButton = SocialButton(
-      label: 'GitHub',
-      iconWidget: SvgPicture.asset(
-        'assets/images/github-svgrepo-com.svg',
-        width: 20,
-        height: 20,
-        errorBuilder: (context, error, stackTrace) =>
-            const Icon(Icons.code, size: 20),
-      ),
-      onPressed: _loginWithGitHub,
-    );
-
-    if (isWide) {
-      return Row(
-        children: [
-          Expanded(child: googleButton),
-          const SizedBox(width: 12),
-          Expanded(child: githubButton),
-        ],
-      );
-    }
-
-    return Column(
-      children: [
-        SizedBox(width: double.infinity, child: googleButton),
-        const SizedBox(height: 12),
-        SizedBox(width: double.infinity, child: githubButton),
-      ],
     );
   }
 
@@ -353,19 +230,6 @@ class _LoginScreenState extends State<LoginScreen> {
               label: _isLoading ? 'Logging in...' : 'Login',
               onPressed: _isLoading ? null : _handleLogin,
             ),
-            const SizedBox(height: 24),
-            const Row(
-              children: [
-                Expanded(child: Divider()),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12),
-                  child: Text('or continue with'),
-                ),
-                Expanded(child: Divider()),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _socialButtons(isWide),
             const SizedBox(height: 24),
             Center(
               child: Wrap(

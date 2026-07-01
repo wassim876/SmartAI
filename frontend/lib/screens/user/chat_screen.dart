@@ -1,15 +1,20 @@
 import 'dart:io';
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:record/record.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/admin_notification_service.dart';
+import '../../services/supabase_data_service.dart';
+import '../../services/ai_service.dart';
 import '../../theme/dark_mode_helpers.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -28,7 +33,12 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isTyping = false;
   bool _isRecording = false;
   bool _isStreaming = false;
+  bool _isTranscribing = false;
   final ImagePicker _picker = ImagePicker();
+  final AiService _ai = AiService();
+  final AudioRecorder _recorder = AudioRecorder();
+  final AudioPlayer _player = AudioPlayer();
+  String? _recordPath;
 
   String? _currentSessionId;
   List<_ChatSession> _sessions = [];
@@ -46,6 +56,21 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  @override
+  void dispose() {
+    _controller.dispose();
+    _scrollController.dispose();
+    _recorder.dispose();
+    _player.dispose();
+    super.dispose();
+  }
+
+  void _showSnack(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(message), behavior: SnackBarBehavior.floating));
+  }
+
   void _scrollToBottom() {
     Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
@@ -60,24 +85,19 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       final user = context.read<AuthProvider>().currentUser;
       if (user == null) return;
-      final snap = await FirebaseFirestore.instance
-          .collection('chat_sessions')
-          .where('userId', isEqualTo: user.uid)
-          .orderBy('createdAt', descending: true)
-          .limit(100)
-          .get();
-      final sessions = snap.docs.map((doc) {
-        final data = doc.data();
+      final rows = await SupabaseDataService().getChatSessions(limit: 100);
+      final sessions = rows.map((row) {
         final messages =
-            List<Map<String, dynamic>>.from(data['messages'] ?? []);
+            List<Map<String, dynamic>>.from(row['messages'] ?? []);
         final firstUserMsg = messages
             .where((m) => m['role'] == 'user')
             .map((m) => m['text'] ?? '')
             .firstWhere((t) => t.isNotEmpty, orElse: () => 'New Chat');
         final createdAt =
-            (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now();
+            DateTime.tryParse(row['created_at']?.toString() ?? '') ??
+                DateTime.now();
         return _ChatSession(
-          id: doc.id,
+          id: row['id'].toString(),
           title: firstUserMsg.length > 50
               ? '${firstUserMsg.substring(0, 50)}...'
               : firstUserMsg,
@@ -99,12 +119,8 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _loadSession(_ChatSession session) async {
     Navigator.pop(context);
     try {
-      final doc = await FirebaseFirestore.instance
-          .collection('chat_sessions')
-          .doc(session.id)
-          .get();
-      if (!doc.exists) return;
-      final data = doc.data()!;
+      final data = await SupabaseDataService().getChatSession(session.id);
+      if (data == null) return;
       final messages = List<Map<String, dynamic>>.from(data['messages'] ?? []);
       if (mounted) {
         setState(() {
@@ -130,10 +146,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _deleteSession(_ChatSession session) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('chat_sessions')
-          .doc(session.id)
-          .delete();
+      await SupabaseDataService().deleteChatSession(session.id);
       setState(() => _sessions.removeWhere((s) => s.id == session.id));
       if (_currentSessionId == session.id) _startNewChat();
     } catch (_) {}
@@ -211,11 +224,27 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      final XFile? img = await _picker.pickImage(
-          source: source, maxWidth: 1800, maxHeight: 1800, imageQuality: 85);
-      if (img != null) {
-        setState(() => _pendingAttachments.add(_Attachment(
-            type: _AttachmentType.image, path: img.path, name: img.name)));
+      if (source == ImageSource.gallery) {
+        // file_picker works on desktop (macOS) where image_picker's gallery
+        // source is unsupported; returns a readable file path on native.
+        final result = await FilePicker.platform.pickFiles(type: FileType.image);
+        if (result != null && result.files.isNotEmpty) {
+          final file = result.files.first;
+          if (file.path != null) {
+            setState(() => _pendingAttachments.add(_Attachment(
+                type: _AttachmentType.image,
+                path: file.path!,
+                name: file.name)));
+          }
+        }
+      } else {
+        // Camera capture (mobile only) still uses image_picker.
+        final XFile? img = await _picker.pickImage(
+            source: source, maxWidth: 1800, maxHeight: 1800, imageQuality: 85);
+        if (img != null) {
+          setState(() => _pendingAttachments.add(_Attachment(
+              type: _AttachmentType.image, path: img.path, name: img.name)));
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -310,11 +339,15 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  void _speakText(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('TTS: Connect a TTS API to enable voice output'),
-        behavior: SnackBarBehavior.floating,
-        duration: Duration(seconds: 2)));
+  Future<void> _speakText(String text) async {
+    if (text.trim().isEmpty) return;
+    try {
+      final audio = await _ai.tts(text);
+      await _player.stop();
+      await _player.play(BytesSource(audio, mimeType: 'audio/mpeg'));
+    } catch (e) {
+      _showSnack('Voice output failed. Please try again.');
+    }
   }
 
   Future<void> _sendMessage() async {
@@ -325,53 +358,93 @@ class _ChatScreenState extends State<ChatScreen> {
     // Capture context-dependent objects before any await
     final authProvider = context.read<AuthProvider>();
     final user = authProvider.currentUser;
+
+    // Client-side pre-check for fast feedback; nim-chat enforces authoritatively.
+    if (user != null && user.hasReachedDailyLimit) {
+      _showSnack('You have reached your daily message limit.');
+      return;
+    }
+
     setState(() {
       _pendingAttachments.clear();
       _messages.add({'role': 'user', 'text': text, 'attachments': attachments});
       _isTyping = true;
+      _isStreaming = true; // gates the send button while awaiting
     });
     _scrollToBottom();
-    try {
-      await authProvider.incrementDailyMessages();
-    } catch (_) {}
     try {
       await AdminNotificationService.onNewChat(user?.displayName ?? 'Unknown');
     } catch (_) {}
 
-    String fullReply;
-    final hasImages = attachments.any((a) => a.type == _AttachmentType.image);
-    final hasDocs = attachments.any((a) => a.type == _AttachmentType.document);
-    if (hasImages) {
-      fullReply =
-          'I can see the image you shared. Here\'s my analysis: This appears to be an interesting image. In production, this would use AI vision API to analyze the content in detail including objects, scene description, colors, and any text found.';
-    } else if (hasDocs) {
-      fullReply =
-          'I\'ve received your document. In production, I would read and summarize its contents for you. Here are the key points that would be extracted from the document.';
-    } else {
-      fullReply =
-          'This is a simulated AI response. In production, this would be connected to an actual AI API that generates intelligent responses to your questions and prompts.';
+    // OpenAI-style history (text only) for the chat model.
+    final apiMessages = <Map<String, String>>[];
+    for (final m in _messages) {
+      final t = (m['text'] ?? '').toString();
+      if (t.isEmpty) continue;
+      apiMessages.add({
+        'role': m['role'] == 'ai' ? 'assistant' : 'user',
+        'content': t,
+      });
     }
 
-    setState(() {
-      _messages.add({'role': 'ai', 'text': ''});
-      _isTyping = false;
-      _isStreaming = true;
-    });
+    // Encode the first attached image as a data URI → routes to the vision model.
+    String? imageDataUrl;
+    final images =
+        attachments.where((a) => a.type == _AttachmentType.image).toList();
+    if (images.isNotEmpty) {
+      try {
+        final bytes = await File(images.first.path).readAsBytes();
+        final ext = images.first.path.split('.').last.toLowerCase();
+        final mime = ext == 'png' ? 'image/png' : 'image/jpeg';
+        imageDataUrl = 'data:$mime;base64,${base64Encode(bytes)}';
+      } catch (_) {}
+    }
 
-    final aiIndex = _messages.length - 1;
-    for (int i = 0; i < fullReply.length; i++) {
-      if (!mounted || !_isStreaming) break;
-      await Future.delayed(const Duration(milliseconds: 18));
+    // Ensure at least one turn (e.g. attachment sent with no text).
+    if (apiMessages.isEmpty) {
+      apiMessages.add({
+        'role': 'user',
+        'content': imageDataUrl != null
+            ? 'Describe this image.'
+            : 'Please summarize the attached file.',
+      });
+    }
+
+    String reply;
+    try {
+      reply = await _ai.chat(messages: apiMessages, imageDataUrl: imageDataUrl);
+    } on AiQuotaException catch (e) {
       if (!mounted) return;
       setState(() {
-        _messages[aiIndex]['text'] = fullReply.substring(0, i + 1);
+        _isTyping = false;
+        _isStreaming = false;
+        _messages.add({'role': 'ai', 'text': '⚠️ ${e.message}'});
       });
-      if (i % 10 == 0) _scrollToBottom();
+      await authProvider.refreshCurrentUser();
+      return;
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isTyping = false;
+        _isStreaming = false;
+        _messages.add({
+          'role': 'ai',
+          'text': 'Sorry — I couldn\'t get a response. Please try again.'
+        });
+      });
+      return;
     }
-    if (mounted) {
-      setState(() => _isStreaming = false);
-      _scrollToBottom();
-    }
+
+    if (!mounted) return;
+    setState(() {
+      _isTyping = false;
+      _isStreaming = false;
+      _messages.add({'role': 'ai', 'text': reply});
+    });
+    _scrollToBottom();
+
+    // nim-chat incremented usage server-side; refresh the local counter.
+    await authProvider.refreshCurrentUser();
     await _saveChatToFirestore();
   }
 
@@ -379,40 +452,69 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       final user = context.read<AuthProvider>().currentUser;
       if (user == null) return;
-      final sessionData = {
-        'userId': user.uid,
-        'messages': _messages
-            .map((m) => {'role': m['role'], 'text': m['text']})
-            .toList(),
-        'createdAt': FieldValue.serverTimestamp(),
-      };
-      if (_currentSessionId != null) {
-        await FirebaseFirestore.instance
-            .collection('chat_sessions')
-            .doc(_currentSessionId)
-            .update(sessionData);
-      } else {
-        final doc = await FirebaseFirestore.instance
-            .collection('chat_sessions')
-            .add(sessionData);
-        _currentSessionId = doc.id;
-      }
+      final messages = _messages
+          .map((m) => <String, dynamic>{'role': m['role'], 'text': m['text']})
+          .toList();
+      final title = messages
+          .where((m) => m['role'] == 'user')
+          .map((m) => (m['text'] ?? '').toString())
+          .firstWhere((t) => t.isNotEmpty, orElse: () => 'New Chat');
+      final id = await SupabaseDataService().saveChatSession(
+        id: _currentSessionId,
+        title: title,
+        messages: messages,
+      );
+      _currentSessionId = id;
       await _loadSessions();
     } catch (_) {}
   }
 
-  void _toggleRecording() {
-    setState(() => _isRecording = !_isRecording);
+  Future<void> _toggleRecording() async {
+    if (_isTranscribing) return;
     if (_isRecording) {
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted && _isRecording) {
-          setState(() {
-            _isRecording = false;
-            _controller.text =
-                'This is a simulated transcription. Connect your speech recognition API here.';
-          });
-        }
+      // Stop recording, then transcribe via nim-transcribe.
+      String? path;
+      try {
+        path = await _recorder.stop();
+      } catch (_) {}
+      if (!mounted) return;
+      setState(() {
+        _isRecording = false;
+        _isTranscribing = true;
       });
+      try {
+        if (path == null) throw Exception('no recording');
+        final bytes = await File(path).readAsBytes();
+        final transcript = await _ai.transcribe(
+          audioBase64: base64Encode(bytes),
+          mimeType: 'audio/wav',
+        );
+        if (mounted && transcript.trim().isNotEmpty) {
+          setState(() => _controller.text = transcript.trim());
+        }
+      } catch (_) {
+        _showSnack('Transcription failed. Please try again.');
+      } finally {
+        if (mounted) setState(() => _isTranscribing = false);
+      }
+    } else {
+      // Start recording to a temp WAV file.
+      try {
+        if (!await _recorder.hasPermission()) {
+          _showSnack('Microphone permission is required.');
+          return;
+        }
+        final dir = await getTemporaryDirectory();
+        _recordPath =
+            '${dir.path}/rec_${DateTime.now().millisecondsSinceEpoch}.wav';
+        await _recorder.start(
+          const RecordConfig(encoder: AudioEncoder.wav),
+          path: _recordPath!,
+        );
+        if (mounted) setState(() => _isRecording = true);
+      } catch (_) {
+        _showSnack('Could not start recording.');
+      }
     }
   }
 

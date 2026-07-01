@@ -3,13 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import '../models/user_model.dart';
-import '../services/firebase_auth_service.dart';
-import '../services/firestore_service.dart';
+import '../services/auth_service.dart';
+import '../services/supabase_data_service.dart';
 import '../services/admin_notification_service.dart';
 
 class AuthProvider extends ChangeNotifier {
-  final FirebaseAuthService _authService = FirebaseAuthService();
-  final FirestoreService _firestoreService = FirestoreService();
+  final AuthService _authService = AuthService();
+  final SupabaseDataService _dataService = SupabaseDataService();
 
   UserModel? _currentUser;
   List<UserModel> _users = [];
@@ -42,10 +42,11 @@ class AuthProvider extends ChangeNotifier {
   // CONSTRUCTOR
   // ==========================================
   AuthProvider() {
-    _authService.authStateChanges.listen((user) async {
-      if (user != null) {
+    _authService.authStateChanges.listen((state) async {
+      final session = state.session;
+      if (session != null) {
         try {
-          _currentUser = await _firestoreService.getUserProfile();
+          _currentUser = await _dataService.getUserProfile();
           _loadUserData();
         } catch (e) {
           debugPrint('Error loading user: $e');
@@ -69,12 +70,24 @@ class AuthProvider extends ChangeNotifier {
   // AUTH METHODS
   // ==========================================
 
+  /// Reload just the current user's profile (e.g. after a server-side usage
+  /// increment in the nim-chat function) so the UI usage counter stays fresh.
+  Future<void> refreshCurrentUser() async {
+    if (_authService.currentUser == null) return;
+    try {
+      _currentUser = await _dataService.getUserProfile();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Failed to refresh user: $e');
+    }
+  }
+
   Future<void> resolveUser() async {
-    final firebaseUser = _authService.currentUser;
-    if (firebaseUser == null) return;
+    final user = _authService.currentUser;
+    if (user == null) return;
 
     try {
-      _currentUser = await _firestoreService.getUserProfile();
+      _currentUser = await _dataService.getUserProfile();
       _loadUserData();
     } catch (e) {
       debugPrint('Error resolving user: $e');
@@ -99,7 +112,7 @@ class AuthProvider extends ChangeNotifier {
       );
       _currentUser = user;
       try {
-        await _firestoreService.logActivity('signup');
+        await _dataService.logActivity('signup');
       } catch (_) {}
       try {
         await AdminNotificationService.onNewUser(username, email);
@@ -129,54 +142,8 @@ class AuthProvider extends ChangeNotifier {
       );
       _currentUser = user;
       try {
-        await _firestoreService.logActivity('login');
+        await _dataService.logActivity('login');
       } catch (_) {}
-      notifyListeners();
-    } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      rethrow;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> loginWithGoogle() async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      final user = await _authService.signInWithGoogle();
-      _currentUser = user;
-      if (user != null) {
-        try {
-          await _firestoreService.logActivity('google_login');
-        } catch (_) {}
-      }
-      notifyListeners();
-    } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      rethrow;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> loginWithGitHub() async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      final user = await _authService.signInWithGitHub();
-      _currentUser = user;
-      if (user != null) {
-        try {
-          await _firestoreService.logActivity('github_login');
-        } catch (_) {}
-      }
       notifyListeners();
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -251,7 +218,7 @@ class AuthProvider extends ChangeNotifier {
     if (_currentUser == null) throw Exception('Not authenticated');
 
     try {
-      await _firestoreService.updateUserProfile(data);
+      await _dataService.updateUserProfile(data);
       _currentUser = _currentUser!.copyWith(
         displayName: data['displayName'] ?? _currentUser!.displayName,
         photoURL: data['photoURL'] ?? _currentUser!.photoURL,
@@ -277,7 +244,7 @@ class AuthProvider extends ChangeNotifier {
     }
 
     try {
-      await _firestoreService.incrementDailyMessages();
+      await _dataService.incrementDailyMessages();
       _currentUser = _currentUser!.copyWith(
         dailyMessagesUsed: _currentUser!.dailyMessagesUsed + 1,
       );
@@ -291,7 +258,7 @@ class AuthProvider extends ChangeNotifier {
     if (_currentUser == null) return;
 
     try {
-      await _firestoreService.resetDailyUsage();
+      await _dataService.resetDailyUsage();
       _currentUser = _currentUser!.copyWith(dailyMessagesUsed: 0);
       notifyListeners();
     } catch (e) {
@@ -318,41 +285,29 @@ class AuthProvider extends ChangeNotifier {
     _cancelDataSubscriptions();
 
     _dataSubscriptions.add(
-      _firestoreService.getChatHistory().listen((snapshot) {
-        _chatHistory = snapshot.docs.map((doc) {
-          final data = doc.data() as Map<String, dynamic>;
-          return {'id': doc.id, ...data};
-        }).toList();
+      _dataService.getChatHistory().listen((rows) {
+        _chatHistory = rows;
         _safeNotify();
       }),
     );
 
     _dataSubscriptions.add(
-      _firestoreService.getImageAnalyses().listen((snapshot) {
-        _imageAnalyses = snapshot.docs.map((doc) {
-          final data = doc.data() as Map<String, dynamic>;
-          return {'id': doc.id, ...data};
-        }).toList();
+      _dataService.getImageAnalyses().listen((rows) {
+        _imageAnalyses = rows;
         _safeNotify();
       }),
     );
 
     _dataSubscriptions.add(
-      _firestoreService.getSpeechTranscriptions().listen((snapshot) {
-        _speechTranscriptions = snapshot.docs.map((doc) {
-          final data = doc.data() as Map<String, dynamic>;
-          return {'id': doc.id, ...data};
-        }).toList();
+      _dataService.getSpeechTranscriptions().listen((rows) {
+        _speechTranscriptions = rows;
         _safeNotify();
       }),
     );
 
     _dataSubscriptions.add(
-      _firestoreService.getUserActivities().listen((snapshot) {
-        _activities = snapshot.docs.map((doc) {
-          final data = doc.data() as Map<String, dynamic>;
-          return {'id': doc.id, ...data};
-        }).toList();
+      _dataService.getUserActivities().listen((rows) {
+        _activities = rows;
         _safeNotify();
       }),
     );
@@ -386,7 +341,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final users = await _firestoreService.getAllUsers();
+      final users = await _dataService.getAllUsers();
       _users = users;
       return _users;
     } catch (e) {
@@ -427,7 +382,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _firestoreService.adminUpdateUser(userId, data);
+      await _dataService.adminUpdateUser(userId, data);
       await fetchUsers();
       return _users.firstWhere((u) => u.uid == userId);
     } catch (e) {
@@ -445,7 +400,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _firestoreService.adminDeleteUser(userId);
+      await _dataService.adminDeleteUser(userId);
       _users.removeWhere((u) => u.uid == userId);
       notifyListeners();
     } catch (e) {
@@ -460,7 +415,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> toggleUserStatus(String userId) async {
     try {
       final user = _users.firstWhere((u) => u.uid == userId);
-      await _firestoreService.adminUpdateUser(userId, {
+      await _dataService.adminUpdateUser(userId, {
         'isActive': !user.isActive,
       });
       await fetchUsers();
@@ -472,7 +427,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> toggleUserPremium(String userId) async {
     try {
       final user = _users.firstWhere((u) => u.uid == userId);
-      await _firestoreService.adminUpdateUser(userId, {
+      await _dataService.adminUpdateUser(userId, {
         'isPremium': !user.isPremium,
       });
       await fetchUsers();

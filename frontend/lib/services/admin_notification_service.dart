@@ -1,20 +1,21 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+// lib/services/admin_notification_service.dart
+//
+// Writes admin-facing alerts to the Supabase `notifications` table
+// (replaces the old Firestore `admin_notifications` collection).
+import '../core/supabase_config.dart';
 
 class AdminNotificationService {
-  static final _firestore = FirebaseFirestore.instance;
-
   static Future<void> notify({
     required String type,
     required String title,
     required String message,
   }) async {
     try {
-      await _firestore.collection('admin_notifications').add({
+      await supabase.from('notifications').insert({
         'type': type,
         'title': title,
-        'message': message,
+        'body': message,
         'read': false,
-        'createdAt': FieldValue.serverTimestamp(),
       });
     } catch (_) {}
   }

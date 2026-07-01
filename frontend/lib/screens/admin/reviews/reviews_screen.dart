@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../core/supabase_config.dart';
 import '../../../theme/dark_mode_helpers.dart';
 
 class ReviewsScreen extends StatelessWidget {
@@ -8,17 +8,17 @@ class ReviewsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('reviews')
-          .orderBy('createdAt', descending: true)
-          .snapshots(),
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: supabase
+          .from('reviews')
+          .stream(primaryKey: ['id'])
+          .order('created_at', ascending: false),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final docs = snapshot.data?.docs ?? [];
+        final docs = snapshot.data ?? [];
 
         if (docs.isEmpty) {
           return Center(
@@ -35,8 +35,8 @@ class ReviewsScreen extends StatelessWidget {
           );
         }
 
-        final avgRating = docs.fold<double>(0, (acc, doc) {
-          return acc + (doc['rating'] as num? ?? 0).toDouble();
+        final avgRating = docs.fold<double>(0, (acc, data) {
+          return acc + (data['rating'] as num? ?? 0).toDouble();
         }) / docs.length;
 
         return SingleChildScrollView(
@@ -62,7 +62,7 @@ class ReviewsScreen extends StatelessWidget {
               const SizedBox(height: 24),
               _buildStatsRow(context, docs, avgRating),
               const SizedBox(height: 24),
-              ...docs.map((doc) => _buildReviewCard(context, doc)),
+              ...docs.map((data) => _buildReviewCard(context, data)),
             ],
           ),
         );
@@ -70,10 +70,10 @@ class ReviewsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsRow(BuildContext context, List<QueryDocumentSnapshot> docs, double avgRating) {
+  Widget _buildStatsRow(BuildContext context, List<Map<String, dynamic>> docs, double avgRating) {
     final counts = List.filled(5, 0);
-    for (final doc in docs) {
-      final rating = (doc['rating'] as num? ?? 0).toInt();
+    for (final data in docs) {
+      final rating = (data['rating'] as num? ?? 0).toInt();
       if (rating >= 1 && rating <= 5) counts[rating - 1]++;
     }
 
@@ -132,7 +132,7 @@ class ReviewsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRatingBars(BuildContext context, List<QueryDocumentSnapshot> docs, List<int> counts) {
+  Widget _buildRatingBars(BuildContext context, List<Map<String, dynamic>> docs, List<int> counts) {
     return Column(
       children: List.generate(5, (i) {
         final star = 5 - i;
@@ -166,14 +166,13 @@ class ReviewsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildReviewCard(BuildContext context, QueryDocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+  Widget _buildReviewCard(BuildContext context, Map<String, dynamic> data) {
     final rating = (data['rating'] as num? ?? 0).toInt();
-    final review = data['review'] ?? '';
-    final userName = data['userName'] ?? 'Anonymous';
-    final userEmail = data['userEmail'] ?? '';
-    final createdAt = data['createdAt'] as Timestamp?;
-    final date = createdAt?.toDate();
+    final review = data['comment']?.toString() ?? '';
+    final userName = data['user_id']?.toString() ?? 'User';
+    final userEmail = '';
+    final createdAt = DateTime.tryParse(data['created_at']?.toString() ?? '');
+    final date = createdAt;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),

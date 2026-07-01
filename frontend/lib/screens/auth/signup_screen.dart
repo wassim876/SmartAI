@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/primary_button.dart';
-import '../../widgets/social_button.dart';
 import '../../providers/auth_provider.dart';
-import '../admin/admin_dashboard.dart';
-import '../admin/admin_layout.dart';
 
 // Define constants for the terms and privacy policy text
 const String _termsAndConditionsText = '''
@@ -265,70 +261,6 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
-  // ✅ ADD THIS - Google Sign-Up
-  Future<void> _signUpWithGoogle() async {
-    setState(() => _isLoading = true);
-    try {
-      final authProvider = context.read<AuthProvider>();
-      await authProvider.loginWithGoogle();
-      if (mounted) {
-        if (authProvider.isAdmin) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AdminLayout(child: AdminDashboard()),
-            ),
-          );
-        } else {
-          Navigator.pushReplacementNamed(context, '/home');
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Google sign up failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  // ✅ ADD THIS - GitHub Sign-Up
-  Future<void> _signUpWithGitHub() async {
-    setState(() => _isLoading = true);
-    try {
-      final authProvider = context.read<AuthProvider>();
-      await authProvider.loginWithGitHub();
-      if (mounted) {
-        if (authProvider.isAdmin) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AdminLayout(child: AdminDashboard()),
-            ),
-          );
-        } else {
-          Navigator.pushReplacementNamed(context, '/home');
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('GitHub sign up failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
   Future<bool?> _showTermsAndConditionsDialog() async {
     return showDialog<bool>(
       context: context,
@@ -395,52 +327,6 @@ class _SignupScreenState extends State<SignupScreen> {
               style: GoogleFonts.poppins(fontSize: 12, color: Colors.white70)),
         ],
       ),
-    );
-  }
-
-  Widget _socialButtons(bool isWide) {
-    Widget googleButton = SocialButton(
-      label: 'Google',
-      iconWidget: SvgPicture.asset(
-        'assets/images/google-icon-logo-svgrepo-com.svg',
-        width: 20,
-        height: 20,
-        fit: BoxFit.contain,
-        errorBuilder: (context, error, stackTrace) =>
-            const Icon(Icons.image, size: 20),
-      ),
-      onPressed: _signUpWithGoogle, // ✅ Updated
-    );
-
-    Widget githubButton = SocialButton(
-      label: 'GitHub',
-      iconWidget: SvgPicture.asset(
-        'assets/images/github-svgrepo-com.svg',
-        width: 20,
-        height: 20,
-        fit: BoxFit.contain,
-        errorBuilder: (context, error, stackTrace) =>
-            const Icon(Icons.code, size: 20),
-      ),
-      onPressed: _signUpWithGitHub, // ✅ Updated
-    );
-
-    if (isWide) {
-      return Row(
-        children: [
-          Expanded(child: googleButton),
-          const SizedBox(width: 12),
-          Expanded(child: githubButton),
-        ],
-      );
-    }
-
-    return Column(
-      children: [
-        SizedBox(width: double.infinity, child: googleButton),
-        const SizedBox(height: 12),
-        SizedBox(width: double.infinity, child: githubButton),
-      ],
     );
   }
 
@@ -570,18 +456,6 @@ class _SignupScreenState extends State<SignupScreen> {
             PrimaryButton(
                 label: _isLoading ? 'Creating Account...' : 'Sign Up',
                 onPressed: _isLoading ? null : _handleSignup),
-            const SizedBox(height: 20),
-            Row(children: [
-              const Expanded(child: Divider()),
-              Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text('or sign up with',
-                      style: GoogleFonts.poppins(
-                          fontSize: 12, color: AppColors.textGrey))),
-              const Expanded(child: Divider()),
-            ]),
-            const SizedBox(height: 16),
-            _socialButtons(isWide),
             const SizedBox(height: 24),
             Center(
                 child: Wrap(

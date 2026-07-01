@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/dark_mode_helpers.dart';
@@ -31,11 +30,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
       _historyItems = activities.map((activity) {
         final action = activity['action'] ?? 'Unknown';
         final details = activity['details'] ?? {};
-        final createdAtRaw = activity['createdAt'];
+        final createdAtRaw = activity['created_at'];
         DateTime createdAt;
-        if (createdAtRaw is Timestamp) {
-          createdAt = createdAtRaw.toDate();
-        } else if (createdAtRaw is DateTime) {
+        if (createdAtRaw is DateTime) {
           createdAt = createdAtRaw;
         } else if (createdAtRaw != null) {
           createdAt = DateTime.tryParse(createdAtRaw.toString()) ?? DateTime.now();
