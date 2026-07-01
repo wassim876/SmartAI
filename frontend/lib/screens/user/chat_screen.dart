@@ -10,6 +10,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart';
 import '../../providers/auth_provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/admin_notification_service.dart';
@@ -295,6 +296,7 @@ class _ChatScreenState extends State<ChatScreen> {
       final result = await FilePicker.platform.pickFiles(
           allowMultiple: false,
           type: FileType.custom,
+          withData: true, // load bytes so we can read the document content
           allowedExtensions: [
             'pdf',
             'doc',
@@ -330,6 +332,30 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _removeAttachment(int index) =>
       setState(() => _pendingAttachments.removeAt(index));
+
+  /// Extracts readable text from a document attachment so the (text-only) chat
+  /// model can "read" it. Supports PDF (via Syncfusion) and plain text/CSV.
+  /// Returns null for formats we can't parse client-side (doc/xls/ppt).
+  Future<String?> _extractDocText(_Attachment a) async {
+    final bytes =
+        a.bytes ?? (a.path.isNotEmpty ? await File(a.path).readAsBytes() : null);
+    if (bytes == null) return null;
+    final ext = a.name.contains('.') ? a.name.split('.').last.toLowerCase() : '';
+    try {
+      if (ext == 'pdf') {
+        final document = PdfDocument(inputBytes: bytes);
+        final text = PdfTextExtractor(document).extractText();
+        document.dispose();
+        return text.trim();
+      }
+      if (ext == 'txt' || ext == 'csv') {
+        return utf8.decode(bytes, allowMalformed: true).trim();
+      }
+    } catch (_) {
+      // Unreadable/parse error → treat as no extractable text.
+    }
+    return null;
+  }
 
   void _toggleBookmark(int msgIndex) {
     final loc = AppLocalizations.of(context);
@@ -444,14 +470,44 @@ class _ChatScreenState extends State<ChatScreen> {
       } catch (_) {}
     }
 
+    // Extract readable text from attached documents (PDF / txt / csv) so the
+    // text-only chat model can actually read them.
+    final docParts = <String>[];
+    for (final d in attachments
+        .where((a) => a.type == _AttachmentType.document)) {
+      final text = await _extractDocText(d);
+      if (text != null && text.isNotEmpty) {
+        // Cap per-document so the prompt stays within the model's context.
+        const maxChars = 24000;
+        final clipped = text.length > maxChars
+            ? '${text.substring(0, maxChars)}\n…[truncated]'
+            : text;
+        docParts.add('----- "${d.name}" -----\n$clipped');
+      }
+    }
+    final docContext = docParts.join('\n\n');
+
     // Ensure at least one turn (e.g. attachment sent with no text).
     if (apiMessages.isEmpty) {
       apiMessages.add({
         'role': 'user',
         'content': imageDataUrl != null
             ? 'Describe this image.'
-            : 'Please summarize the attached file.',
+            : docContext.isNotEmpty
+                ? 'Please read the attached document and summarize it.'
+                : 'Please summarize the attached file.',
       });
+    }
+
+    // Attach the extracted document text to the final user turn as context.
+    if (docContext.isNotEmpty) {
+      for (int i = apiMessages.length - 1; i >= 0; i--) {
+        if (apiMessages[i]['role'] == 'user') {
+          apiMessages[i]['content'] =
+              '${apiMessages[i]['content']}\n\n[Attached document content]\n$docContext';
+          break;
+        }
+      }
     }
 
     String reply;

@@ -12,7 +12,7 @@ export const NIM_BASE =
 export const CHAT_MODEL =
   Deno.env.get('NIM_CHAT_MODEL') ?? 'meta/llama-3.1-8b-instruct';
 export const VISION_MODEL =
-  Deno.env.get('NIM_VISION_MODEL') ?? 'meta/llama-3.2-11b-vision-instruct';
+  Deno.env.get('NIM_VISION_MODEL') ?? 'meta/llama-3.2-90b-vision-instruct';
 export const ASR_MODEL = Deno.env.get('NIM_ASR_MODEL') ?? '';
 export const TTS_MODEL =
   Deno.env.get('NIM_TTS_MODEL') ?? 'magpie-tts-multilingual';
