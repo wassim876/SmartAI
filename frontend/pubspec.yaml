@@ -25,7 +25,7 @@ dependencies:
   dio: ^5.9.2
   flutter_secure_storage: ^9.2.2
   image_picker: ^1.1.2
-  file_picker: ^8.1.7
+  file_picker: ^11.0.2
   url_launcher: ^6.3.0
 
 #Voice (on-device speech-to-text + text-to-speech)

@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 class PhotoPickerService {
   Future<Uint8List?> pickImageFromGallery() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.image,
         withData: true, // load bytes directly (needed on web; convenient on desktop)
       );

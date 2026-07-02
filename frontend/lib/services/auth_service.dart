@@ -1,6 +1,6 @@
 // lib/services/auth_service.dart
 //
-// Supabase authentication. Email/password only — social sign-in was removed.
+// Supabase authentication: email/password + Google/GitHub OAuth.
 // Profile rows are provisioned by the `handle_new_user` DB trigger on signup.
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/supabase_config.dart';
@@ -45,6 +45,18 @@ class AuthService {
     }
     await _data.touchLastLogin();
     return _data.getUserProfile();
+  }
+
+  Future<void> signInWithGoogle() async {
+    await supabase.auth.signInWithOAuth(
+      OAuthProvider.google,
+    );
+  }
+
+  Future<void> signInWithGitHub() async {
+    await supabase.auth.signInWithOAuth(
+      OAuthProvider.github,
+    );
   }
 
   Future<void> signOut() => supabase.auth.signOut();

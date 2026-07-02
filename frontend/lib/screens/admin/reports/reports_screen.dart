@@ -90,7 +90,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     // On web there is no filesystem: passing `bytes` makes file_picker trigger
     // a browser download directly (it returns null but the download happens).
     if (kIsWeb) {
-      await FilePicker.platform.saveFile(
+      await FilePicker.saveFile(
         dialogTitle: 'Save report',
         fileName: fileName,
         type: FileType.custom,
@@ -99,7 +99,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       );
       return fileName;
     }
-    final path = await FilePicker.platform.saveFile(
+    final path = await FilePicker.saveFile(
       dialogTitle: 'Save report',
       fileName: fileName,
       type: FileType.custom,

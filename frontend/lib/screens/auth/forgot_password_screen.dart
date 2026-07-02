@@ -120,20 +120,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Image.asset(
-              'assets/images/icon-ai.png',
+              'assets/images/smartai.png',
               width: 90,
               height: 80,
               fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => Image.asset(
-                'assets/images/smartai.png',
-                width: 90,
-                height: 80,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) => const Icon(
-                  Icons.smart_toy_outlined,
-                  size: 70,
-                  color: Colors.white,
-                ),
+              errorBuilder: (context, error, stackTrace) => const Icon(
+                Icons.smart_toy_outlined,
+                size: 70,
+                color: Colors.white,
               ),
             ),
           ),
@@ -177,11 +171,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: const Icon(
-                Icons.arrow_back_rounded,
-                color: AppColors.textDark,
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: const Icon(
+                  Icons.arrow_back_rounded,
+                  color: AppColors.textDark,
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -241,14 +238,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       color: AppColors.textGrey,
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Text(
-                      'Login',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
+                  MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Text(
+                        'Login',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),

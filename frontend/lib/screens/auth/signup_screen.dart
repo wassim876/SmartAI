@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/primary_button.dart';
+import '../../widgets/social_login_buttons.dart';
 import '../../providers/auth_provider.dart';
 
 // Define constants for the terms and privacy policy text
@@ -362,9 +363,11 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Widget _formSection(bool isWide, double formPadding) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: formPadding, vertical: 32),
-      child: ConstrainedBox(
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(horizontal: formPadding, vertical: 32),
+        child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 520),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -457,6 +460,36 @@ class _SignupScreenState extends State<SignupScreen> {
                 label: _isLoading ? 'Creating Account...' : 'Sign Up',
                 onPressed: _isLoading ? null : _handleSignup),
             const SizedBox(height: 24),
+            SocialLoginButtons(
+              isLoading: _isLoading,
+              onGooglePressed: () async {
+                try {
+                  await context.read<AuthProvider>().signInWithGoogle();
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Google sign-in failed: ${e.toString()}'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              onGitHubPressed: () async {
+                try {
+                  await context.read<AuthProvider>().signInWithGitHub();
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('GitHub sign-in failed: ${e.toString()}'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+            ),
+            const SizedBox(height: 24),
             Center(
                 child: Wrap(
               alignment: WrapAlignment.center,
@@ -491,6 +524,7 @@ class _SignupScreenState extends State<SignupScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -581,24 +615,20 @@ class _TermsAndConditionsDialogContentState
           children: [
             const Divider(height: 1),
             Expanded(
-              child: Scrollbar(
+              child: SingleChildScrollView(
                 controller: _scrollController,
-                thumbVisibility: true,
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _sectionHeader('SmartAI Terms & Conditions'),
-                      const SizedBox(height: 8),
-                      _bodyText(_termsAndConditionsText),
-                      const SizedBox(height: 24),
-                      _sectionHeader('Privacy Policy'),
-                      const SizedBox(height: 8),
-                      _bodyText(_privacyPolicyText),
-                    ],
-                  ),
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _sectionHeader('SmartAI Terms & Conditions'),
+                    const SizedBox(height: 8),
+                    _bodyText(_termsAndConditionsText),
+                    const SizedBox(height: 24),
+                    _sectionHeader('Privacy Policy'),
+                    const SizedBox(height: 8),
+                    _bodyText(_privacyPolicyText),
+                  ],
                 ),
               ),
             ),

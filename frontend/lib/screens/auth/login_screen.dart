@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/primary_button.dart';
+import '../../widgets/social_login_buttons.dart';
 import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
 import '../admin/admin_dashboard.dart';
@@ -229,6 +230,36 @@ class _LoginScreenState extends State<LoginScreen> {
             PrimaryButton(
               label: _isLoading ? 'Logging in...' : 'Login',
               onPressed: _isLoading ? null : _handleLogin,
+            ),
+            const SizedBox(height: 24),
+            SocialLoginButtons(
+              isLoading: _isLoading,
+              onGooglePressed: () async {
+                try {
+                  await context.read<AuthProvider>().signInWithGoogle();
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Google sign-in failed: ${e.toString()}'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              onGitHubPressed: () async {
+                try {
+                  await context.read<AuthProvider>().signInWithGitHub();
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('GitHub sign-in failed: ${e.toString()}'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
             ),
             const SizedBox(height: 24),
             Center(

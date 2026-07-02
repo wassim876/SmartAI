@@ -258,7 +258,7 @@ class _ChatScreenState extends State<ChatScreen> {
       if (source == ImageSource.gallery) {
         // file_picker works on desktop (macOS) where image_picker's gallery
         // source is unsupported; returns a readable file path on native.
-        final result = await FilePicker.platform.pickFiles(
+        final result = await FilePicker.pickFiles(
           type: FileType.image,
           withData: true, // load bytes: on web there is no file path
         );
@@ -293,7 +293,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _pickDocument() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
           allowMultiple: false,
           type: FileType.custom,
           withData: true, // load bytes so we can read the document content
