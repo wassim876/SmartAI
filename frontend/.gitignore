@@ -43,3 +43,17 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+/android/build/
+
+# macOS
+.DS_Store
+
+# Nix
+.nix-gcroots/
+.flutter-sdk/
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
