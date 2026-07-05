@@ -686,6 +686,160 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ]);
   }
 
+  Future<void> _showChangePasswordDialog(AppLocalizations loc) async {
+    final newCtrl = TextEditingController();
+    final confirmCtrl = TextEditingController();
+    bool busy = false;
+    bool obscure = true;
+
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogCtx) {
+        return StatefulBuilder(
+          builder: (dialogCtx, setLocal) {
+            InputDecoration deco(String hint) => InputDecoration(
+                  hintText: hint,
+                  hintStyle: GoogleFonts.poppins(fontSize: 13, color: _t2(dialogCtx)),
+                  filled: true,
+                  fillColor: _bg(dialogCtx),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: _bd(dialogCtx)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: _bd(dialogCtx)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: _primary),
+                  ),
+                );
+
+            Future<void> submit() async {
+              final pw = newCtrl.text;
+              final confirm = confirmCtrl.text;
+              final messenger = ScaffoldMessenger.of(context);
+              if (pw.length < 6) {
+                messenger.showSnackBar(const SnackBar(
+                  content: Text('Password must be at least 6 characters'),
+                  backgroundColor: Colors.red,
+                  behavior: SnackBarBehavior.floating,
+                ));
+                return;
+              }
+              if (pw != confirm) {
+                messenger.showSnackBar(const SnackBar(
+                  content: Text('Passwords do not match'),
+                  backgroundColor: Colors.red,
+                  behavior: SnackBarBehavior.floating,
+                ));
+                return;
+              }
+              setLocal(() => busy = true);
+              try {
+                await context.read<AuthProvider>().changePassword(pw);
+                if (dialogCtx.mounted) Navigator.pop(dialogCtx);
+                messenger.showSnackBar(SnackBar(
+                  content: const Text('Password updated successfully'),
+                  backgroundColor: const Color(0xFF10B981),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ));
+              } catch (e) {
+                setLocal(() => busy = false);
+                messenger.showSnackBar(SnackBar(
+                  content: Text('${loc.translate('failedToSubmit')}: $e'),
+                  backgroundColor: Colors.red,
+                  behavior: SnackBarBehavior.floating,
+                ));
+              }
+            }
+
+            return AlertDialog(
+              backgroundColor: _card(dialogCtx),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18)),
+              title: Text(
+                loc.translate('changePassword'),
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: _t1(dialogCtx),
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: newCtrl,
+                    obscureText: obscure,
+                    style: GoogleFonts.poppins(fontSize: 14, color: _t1(dialogCtx)),
+                    decoration: deco('New password').copyWith(
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          obscure
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                          color: _t2(dialogCtx),
+                          size: 20,
+                        ),
+                        onPressed: () => setLocal(() => obscure = !obscure),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: confirmCtrl,
+                    obscureText: obscure,
+                    style: GoogleFonts.poppins(fontSize: 14, color: _t1(dialogCtx)),
+                    decoration: deco('Confirm new password'),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: busy ? null : () => Navigator.pop(dialogCtx),
+                  child: Text(
+                    loc.translate('cancel'),
+                    style: GoogleFonts.poppins(color: _t2(dialogCtx)),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: busy ? null : submit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: busy
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
+                        )
+                      : Text(
+                          loc.translate('save'),
+                          style:
+                              GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    newCtrl.dispose();
+    confirmCtrl.dispose();
+  }
+
   Widget _buildSecurityCard(AppLocalizations loc) {
     return _buildSettingCard([
       _buildSettingItem(
@@ -693,15 +847,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         color: Colors.orange,
         title: loc.translate('changePassword'), // ✅
         subtitle: loc.translate('changePasswordDesc'), // ✅
-        onTap: () {},
-      ),
-      Divider(height: 1, indent: 56, color: _bd(context)),
-      _buildSettingItem(
-        icon: Icons.shield_outlined,
-        color: Colors.blue,
-        title: loc.translate('twoFactor'), // ✅
-        subtitle: loc.translate('twoFactorDesc'), // ✅
-        onTap: () {},
+        onTap: () => _showChangePasswordDialog(loc),
       ),
     ]);
   }

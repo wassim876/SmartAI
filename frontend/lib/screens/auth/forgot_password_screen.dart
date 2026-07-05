@@ -15,52 +15,88 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
+  final _codeController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmController = TextEditingController();
+
   bool _isLoading = false;
+  // false → step 1 (ask for email); true → step 2 (enter code + new password).
+  bool _codeSent = false;
 
   @override
   void dispose() {
     _emailController.dispose();
+    _codeController.dispose();
+    _passwordController.dispose();
+    _confirmController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleResetPassword() async {
+  void _snack(String message, Color color) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: color),
+    );
+  }
+
+  Future<void> _handleSendCode() async {
     final email = _emailController.text.trim();
 
     if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your email')),
-      );
+      _snack('Please enter your email', Colors.red);
       return;
     }
 
     setState(() => _isLoading = true);
 
     try {
-      final authProvider = context.read<AuthProvider>();
-      await authProvider.sendPasswordResetEmail(email);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Reset link sent to your email! Please check your inbox.'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pop(context);
-      }
+      await context.read<AuthProvider>().sendPasswordResetEmail(email);
+      if (!mounted) return;
+      setState(() => _codeSent = true);
+      _snack('We sent a reset code to your email. Check your inbox.',
+          Colors.green);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      _snack('Error: ${e.toString()}', Colors.red);
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _handleResetPassword() async {
+    final email = _emailController.text.trim();
+    final code = _codeController.text.trim();
+    final password = _passwordController.text;
+    final confirm = _confirmController.text;
+
+    if (code.isEmpty) {
+      _snack('Please enter the code from your email', Colors.red);
+      return;
+    }
+    if (password.length < 6) {
+      _snack('Password must be at least 6 characters', Colors.red);
+      return;
+    }
+    if (password != confirm) {
+      _snack('Passwords do not match', Colors.red);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      await context.read<AuthProvider>().resetPasswordWithOtp(
+            email: email,
+            token: code,
+            newPassword: password,
+          );
+      if (!mounted) return;
+      _snack('Password reset! Please log in with your new password.',
+          Colors.green);
+      Navigator.pop(context);
+    } catch (e) {
+      _snack('Error: ${e.toString()}', Colors.red);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -184,7 +220,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             const SizedBox(height: 16),
             Center(
               child: Text(
-                'Forgot Password?',
+                _codeSent ? 'Enter Reset Code' : 'Forgot Password?',
                 style: GoogleFonts.poppins(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -195,7 +231,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             const SizedBox(height: 8),
             Center(
               child: Text(
-                "Enter your email address and we'll send you code to reset your password.",
+                _codeSent
+                    ? 'Enter the code we emailed to ${_emailController.text.trim()} and choose a new password.'
+                    : "Enter your email address and we'll send you a code to reset your password.",
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
                   fontSize: 14,
@@ -204,26 +242,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
             ),
             const SizedBox(height: 32),
-            Text(
-              'Email Address',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textDark,
-              ),
-            ),
-            const SizedBox(height: 8),
-            CustomTextField(
-              hint: 'Enter your registered email',
-              prefixIcon: Icons.mail_outline_rounded,
-              keyboardType: TextInputType.emailAddress,
-              controller: _emailController,
-            ),
-            const SizedBox(height: 32),
-            PrimaryButton(
-              label: _isLoading ? 'Sending...' : 'Send Reset Link',
-              onPressed: _isLoading ? null : _handleResetPassword,
-            ),
+            if (!_codeSent) ..._emailStep() else ..._resetStep(),
             const SizedBox(height: 24),
             Center(
               child: Wrap(
@@ -257,6 +276,88 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  List<Widget> _emailStep() {
+    return [
+      _label('Email Address'),
+      const SizedBox(height: 8),
+      CustomTextField(
+        hint: 'Enter your registered email',
+        prefixIcon: Icons.mail_outline_rounded,
+        keyboardType: TextInputType.emailAddress,
+        controller: _emailController,
+      ),
+      const SizedBox(height: 32),
+      PrimaryButton(
+        label: _isLoading ? 'Sending...' : 'Send Reset Code',
+        onPressed: _isLoading ? null : _handleSendCode,
+      ),
+    ];
+  }
+
+  List<Widget> _resetStep() {
+    return [
+      _label('Reset Code'),
+      const SizedBox(height: 8),
+      CustomTextField(
+        hint: 'Enter the 6-digit code',
+        prefixIcon: Icons.pin_outlined,
+        keyboardType: TextInputType.number,
+        controller: _codeController,
+      ),
+      const SizedBox(height: 20),
+      _label('New Password'),
+      const SizedBox(height: 8),
+      CustomTextField(
+        hint: 'Enter your new password',
+        prefixIcon: Icons.lock_outline_rounded,
+        isPassword: true,
+        controller: _passwordController,
+      ),
+      const SizedBox(height: 20),
+      _label('Confirm Password'),
+      const SizedBox(height: 8),
+      CustomTextField(
+        hint: 'Re-enter your new password',
+        prefixIcon: Icons.lock_outline_rounded,
+        isPassword: true,
+        controller: _confirmController,
+      ),
+      const SizedBox(height: 32),
+      PrimaryButton(
+        label: _isLoading ? 'Resetting...' : 'Reset Password',
+        onPressed: _isLoading ? null : _handleResetPassword,
+      ),
+      const SizedBox(height: 12),
+      Center(
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: _isLoading ? null : _handleSendCode,
+            child: Text(
+              'Resend code',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ),
+    ];
+  }
+
+  Widget _label(String text) {
+    return Text(
+      text,
+      style: GoogleFonts.poppins(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: AppColors.textDark,
       ),
     );
   }

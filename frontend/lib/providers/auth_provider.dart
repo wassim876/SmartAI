@@ -207,6 +207,31 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> resetPasswordWithOtp({
+    required String email,
+    required String token,
+    required String newPassword,
+  }) async {
+    try {
+      await _authService.resetPasswordWithOtp(
+        email: email,
+        token: token,
+        newPassword: newPassword,
+      );
+    } catch (e) {
+      throw Exception('Failed to reset password: ${e.toString()}');
+    }
+  }
+
+  Future<void> changePassword(String newPassword) async {
+    if (_currentUser == null) throw Exception('Not authenticated');
+    try {
+      await _authService.changePassword(newPassword);
+    } catch (e) {
+      throw Exception('Failed to change password: ${e.toString()}');
+    }
+  }
+
   Future<void> updateProfile({
     String? displayName,
     String? photoURL,

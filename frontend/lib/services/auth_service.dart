@@ -64,6 +64,24 @@ class AuthService {
   Future<void> sendPasswordResetEmail(String email) =>
       supabase.auth.resetPasswordForEmail(email);
 
+  /// Completes a password reset started with [sendPasswordResetEmail].
+  /// The recovery email carries a 6-digit [token]; verifying it opens a
+  /// short-lived recovery session that we use to set the new password. We
+  /// sign out afterwards so the user re-authenticates with the new password.
+  Future<void> resetPasswordWithOtp({
+    required String email,
+    required String token,
+    required String newPassword,
+  }) async {
+    await supabase.auth.verifyOTP(
+      email: email,
+      token: token,
+      type: OtpType.recovery,
+    );
+    await supabase.auth.updateUser(UserAttributes(password: newPassword));
+    await supabase.auth.signOut();
+  }
+
   // ==========================================
   // PROFILE / CREDENTIALS
   // ==========================================
