@@ -45,6 +45,12 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _wantListening = false;
   String _sttBase = '';
 
+  // Chat model picker. The allowlist is served by the `nim-models` Edge
+  // Function rather than hardcoded, so a model retirement is a function deploy
+  // instead of an app release. Null `_selectedModel` = use the server default.
+  List<AiModel> _models = [];
+  String? _selectedModel;
+
   String? _currentSessionId;
   List<_ChatSession> _sessions = [];
   bool _isLoadingSessions = true;
@@ -56,10 +62,32 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _loadSessions();
+    _loadModels();
     _initSpeech();
     if (widget.initialPrompt.isNotEmpty) {
       _controller.text = widget.initialPrompt;
     }
+  }
+
+  /// Populates the model picker. Failures are non-fatal: the picker just stays
+  /// hidden and every request falls back to the server-side default model.
+  Future<void> _loadModels() async {
+    final catalog = await _ai.listModels();
+    if (!mounted || catalog.models.isEmpty) return;
+    final hasDefault =
+        catalog.models.any((m) => m.id == catalog.defaultModel);
+    setState(() {
+      _models = catalog.models;
+      _selectedModel =
+          hasDefault ? catalog.defaultModel : catalog.models.first.id;
+    });
+  }
+
+  String? get _selectedModelLabel {
+    for (final m in _models) {
+      if (m.id == _selectedModel) return m.label;
+    }
+    return null;
   }
 
   Future<void> _initSpeech() async {
@@ -512,7 +540,12 @@ class _ChatScreenState extends State<ChatScreen> {
 
     String reply;
     try {
-      reply = await _ai.chat(messages: apiMessages, imageDataUrl: imageDataUrl);
+      final result = await _ai.chat(
+        messages: apiMessages,
+        imageDataUrl: imageDataUrl,
+        model: _selectedModel,
+      );
+      reply = result.reply;
     } on AiQuotaException catch (e) {
       if (!mounted) return;
       setState(() {
@@ -675,13 +708,16 @@ class _ChatScreenState extends State<ChatScreen> {
                   decoration: const BoxDecoration(
                       color: Color(0xFF22C55E), shape: BoxShape.circle)),
               const SizedBox(width: 4),
-              Text(loc.translate('online'),
+              // Show the active model once the picker has loaded, so it's
+              // obvious which one answered.
+              Text(_selectedModelLabel ?? loc.translate('online'),
                   style:
                       GoogleFonts.poppins(fontSize: 11, color: D.t2(context))),
             ]),
           ]),
         ]),
         actions: [
+          if (_models.isNotEmpty) _buildModelPicker(),
           IconButton(
               icon: Icon(Icons.add_comment_rounded,
                   color: D.t2(context), size: 22),
@@ -713,6 +749,44 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         _buildInputBar(),
       ]),
+    );
+  }
+
+  /// Model picker. Only the ids the backend advertises are offered, and the
+  /// server re-validates the pick, so this can't be used to reach an
+  /// unapproved model.
+  Widget _buildModelPicker() {
+    return PopupMenuButton<String>(
+      icon: Icon(Icons.auto_awesome_rounded, color: D.t2(context), size: 22),
+      tooltip: 'Model',
+      color: D.card(context),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      onSelected: (id) => setState(() => _selectedModel = id),
+      itemBuilder: (context) => [
+        for (final m in _models)
+          PopupMenuItem<String>(
+            value: m.id,
+            child: Row(children: [
+              Icon(
+                m.id == _selectedModel
+                    ? Icons.check_rounded
+                    : (m.vision
+                        ? Icons.visibility_outlined
+                        : Icons.chat_bubble_outline_rounded),
+                size: 18,
+                color: m.id == _selectedModel ? _primary : D.t3(context),
+              ),
+              const SizedBox(width: 10),
+              Text(m.label,
+                  style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      color: D.t1(context),
+                      fontWeight: m.id == _selectedModel
+                          ? FontWeight.w600
+                          : FontWeight.w400)),
+            ]),
+          ),
+      ],
     );
   }
 
