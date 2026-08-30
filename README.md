@@ -25,11 +25,12 @@ Flutter app ──► Supabase (Postgres + Auth + Storage + Realtime)
      │                 ▲
      │                 │ JWT
      └──► Supabase Edge Functions (Deno) ──► NVIDIA NIM
-                 (hold the NVIDIA key,        (integrate.api.nvidia.com,
-                  enforce usage quota)         Speech NIM)
+                 (hold the NVIDIA key,        (integrate.api.nvidia.com)
+                  enforce usage quota)
 ```
 
-- **No API keys on the client.** All AI calls go through Supabase Edge Functions (`nim-chat`, `nim-translate`, `nim-transcribe`, `nim-tts`) which hold `NVIDIA_API_KEY` server-side and enforce the per-user quota via a Postgres RPC.
+- **No API keys on the client.** All AI calls go through Supabase Edge Functions (`nim-chat`, `nim-translate`, `nim-models`) which hold `NVIDIA_API_KEY` server-side and enforce the per-user quota via a Postgres RPC.
+- **The user picks the chat model.** `nim-models` serves an allowlist of verified-working NIM models; the client sends its choice and the server re-validates it, so a retired or unapproved model can never reach the API key. Requests with an image always use a vision-capable model.
 - **Firebase** is retained **only** for push notifications (FCM). Auth/database/storage are entirely Supabase.
 - Row-Level Security scopes every table to its owner; admins get cross-user read access via an `is_admin()` policy helper.
 
@@ -39,7 +40,7 @@ Flutter app ──► Supabase (Postgres + Auth + Storage + Realtime)
 |---|---|
 | App | Flutter (Dart), Provider, fl_chart |
 | Backend | Supabase (Postgres, GoTrue, Storage, Realtime, Edge Functions/Deno) |
-| AI | NVIDIA NIM — chat/vision `meta/llama-3.x`, Speech NIM (ASR/TTS) |
+| AI | NVIDIA NIM — chat `nvidia/nemotron-3.*`, vision `meta/llama-3.2-*-vision` |
 | Push | Firebase Cloud Messaging |
 
 ## Repository layout
@@ -91,9 +92,9 @@ Create `supabase/functions/.env` (gitignored) with a key from [build.nvidia.com]
 
 ```
 NVIDIA_API_KEY=nvapi-...
-# optional overrides:
-# NIM_CHAT_MODEL=meta/llama-3.1-8b-instruct
-# NIM_VISION_MODEL=meta/llama-3.2-11b-vision-instruct
+# optional overrides (defaults live in functions/_shared/nvidia.ts):
+# NIM_CHAT_MODEL=nvidia/nemotron-3.5-lightning-30b-a3b
+# NIM_VISION_MODEL=meta/llama-3.2-90b-vision-instruct
 ```
 
 ### 4. Run the app
@@ -123,5 +124,6 @@ supabase functions deploy <name>
 
 ## Notes
 
-- Speech-to-text / text-to-speech use NVIDIA's hosted Speech NIM endpoints; confirm the exact model IDs at build.nvidia.com.
+- Speech-to-text / text-to-speech run **on-device** (`speech_to_text` + `flutter_tts`); there are no ASR/TTS Edge Functions.
+- NVIDIA retires models on a schedule — a dead id makes every chat call fail with 410. The allowlist in `supabase/functions/_shared/nvidia.ts` was verified against the project's own key on 2026-08-30; note that the public catalog lists many models the account can't actually call, so probe before adding one.
 - The macOS build needs the network-client, microphone, and user-selected-file entitlements (already configured in `macos/Runner/*.entitlements`).

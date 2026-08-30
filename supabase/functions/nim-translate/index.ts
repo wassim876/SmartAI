@@ -1,6 +1,7 @@
 // nim-translate — translation via an NVIDIA NIM chat model (OpenAI-compatible).
+// Counts against the same per-user daily quota as nim-chat.
 import { corsHeaders, json } from '../_shared/cors.ts';
-import { CHAT_MODEL, NIM_BASE, NVIDIA_API_KEY, userClient } from '../_shared/nvidia.ts';
+import { NIM_BASE, NVIDIA_API_KEY, resolveChatModel, userClient } from '../_shared/nvidia.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -21,6 +22,26 @@ Deno.serve(async (req) => {
     const sourceLang: string | undefined = body.sourceLang;
     if (!text.trim()) return json({ error: 'text is required' }, 400);
 
+    // Optional caller-picked model, validated against the allowlist. Resolved
+    // before spending quota so a bad id doesn't cost the user a message.
+    const model = resolveChatModel(body.model, false);
+    if (!model) {
+      return json(
+        { error: 'unknown_model', message: `Unsupported model: ${body.model}` },
+        400,
+      );
+    }
+
+    // Same server-side quota as nim-chat — translation is a NIM call too, so
+    // it must not be a free path around the daily cap.
+    const { error: quotaError } = await supabase.rpc('increment_daily_messages');
+    if (quotaError) {
+      return json(
+        { error: 'daily_limit_reached', message: quotaError.message },
+        429,
+      );
+    }
+
     const sourceClause = sourceLang ? ` from ${sourceLang}` : '';
     const nvRes = await fetch(`${NIM_BASE}/chat/completions`, {
       method: 'POST',
@@ -30,7 +51,7 @@ Deno.serve(async (req) => {
         Accept: 'application/json',
       },
       body: JSON.stringify({
-        model: CHAT_MODEL,
+        model: model.id,
         messages: [
           {
             role: 'system',
@@ -54,7 +75,7 @@ Deno.serve(async (req) => {
 
     const data = await nvRes.json();
     const translation = (data.choices?.[0]?.message?.content ?? '').trim();
-    return json({ translation, targetLang });
+    return json({ translation, targetLang, model: model.id });
   } catch (e) {
     return json({ error: 'internal', message: String(e) }, 500);
   }

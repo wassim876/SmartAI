@@ -2,11 +2,10 @@
 // Enforces the per-user daily message quota server-side before calling NVIDIA.
 import { corsHeaders, json } from '../_shared/cors.ts';
 import {
-  CHAT_MODEL,
   NIM_BASE,
   NVIDIA_API_KEY,
+  resolveChatModel,
   userClient,
-  VISION_MODEL,
 } from '../_shared/nvidia.ts';
 
 interface ChatMessage {
@@ -32,6 +31,16 @@ Deno.serve(async (req) => {
     // Optional image as a data URI: "data:image/jpeg;base64,...."
     const image: string | undefined = body.image;
 
+    // Optional caller-picked model, validated against the allowlist. Resolve
+    // BEFORE spending quota so a bad id doesn't cost the user a message.
+    const model = resolveChatModel(body.model, Boolean(image));
+    if (!model) {
+      return json(
+        { error: 'unknown_model', message: `Unsupported model: ${body.model}` },
+        400,
+      );
+    }
+
     // Server-side quota: atomically increment; raises when the cap is hit.
     const { error: quotaError } = await supabase.rpc('increment_daily_messages');
     if (quotaError) {
@@ -40,8 +49,6 @@ Deno.serve(async (req) => {
         429,
       );
     }
-
-    const model = image ? VISION_MODEL : CHAT_MODEL;
 
     // Attach the image to the final user turn using the OpenAI vision shape.
     const outMessages = messages.map((m) => ({ role: m.role, content: m.content as unknown }));
@@ -62,7 +69,7 @@ Deno.serve(async (req) => {
         Accept: 'application/json',
       },
       body: JSON.stringify({
-        model,
+        model: model.id,
         messages: outMessages,
         temperature: body.temperature ?? 0.7,
         max_tokens: body.max_tokens ?? 1024,
@@ -78,7 +85,7 @@ Deno.serve(async (req) => {
 
     const data = await nvRes.json();
     const reply = data.choices?.[0]?.message?.content ?? '';
-    return json({ reply, model });
+    return json({ reply, model: model.id });
   } catch (e) {
     return json({ error: 'internal', message: String(e) }, 500);
   }
