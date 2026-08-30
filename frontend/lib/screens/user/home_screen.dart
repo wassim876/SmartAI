@@ -45,7 +45,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _NavItem(Icons.home_rounded, 'home'),
     _NavItem(Icons.auto_awesome_rounded, 'aiChat'),
     _NavItem(Icons.history_rounded, 'chatHistory'),
-    _NavItem(Icons.star_outline_rounded, 'favorites'),
   ];
 
   @override
@@ -63,10 +62,6 @@ class _HomeScreenState extends State<HomeScreen> {
         break;
       case 2:
         Navigator.pushNamed(context, '/history');
-        break;
-      case 3:
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context).translate('favoritesComingSoon'))));
         break;
       default:
         setState(() => _selectedIndex = i);
@@ -187,15 +182,12 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: _BottomNav(
         selected: _selectedIndex,
         onTap: (i) {
-          if (i == 4) {
+          if (i == 3) {
             Navigator.push(context, _route(const UserSettingsScreen()));
           } else if (i == 1) {
             Navigator.pushNamed(context, '/history');
           } else if (i == 2) {
             Navigator.push(context, _route(const ChatScreen()));
-          } else if (i == 3) {
-            ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(AppLocalizations.of(context).translate('favoritesComingSoon'))));
           } else {
             setState(() => _selectedIndex = i);
           }
@@ -1491,7 +1483,6 @@ class _BottomNav extends StatelessWidget {
       (Icons.home_rounded, loc.translate('home')),
       (Icons.history_rounded, loc.translate('history')),
       (Icons.add_rounded, ''),
-      (Icons.star_outline_rounded, loc.translate('favorites')),
       (Icons.settings_outlined, loc.translate('settings')),
     ];
     return Container(
